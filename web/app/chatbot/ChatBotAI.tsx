@@ -98,16 +98,18 @@ function ChatBotAI() {
                         }`}
                       >
                         <ReactMarkdown
+                          disallowedElements={["p"]}
+                          unwrapDisallowed={true}
                           children={message.content}
                           remarkPlugins={[remarkGfm]}
                           components={{
-                            code({
+                            code: ({
                               node,
                               inline,
                               className,
                               children,
                               ...props
-                            }) {
+                            }: any) => {
                               return inline ? (
                                 <code
                                   {...props}
@@ -128,7 +130,7 @@ function ChatBotAI() {
                               <ul className="list-disc ml-4">{children}</ul>
                             ),
                             ol: ({ children }) => (
-                              <li className="list-decimal ml-4">{children}</li>
+                              <ol className="list-decimal ml-4">{children}</ol>
                             ),
                           }}
                         />
