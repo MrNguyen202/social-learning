@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { sendMessageToGemini } from '../api/gemini/route';
-import { Home, MessageCircle, MessageCircleX, Search } from 'lucide-react-native';
+import { MessageCircle, MessageCircleX, Trash, X } from 'lucide-react-native';
 
 interface Message {
   id: string;
@@ -212,21 +212,20 @@ const ChatBotAI = () => {
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerLeft}>
-                <Text style={styles.headerTitle}>🤖 AI Assistant</Text>
-                <Text style={styles.headerSubtitle}>Powered by Gemini</Text>
+                <Text style={styles.headerTitle}>Chat with AI</Text>
               </View>
               <View style={styles.headerActions}>
                 <TouchableOpacity
                   onPress={clearChat}
                   style={styles.headerButton}
                 >
-                  <Text style={styles.headerButtonText}>🗑️</Text>
+                  <Trash size={22} color="#000" />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={toggleChat}
                   style={styles.headerButton}
                 >
-                  <Text style={styles.headerButtonText}>✕</Text>
+                  <X size={25} color="#000" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -240,10 +239,9 @@ const ChatBotAI = () => {
             >
               {messages.length === 0 ? (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyIcon}>🤖</Text>
                   <Text style={styles.emptyText}>Xin chào!</Text>
                   <Text style={styles.emptySubtext}>
-                    Tôi là AI Assistant. Hãy hỏi tôi bất cứ điều gì bạn muốn
+                    Mình là AI Gemini. Hãy hỏi tôi bất cứ điều gì bạn muốn
                     biết!
                   </Text>
                 </View>
@@ -294,117 +292,6 @@ const ChatBotAI = () => {
       )}
     </View>
   );
-};
-
-const markdownStyles = {
-  body: {
-    fontSize: 16,
-    lineHeight: 22,
-    color: '#333',
-  },
-  heading1: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
-    marginTop: 8,
-  },
-  heading2: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 6,
-    marginTop: 6,
-  },
-  heading3: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-    marginTop: 4,
-  },
-  paragraph: {
-    fontSize: 16,
-    lineHeight: 22,
-    color: '#333',
-    marginBottom: 8,
-  },
-  strong: {
-    fontWeight: 'bold',
-  },
-  em: {
-    fontStyle: 'italic',
-  },
-  code_inline: {
-    backgroundColor: '#f0f0f0',
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    borderRadius: 4,
-    fontSize: 14,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-  },
-  code_block: {
-    backgroundColor: '#f8f8f8',
-    padding: 12,
-    borderRadius: 8,
-    marginVertical: 8,
-    fontSize: 14,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-  },
-  fence: {
-    backgroundColor: '#f8f8f8',
-    padding: 12,
-    borderRadius: 8,
-    marginVertical: 8,
-    fontSize: 14,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-  },
-  bullet_list: {
-    marginVertical: 8,
-  },
-  ordered_list: {
-    marginVertical: 8,
-  },
-  list_item: {
-    marginBottom: 4,
-  },
-  blockquote: {
-    backgroundColor: '#f9f9f9',
-    borderLeftWidth: 4,
-    borderLeftColor: '#007AFF',
-    paddingLeft: 12,
-    paddingVertical: 8,
-    marginVertical: 8,
-    fontStyle: 'italic',
-  },
-  link: {
-    color: '#007AFF',
-    textDecorationLine: 'underline',
-  },
-  table: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    marginVertical: 8,
-  },
-  thead: {
-    backgroundColor: '#f5f5f5',
-  },
-  tbody: {},
-  th: {
-    padding: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    fontWeight: 'bold',
-  },
-  td: {
-    padding: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  tr: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
 };
 
 const styles = StyleSheet.create({
@@ -534,7 +421,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   userBubble: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#000',
     borderBottomRightRadius: 6,
   },
   assistantBubble: {
@@ -603,7 +490,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#007AFF',
