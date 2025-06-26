@@ -5,6 +5,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, User } from 'lucide-react-native';
 import ConferenceCall from '../call/ConferenceCall';
 import CallHome from '../call/CallHome';
+import LandingScreen from '../screens/LandingScreen';
+import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
 const Tab = createBottomTabNavigator();
 
 function BottomTabs() {
@@ -30,6 +33,22 @@ function BottomTabs() {
                <Home size={24} color="white" />
               ) : (
                 <Home size={24} color="#000" />
+              ),
+          }}
+        />
+
+        <Tab.Screen
+          name="Landing"
+          component={LandingScreen}
+          options={{
+            tabBarLabel: '',
+            headerShown: false,
+            tabBarLabelStyle: { color: 'white', fontSize: 14 },
+            tabBarIcon: ({ focused }) =>
+              focused ? (
+               <User size={24} color="white" />
+              ) : (
+                <User size={24} color="#000" />
               ),
           }}
         />
@@ -65,6 +84,8 @@ const AppNavigation = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen name="ConferenceCall" component={ConferenceCall} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
   );
 };

@@ -23,6 +23,7 @@
     "lucide-react-native": "^0.523.0",
     "react": "19.1.0",
     "react-native": "0.80.0",
+    "react-native-linear-gradient": "^2.8.3",
     "react-native-markdown-display": "^7.0.2",
     "react-native-pell-rich-editor": "^1.9.0",
     "react-native-safe-area-context": "^5.5.0",
