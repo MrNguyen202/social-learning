@@ -1,8 +1,16 @@
-import {Button, StyleSheet, Text, TextInput, View} from 'react-native';
-import React, {useEffect, useState} from 'react';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useNavigation} from '@react-navigation/native';
+import {
+  Button,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import uuid from 'react-native-uuid';
+import LinearGradient from 'react-native-linear-gradient';
 
 const CallHome = () => {
   const [userId, setUserId] = useState('');
@@ -21,33 +29,44 @@ const CallHome = () => {
   }, []);
 
   return (
-    <View
-      style={{
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom,
-        paddingHorizontal: 16,
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}>
-      <Text>User Id: {userId}</Text>
-      <Text>Room Id: </Text>
+    <LinearGradient
+      colors={['#FEF3C7', '#FECACA']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      className="flex-1 items-center justify-center"
+    >
+      <View>
+        <Text className="font-bold text-xl">User Id: {userId}</Text>
+        <Text className="font-bold text-xl">Room Id: {roomId}</Text>
 
-      <TextInput
-        placeholder="Enter room id"
-        onChangeText={text => setRoomId(text)}
-        value={roomId}></TextInput>
-      <Button
-        disabled={roomId.length === 0}
-        title="Join Room"
-        onPress={() => {
-          navigation.navigate('ConferenceCall', {
-            userID: userId,
-            conferenceID: roomId,
-          });
-        }}
-        ></Button>
-    </View>
+        <TextInput
+          placeholder="Enter room id"
+          onChangeText={text => setRoomId(text)}
+          value={roomId}
+        ></TextInput>
+        <TouchableOpacity
+          onPress={() => {
+            navigation.navigate('ConferenceCall', {
+              userID: userId,
+              conferenceID: roomId,
+            });
+          }}
+        >
+          <LinearGradient
+            colors={['#F97316', '#EC4899']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              borderRadius: 12,
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+            }}
+          >
+            <Text className="text-white text-center font-bold">Join Room</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    </LinearGradient>
   );
 };
 

@@ -1,134 +1,197 @@
-'use client';
-
-import { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
-  TextInput,
+  StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-  KeyboardAvoidingView,
-  Platform,
+  TextInput,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { styles } from '../styles/AuthStyles';
-import {
-  ArrowLeft,
-  BookOpen,
-  Eye,
-  EyeOff,
-  Lock,
-  Mail,
-} from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
+import { PenTool } from 'lucide-react-native';
 
-export default function LoginScreen({ navigation }: any) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+const LoginScreen = () => {
+  const navigation = useNavigation<any>();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
+    <LinearGradient
+      colors={['#FFF7ED', '#FDF2F8']} // orange-50 to pink-50
+      style={styles.container}
+    >
+      {/* Logo */}
+      <View style={styles.logoContainer}>
         <LinearGradient
-          colors={['#EFF6FF', '#FFFFFF', '#FAF5FF']}
-          style={styles.gradient}
+          colors={['#F97316', '#EC4899']} // orange-500 to pink-500
+          style={styles.logo}
         >
-          <View style={styles.content}>
-            {/* Header */}
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => navigation.goBack()}
-            >
-              <ArrowLeft size={24} color="#374151" />
-            </TouchableOpacity>
-
-            {/* Logo */}
-            <View style={styles.logoContainer}>
-              <LinearGradient
-                colors={['#2563EB', '#7C3AED']}
-                style={styles.logo}
-              >
-                <BookOpen size={24} color="white" />
-              </LinearGradient>
-            </View>
-
-            {/* Title */}
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>
-              Sign in to continue your learning journey
-            </Text>
-
-            {/* Form */}
-            <View style={styles.form}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Email</Text>
-                <View style={styles.inputWrapper}>
-                  <Mail size={20} color="#9CA3AF" style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter your email"
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Password</Text>
-                <View style={styles.inputWrapper}>
-                  <Lock size={20} color="#9CA3AF" style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={!showPassword}
-                  />
-                  <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={styles.eyeIcon}
-                  >
-                    {showPassword ? (
-                      <EyeOff color="#9CA3AF" size={20} />
-                    ) : (
-                      <Eye color="#9CA3AF" size={20} />
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              <TouchableOpacity style={styles.forgotPassword}>
-                <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity>
-                <LinearGradient
-                  colors={['#2563EB', '#7C3AED']}
-                  style={styles.signInButton}
-                >
-                  <Text style={styles.signInButtonText}>Sign In</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-
-              <View style={styles.signUpContainer}>
-                <Text style={styles.signUpText}>Don't have an account? </Text>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Register')}
-                >
-                  <Text style={styles.signUpLink}>Sign up</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
+          <PenTool size={20} color="#fff" />
         </LinearGradient>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        <TouchableOpacity onPress={() => navigation.navigate('LandingScreen')}>
+          <Text style={styles.logoText}>SocialLearning</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Card */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <LinearGradient
+            colors={['#F97316', '#EC4899']}
+            style={styles.cardIcon}
+          >
+            <PenTool size={24} color="#fff" />
+          </LinearGradient>
+          <Text style={styles.cardTitle}>Chào mừng trở lại</Text>
+          <Text style={styles.cardDescription}>
+            Đăng nhập để tiếp tục hành trình nào
+          </Text>
+        </View>
+        <View style={styles.cardContent}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Email hoặc số điện thoại</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Nhập email hoặc số điện thoại"
+              placeholderTextColor="#A1A1AA"
+              keyboardType="email-address"
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Mật khẩu</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Nhập mật khẩu của bạn"
+              placeholderTextColor="#A1A1AA"
+              secureTextEntry
+            />
+          </View>
+          <View style={styles.forgotPassword}>
+            <Text style={styles.link}>Quên mật khẩu?</Text>
+          </View>
+          <LinearGradient colors={['#F97316', '#EC4899']} style={styles.button}>
+            <TouchableOpacity>
+              <Text style={styles.buttonText}>Đăng Nhập</Text>
+            </TouchableOpacity>
+          </LinearGradient>
+          <Text style={styles.footerText}>
+            Bạn chưa có tài khoản?{' '}
+            <Text
+              style={styles.link}
+              onPress={() => navigation.navigate('Register')}
+            >
+              Đăng ký
+            </Text>
+          </Text>
+        </View>
+      </View>
+    </LinearGradient>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 16,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'absolute',
+    top: 16,
+    left: 16,
+  },
+  logo: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginLeft: 8,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    maxWidth: 400,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  cardHeader: {
+    alignItems: 'center',
+    padding: 16,
+  },
+  cardIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  cardDescription: {
+    fontSize: 14,
+    color: '#4B5563',
+    textAlign: 'center',
+  },
+  cardContent: {
+    padding: 16,
+  },
+  inputContainer: {
+    marginBottom: 12,
+  },
+  label: {
+    fontSize: 14,
+    color: '#111827',
+    marginBottom: 4,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    padding: 8,
+    fontSize: 14,
+    color: '#111827',
+  },
+  forgotPassword: {
+    alignItems: 'flex-end',
+    marginBottom: 12,
+  },
+  link: {
+    fontSize: 12,
+    color: '#F97316',
+    textDecorationLine: 'underline',
+  },
+  button: {
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#4B5563',
+    textAlign: 'center',
+    marginTop: 12,
+  },
+});
+
+export default LoginScreen;

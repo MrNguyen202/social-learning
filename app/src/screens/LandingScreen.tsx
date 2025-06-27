@@ -1,402 +1,426 @@
+import React from 'react';
 import {
   View,
   Text,
   ScrollView,
+  StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-  Dimensions,
+  Image,
 } from 'react-native';
-import { styles } from '../styles/LandingStyles';
-import { ArrowRight, BookOpen, Play, Star } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import { PenTool, Star } from 'lucide-react-native';
 
-const { width } = Dimensions.get('window');
+const testimonials = [
+  {
+    name: 'Sarah Johnson',
+    role: 'Computer Science Student',
+    content:
+      'This platform transformed how I learn. The study groups and peer discussions made complex topics so much easier to understand!',
+    avatar: 'https://via.placeholder.com/40',
+    rating: 5,
+  },
+  {
+    name: 'Michael Chen',
+    role: 'Professional Developer',
+    content:
+      "The collaborative approach to learning is incredible. I've made lasting connections while advancing my skills.",
+    avatar: 'https://via.placeholder.com/40',
+    rating: 5,
+  },
+  {
+    name: 'Emily Rodriguez',
+    role: 'Marketing Specialist',
+    content:
+      'Finally, a learning platform that feels social and engaging. The community support is amazing!',
+    avatar: 'https://via.placeholder.com/40',
+    rating: 5,
+  },
+];
 
-export default function LandingScreen({ navigation }: any) {
-  const features = [
-    {
-      icon: 'users',
-      title: 'Collaborative Learning',
-      description:
-        'Connect with peers, form study groups, and learn together in an interactive environment.',
-    },
-    {
-      icon: 'message-circle',
-      title: 'Discussion Forums',
-      description:
-        'Engage in meaningful discussions, ask questions, and share knowledge with the community.',
-    },
-    {
-      icon: 'award',
-      title: 'Achievement System',
-      description:
-        'Track your progress, earn badges, and celebrate milestones with gamified learning.',
-    },
-    {
-      icon: 'book-open',
-      title: 'Rich Content Library',
-      description:
-        'Access thousands of courses, tutorials, and resources curated by experts.',
-    },
-    {
-      icon: 'globe',
-      title: 'Global Community',
-      description:
-        'Learn from diverse perspectives and connect with learners worldwide.',
-    },
-    {
-      icon: 'zap',
-      title: 'Personalized Learning',
-      description:
-        'AI-powered recommendations tailored to your learning style and goals.',
-    },
-  ];
-
-  const testimonials = [
-    {
-      name: 'Sarah Johnson',
-      role: 'Computer Science Student',
-      content:
-        'This platform transformed how I learn. The study groups and peer discussions made complex topics so much easier to understand!',
-      avatar: 'https://placeholder.svg/40x40',
-      rating: 5,
-    },
-    {
-      name: 'Michael Chen',
-      role: 'Professional Developer',
-      content:
-        "The collaborative approach to learning is incredible. I've made lasting connections while advancing my skills.",
-      avatar: 'https://placeholder.svg/40x40',
-      rating: 5,
-    },
-    {
-      name: 'Emily Rodriguez',
-      role: 'Marketing Specialist',
-      content:
-        'Finally, a learning platform that feels social and engaging. The community support is amazing!',
-      avatar: 'https://placeholder.svg/40x40',
-      rating: 5,
-    },
-  ];
-
-  const stats = [
-    { number: '50K+', label: 'Active Learners' },
-    { number: '1000+', label: 'Courses Available' },
-    { number: '25K+', label: 'Study Groups' },
-    { number: '95%', label: 'Success Rate' },
-  ];
-
-  const renderStars = (rating: number) => {
-    return Array.from({ length: rating }, (_, i) => (
-      <Star key={i} size={14} color="#FCD34D" style={{ marginRight: 2 }} />
-    ));
-  };
+const LandingSceen = () => {
+  const navigation = useNavigation<any>();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <LinearGradient
+      colors={['#FFF7ED', '#FDF2F8']} // orange-50 to pink-50
+      style={styles.container}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <View style={styles.logo}>
-              {/* <LinearGradient colors={["#2563EB", "#7C3AED"]} style={styles.logoGradient}> */}
-              <BookOpen size={20} color="white" />
-              {/* </LinearGradient> */}
-              <Text style={styles.logoText}>LearnTogether</Text>
-            </View>
-            <View style={styles.headerButtons}>
-              <TouchableOpacity
-                style={styles.loginButton}
-                onPress={() => navigation.navigate('Login')}
-              >
-                <Text style={styles.loginButtonText}>Login</Text>
-              </TouchableOpacity>
+          <View style={styles.logoContainer}>
+            <LinearGradient
+              colors={['#F97316', '#EC4899']} // orange-500 to pink-500
+              style={styles.logo}
+            >
+              <PenTool size={20} color="#fff" />
+            </LinearGradient>
+            <TouchableOpacity onPress={() => navigation.navigate('Landing')}>
+              <Text style={styles.logoText}>SocialLearning</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.navButtons}>
+            <TouchableOpacity
+              style={styles.outlineButton}
+              onPress={() => navigation.navigate('Login')}
+            >
+              <Text style={styles.outlineButtonText}>Đăng Nhập</Text>
+            </TouchableOpacity>
+            <LinearGradient
+              colors={['#F97316', '#EC4899']} // orange-500 to pink-500
+              style={styles.gradientButton}
+            >
               <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                {/* <LinearGradient colors={["#2563EB", "#7C3AED"]} style={styles.getStartedButton}> */}
-                <Text style={styles.getStartedButtonText}>Get Started</Text>
-                {/* </LinearGradient> */}
+                <Text style={styles.gradientButtonText}>Đăng Ký</Text>
               </TouchableOpacity>
-            </View>
+            </LinearGradient>
           </View>
         </View>
 
         {/* Hero Section */}
-        <LinearGradient
-          colors={['#EFF6FF', '#FFFFFF', '#FAF5FF']}
-          style={styles.heroSection}
-        >
-          <View style={styles.heroContent}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>
-                🚀 Join 50,000+ learners worldwide
-              </Text>
-            </View>
-
-            <Text style={styles.heroTitle}>
-              Learn Better{' '}
-              <Text style={styles.heroTitleGradient}>Together</Text>
-            </Text>
-
-            <Text style={styles.heroDescription}>
-              Connect with peers, join study groups, and accelerate your
-              learning through collaborative education. Experience the power of
-              social learning.
-            </Text>
-
-            <View style={styles.heroButtons}>
-              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                <LinearGradient
-                  colors={['#2563EB', '#7C3AED']}
-                  style={styles.primaryButton}
-                >
-                  <Text style={styles.primaryButtonText}>
-                    Start Learning Free
-                  </Text>
-                  <ArrowRight
-                    size={16}
-                    color="white"
-                    style={{ marginLeft: 8 }}
-                  />
-                </LinearGradient>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.secondaryButton}>
-                <Play size={16} color="#374151" style={{ marginRight: 8 }} />
-                <Text style={styles.secondaryButtonText}>Watch Demo</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Stats */}
-            <View style={styles.statsContainer}>
-              {stats.map((stat, index) => (
-                <View key={index} style={styles.statItem}>
-                  <Text style={styles.statNumber}>{stat.number}</Text>
-                  <Text style={styles.statLabel}>{stat.label}</Text>
-                </View>
-              ))}
-            </View>
-
-            {/* Study Group Preview */}
-            <View style={styles.studyGroupPreview}>
-              <View style={styles.studyGroupHeader}>
-                <View style={styles.studyGroupInfo}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>JD</Text>
-                  </View>
-                  <View>
-                    <Text style={styles.studyGroupTitle}>
-                      John's Study Group
-                    </Text>
-                    <Text style={styles.studyGroupSubtitle}>
-                      React Development • 12 members
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.liveBadge}>
-                  <Text style={styles.liveBadgeText}>Live</Text>
-                </View>
-              </View>
-
-              <View style={styles.chatMessages}>
-                <View style={styles.messageRow}>
-                  <View style={[styles.avatar, styles.smallAvatar]}>
-                    <Text style={styles.smallAvatarText}>SA</Text>
-                  </View>
-                  <View style={styles.messageBubble}>
-                    <Text style={styles.messageText}>
-                      Can someone explain React hooks?
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.messageRow}>
-                  <View style={[styles.avatar, styles.smallAvatar]}>
-                    <Text style={styles.smallAvatarText}>MK</Text>
-                  </View>
-                  <View
-                    style={[styles.messageBubble, styles.messageBubbleBlue]}
-                  >
-                    <Text style={styles.messageText}>
-                      Hooks let you use state in functional components...
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.studyGroupFooter}>
-                <View style={styles.avatarStack}>
-                  {[1, 2, 3, 4].map(i => (
-                    <View key={i} style={[styles.avatar, styles.stackedAvatar]}>
-                      <Text style={styles.smallAvatarText}>U{i}</Text>
-                    </View>
-                  ))}
-                </View>
-                <Text style={styles.footerText}>+8 more learning together</Text>
-              </View>
-            </View>
+        <View style={styles.hero}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>Nền tảng Học tập Xã hội</Text>
           </View>
-        </LinearGradient>
-
-        {/* Features Section */}
-        <View style={styles.featuresSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Why Choose Social Learning?</Text>
-            <Text style={styles.sectionDescription}>
-              Experience the power of collaborative education with features
-              designed to enhance your learning journey.
-            </Text>
-          </View>
-
-          <View style={styles.featuresGrid}>
-            {features.map((feature, index) => (
-              <View key={index} style={styles.featureCard}>
-                <LinearGradient
-                  colors={['#2563EB', '#7C3AED']}
-                  style={styles.featureIcon}
-                >
-                  <Text>{feature.icon}</Text>
-                </LinearGradient>
-                <Text style={styles.featureTitle}>{feature.title}</Text>
-                <Text style={styles.featureDescription}>
-                  {feature.description}
-                </Text>
-              </View>
-            ))}
+          <Text style={styles.heroTitle}>
+            Cộng đồng mạng xã hội{' '}
+            <Text style={styles.heroHighlight}>Học tiếng Anh</Text>
+          </Text>
+          <Text style={styles.heroDescription}>
+            Tham gia cộng đồng nơi việc học tiếng Anh trở nên thú vị và tương
+            tác. Viết lại câu, nhận phản hồi tức thì, kiếm điểm và leo lên bảng
+            xếp hạng, đồng thời kết nối với những người học từ khắp nơi trên thế
+            giới.
+          </Text>
+          <View style={styles.heroButtons}>
+            <LinearGradient
+              colors={['#F97316', '#EC4899']} // orange-500 to pink-500
+              style={styles.gradientButtonLarge}
+            >
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Text style={styles.gradientButtonText}>Tham gia ngay</Text>
+              </TouchableOpacity>
+            </LinearGradient>
+            <TouchableOpacity style={styles.outlineButtonLarge}>
+              <Text style={styles.outlineButtonText}>Học thử</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* How It Works */}
-        <View style={styles.howItWorksSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>How It Works</Text>
-            <Text style={styles.sectionDescription}>
-              Get started in three simple steps
-            </Text>
-          </View>
-
-          <View style={styles.stepsContainer}>
-            {[
-              {
-                step: '01',
-                title: 'Create Your Profile',
-                description:
-                  'Sign up and tell us about your learning goals and interests.',
-              },
-              {
-                step: '02',
-                title: 'Join Study Groups',
-                description:
-                  'Find and join study groups that match your subjects and schedule.',
-              },
-              {
-                step: '03',
-                title: 'Learn Together',
-                description:
-                  'Collaborate, discuss, and achieve your learning goals with peers.',
-              },
-            ].map((step, index) => (
-              <View key={index} style={styles.stepItem}>
-                <LinearGradient
-                  colors={['#2563EB', '#7C3AED']}
-                  style={styles.stepNumber}
-                >
-                  <Text style={styles.stepNumberText}>{step.step}</Text>
-                </LinearGradient>
-                <Text style={styles.stepTitle}>{step.title}</Text>
-                <Text style={styles.stepDescription}>{step.description}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Testimonials */}
-        <View style={styles.testimonialsSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>What Our Learners Say</Text>
-            <Text style={styles.sectionDescription}>
-              Join thousands of successful learners
-            </Text>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.testimonialsScroll}
-          >
-            {testimonials.map((testimonial, index) => (
-              <View key={index} style={styles.testimonialCard}>
-                <View style={styles.starsContainer}>
-                  {renderStars(testimonial.rating)}
-                </View>
-                <Text style={styles.testimonialContent}>
-                  "{testimonial.content}"
-                </Text>
-                <View style={styles.testimonialAuthor}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>
-                      {testimonial.name
-                        .split(' ')
-                        .map(n => n[0])
-                        .join('')}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text style={styles.authorName}>{testimonial.name}</Text>
-                    <Text style={styles.authorRole}>{testimonial.role}</Text>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </ScrollView>
+        <View style={styles.howItWorks}>
+          <Text style={styles.sectionTitle}>Cách hoạt động</Text>
         </View>
 
         {/* CTA Section */}
-        <LinearGradient
-          colors={['#2563EB', '#7C3AED']}
-          style={styles.ctaSection}
-        >
-          <Text style={styles.ctaTitle}>Ready to Transform Your Learning?</Text>
-          <Text style={styles.ctaDescription}>
-            Join our community of learners and start your collaborative learning
-            journey today.
+        <LinearGradient colors={['#F97316', '#EC4899']} style={styles.cta}>
+          <Text style={styles.ctaTitle}>
+            Sẵn sàng bắt đầu hành trình tiếng Anh của bạn?
           </Text>
-          <View style={styles.ctaButtons}>
-            <TouchableOpacity
-              style={styles.ctaPrimaryButton}
-              onPress={() => navigation.navigate('Register')}
-            >
-              <Text style={styles.ctaPrimaryButtonText}>Get Started Free</Text>
-              <ArrowRight size={16} color="#2563EB" style={{ marginLeft: 8 }} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.ctaSecondaryButton}>
-              <Text style={styles.ctaSecondaryButtonText}>Learn More</Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={styles.ctaDescription}>
+            Tham gia cùng hàng ngàn người học đang cải thiện kỹ năng viết tiếng
+            Anh mỗi ngày
+          </Text>
+          <TouchableOpacity
+            style={styles.ctaButton}
+            onPress={() => navigation.navigate('Register')}
+          >
+            <Text style={styles.ctaButtonText}>Tạo tài khoản miễn phí</Text>
+          </TouchableOpacity>
         </LinearGradient>
+
+        {/* Testimonials */}
+        <View style={styles.testimonials}>
+          <Text style={styles.sectionTitle}>Bảng xếp hạng</Text>
+          <Text style={styles.sectionSubtitle}>
+            Những thành viên có thành tích cao nhất
+          </Text>
+        </View>
 
         {/* Footer */}
         <View style={styles.footer}>
-          <View style={styles.footerContent}>
-            <View style={styles.footerLogo}>
-              <LinearGradient
-                colors={['#2563EB', '#7C3AED']}
-                style={styles.logoGradient}
-              >
-                <BookOpen size={20} color="white" />
-              </LinearGradient>
-              <Text style={styles.footerLogoText}>LearnTogether</Text>
-            </View>
-            <Text style={styles.footerDescription}>
-              Empowering learners through collaborative education and social
-              learning experiences.
-            </Text>
-            <Text style={styles.copyright}>
-              © 2024 LearnTogether. All rights reserved.
-            </Text>
-          </View>
+          <Text style={styles.footerText}>
+            © 2025 SocialLearning. Bảo lưu mọi quyền.
+          </Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </LinearGradient>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginLeft: 8,
+  },
+  navButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  outlineButton: {
+    backgroundColor: '#fff',
+    borderColor: '#E5E7EB',
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  outlineButtonText: {
+    color: '#374151',
+    fontSize: 14,
+  },
+  gradientButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  gradientButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  hero: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  badge: {
+    backgroundColor: '#FFEDD5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginBottom: 16,
+  },
+  badgeText: {
+    color: '#F97316',
+    fontSize: 14,
+  },
+  heroTitle: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#111827',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  heroHighlight: {
+    color: '#F97316', // Không hỗ trợ bg-clip-text, dùng màu trực tiếp
+  },
+  heroDescription: {
+    fontSize: 18,
+    color: '#4B5563',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 24,
+  },
+  heroButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'center',
+  },
+  gradientButtonLarge: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  outlineButtonLarge: {
+    backgroundColor: '#fff',
+    borderColor: '#E5E7EB',
+    borderWidth: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  features: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 16,
+    marginBottom: 32,
+  },
+  card: {
+    backgroundColor: '#F9FAFBCC', // white/80
+    borderRadius: 8,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    width: '100%',
+    maxWidth: 300,
+    alignItems: 'center',
+  },
+  cardIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#111827',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  cardDescription: {
+    fontSize: 14,
+    color: '#4B5563',
+    textAlign: 'center',
+  },
+  howItWorks: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  steps: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  step: {
+    alignItems: 'center',
+    width: '22%',
+    minWidth: 150,
+  },
+  stepIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  stepTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  stepDescription: {
+    fontSize: 12,
+    color: '#4B5563',
+    textAlign: 'center',
+  },
+  cta: {
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  ctaTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  ctaDescription: {
+    fontSize: 18,
+    color: '#fff',
+    opacity: 0.9,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  ctaButton: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  ctaButtonText: {
+    color: '#F97316',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  testimonials: {
+    marginBottom: 32,
+  },
+  sectionSubtitle: {
+    fontSize: 18,
+    color: '#4B5563',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  testimonialCards: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  rating: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  testimonialContent: {
+    fontSize: 14,
+    color: '#4B5563',
+    marginBottom: 12,
+  },
+  testimonialAuthor: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  authorName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  authorRole: {
+    fontSize: 12,
+    color: '#4B5563',
+  },
+  footer: {
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 14,
+    color: '#4B5563',
+  },
+});
+
+export default LandingSceen;
