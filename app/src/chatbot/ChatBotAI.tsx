@@ -15,6 +15,7 @@ import {
 import Markdown from 'react-native-markdown-display';
 import { sendMessageToGemini } from '../api/gemini/route';
 import { MessageCircle, MessageCircleX, Trash, X } from 'lucide-react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 interface Message {
   id: string;
@@ -181,17 +182,18 @@ const ChatBotAI = () => {
   return (
     <View>
       {/* Chat Button */}
-      <TouchableOpacity
+      <LinearGradient
+        colors={['#F97316', '#EC4899']} // orange-500 to pink-500
         style={styles.chatToggle}
-        onPress={toggleChat}
-        activeOpacity={0.8}
       >
-        {isChatOpen ? (
-         <MessageCircleX size={28} color="#fff" strokeWidth={1.5} />
-        ) : (
-         <MessageCircle size={28} color="#fff" strokeWidth={1.5} />
-        )}
-      </TouchableOpacity>
+        <TouchableOpacity onPress={toggleChat}>
+          {isChatOpen ? (
+            <MessageCircleX size={28} color="#fff" strokeWidth={1.5} />
+          ) : (
+            <MessageCircle size={28} color="#fff" strokeWidth={1.5} />
+          )}
+        </TouchableOpacity>
+      </LinearGradient>
 
       {/* Chat Modal */}
       {isChatOpen && (
@@ -241,8 +243,7 @@ const ChatBotAI = () => {
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyText}>Xin chào!</Text>
                   <Text style={styles.emptySubtext}>
-                    Mình là AI Gemini. Hãy hỏi tôi bất cứ điều gì bạn muốn
-                    biết!
+                    Mình là AI Gemini. Hãy hỏi tôi bất cứ điều gì bạn muốn biết!
                   </Text>
                 </View>
               ) : (

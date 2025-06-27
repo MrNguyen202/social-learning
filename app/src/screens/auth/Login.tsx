@@ -10,7 +10,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { PenTool } from 'lucide-react-native';
 
-const LoginScreen = () => {
+const Login = () => {
   const navigation = useNavigation<any>();
 
   return (
@@ -26,7 +26,7 @@ const LoginScreen = () => {
         >
           <PenTool size={20} color="#fff" />
         </LinearGradient>
-        <TouchableOpacity onPress={() => navigation.navigate('LandingScreen')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Welcome')}>
           <Text style={styles.logoText}>SocialLearning</Text>
         </TouchableOpacity>
       </View>
@@ -68,7 +68,7 @@ const LoginScreen = () => {
             <Text style={styles.link}>Quên mật khẩu?</Text>
           </View>
           <LinearGradient colors={['#F97316', '#EC4899']} style={styles.button}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('Main')}>
               <Text style={styles.buttonText}>Đăng Nhập</Text>
             </TouchableOpacity>
           </LinearGradient>
@@ -194,4 +194,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
+export default Login;

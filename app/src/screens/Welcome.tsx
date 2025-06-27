@@ -38,7 +38,7 @@ const testimonials = [
   },
 ];
 
-const LandingSceen = () => {
+const Welcome = () => {
   const navigation = useNavigation<any>();
 
   return (
@@ -423,4 +423,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LandingSceen;
+export default Welcome;

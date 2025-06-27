@@ -4,7 +4,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { BookOpen, Check, PenTool } from 'lucide-react-native';
 
-const RegisterScreen = () => {
+const Register = () => {
   const navigation = useNavigation<any>();
   const [termsChecked, setTermsChecked] = useState(false);
 
@@ -21,7 +21,7 @@ const RegisterScreen = () => {
         >
           <PenTool size={20} color="#fff" />
         </LinearGradient>
-        <TouchableOpacity onPress={() => navigation.navigate('Landing')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Welcome')}>
           <Text style={styles.logoText}>SocialLearning</Text>
         </TouchableOpacity>
       </View>
@@ -103,7 +103,7 @@ const RegisterScreen = () => {
             colors={['#F97316', '#EC4899']}
             style={styles.button}
           >
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('test')}>
               <Text style={styles.buttonText}>Tạo tài khoản</Text>
             </TouchableOpacity>
           </LinearGradient>
@@ -251,4 +251,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RegisterScreen;
+export default Register;
