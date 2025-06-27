@@ -184,9 +184,9 @@ const ChatBotAI = () => {
       {/* Chat Button */}
       <LinearGradient
         colors={['#F97316', '#EC4899']} // orange-500 to pink-500
-        style={styles.chatToggle}
+        style={styles.linearChatToggle}
       >
-        <TouchableOpacity onPress={toggleChat}>
+        <TouchableOpacity style={styles.chatToggle} onPress={toggleChat}>
           {isChatOpen ? (
             <MessageCircleX size={28} color="#fff" strokeWidth={1.5} />
           ) : (
@@ -299,15 +299,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-
-  chatToggle: {
+  linearChatToggle: {
     position: 'absolute',
     bottom: 30, // Tương tự bottom-4
     right: 20, // Tương tự right-4
     width: 56, // Tương tự size-14 (14 * 4 = 56px)
     height: 56, // Tương tự size-14
     borderRadius: 28, // Tương tự rounded-full
-    backgroundColor: '#000', // Tương tự bg-black
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -316,6 +314,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8, // Tương tự shadow-lg
     zIndex: 1000, // Tương tự z-50
+  },
+  chatToggle: {
+    padding: 12,
   },
   toggleIcon: {
     fontSize: 24, // Tương tự size-8 (kích thước icon lớn)
