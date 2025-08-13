@@ -1,13 +1,13 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: "http://localhost:5000",
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-export const signUp = async ({email, password, name}:any) => {
+export const register = async ({ email, password, name }: any) => {
   try {
     const response = await api.post("/api/auth/register", {
       email,
@@ -15,7 +15,31 @@ export const signUp = async ({email, password, name}:any) => {
       name,
     });
     return response.data;
-  } catch (error:any) {
+  } catch (error: any) {
+    throw error.response?.data || error;
+  }
+};
+
+export const verifyOtp = async ({ email, otp }: any) => {
+  try {
+    const response = await api.post("/api/auth/verify", {
+      email,
+      otp,
+    });
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || error;
+  }
+};
+
+export const login = async ({ email, password }: any) => {
+  try {
+    const response = await api.post("/api/auth/login", {
+      email,
+      password,
+    });
+    return response.data;
+  } catch (error: any) {
     throw error.response?.data || error;
   }
 };

@@ -1,5 +1,6 @@
 "use client";
 
+import { login } from "@/app/api/user/route";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,9 +14,31 @@ import { Label } from "@/components/ui/label";
 import { BookOpen, PenTool } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "react-toastify";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      toast.warning("Vui lòng điền đầy đủ thông tin.");
+      return;
+    }
+
+    try {
+      const res = await login({ email, password });
+      console.log("res", res.message);
+      toast.success("Đăng nhập thành công.");
+      router.push("/dashboard/user");
+    } catch (err: any) {
+      console.log("error", err.response?.data?.error);
+      toast.error("Đăng nhập thất bại.");
+    }
+  };
+
   return (
     <>
       {/* Logo */}
@@ -42,11 +65,13 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="phone">Số điện thoại</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="phone"
-                type="tel"
-                placeholder="Nhập số điện thoại của bạn"
+                id="email"
+                type="email"
+                placeholder="Nhập email của bạn"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -55,6 +80,8 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 placeholder="Nhập mật khẩu của bạn"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             <div className="flex items-center justify-between">
@@ -66,9 +93,7 @@ export default function LoginPage() {
               </Link>
             </div>
             <Button
-              onClick={() => {
-                router.push("/dashboard/user");
-              }}
+              onClick={handleLogin}
               className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer"
             >
               Đăng Nhập

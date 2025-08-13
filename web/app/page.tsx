@@ -13,7 +13,7 @@ export default function Page() {
       role: "Computer Science Student",
       content:
         "This platform transformed how I learn. The study groups and peer discussions made complex topics so much easier to understand!",
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "/globe.svg?height=40&width=40",
       rating: 5,
     },
     {
@@ -21,14 +21,14 @@ export default function Page() {
       role: "Professional Developer",
       content:
         "The collaborative approach to learning is incredible. I've made lasting connections while advancing my skills.",
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "/globe.svg?height=40&width=40",
       rating: 5,
     },
     {
       name: "Emily Rodriguez",
       role: "Marketing Specialist",
       content: "Finally, a learning platform that feels social and engaging. The community support is amazing!",
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "/globe.svg?height=40&width=40",
       rating: 5,
     },
   ]
