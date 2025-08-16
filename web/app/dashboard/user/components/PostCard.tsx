@@ -33,7 +33,7 @@ export function PostCard({ post }: PostCardProps) {
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center space-x-3">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={post.avatar || "/placeholder.svg"} />
+            <AvatarImage src={post.avatar || "/globe.svg"} />
             <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white">
               {post.username.slice(0, 2).toUpperCase()}
             </AvatarFallback>

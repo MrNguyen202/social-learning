@@ -13,9 +13,44 @@ import { Label } from "@/components/ui/label";
 import { BookOpen, PenTool } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "react-toastify";
+import { login } from "@/app/api/auth/route";
+import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async () => {
+    try {
+      const res = await login({ email, password });
+
+      if (!res.success || !res?.data?.session) {
+        toast.error("Đăng nhập thất bại.");
+        console.error("Login failed:", res.message || "No session data");
+        return;
+      }
+
+      // Đặt phiên với dữ liệu session từ response
+      const { error: setError } = await supabase.auth.setSession(
+        res.data.session
+      );
+
+      if (setError) {
+        toast.error("Lỗi khi đặt phiên.");
+        console.error("Lỗi khi đặt phiên:", setError.message);
+        return;
+      }
+      toast.success("Đăng nhập thành công.");
+      // Chuyển hướng tới trang được bảo vệ
+      router.push("/dashboard/user");
+    } catch (error: any) {
+      toast.error("Đăng nhập thất bại. Vui lòng thử lại.");
+    }
+  };
+
   return (
     <>
       {/* Logo */}
@@ -42,11 +77,13 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email hoặc số điện thoại</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Nhập email hoặc số điện thoại"
+                placeholder="Nhập email của bạn"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -55,6 +92,8 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 placeholder="Nhập mật khẩu của bạn"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             <div className="flex items-center justify-between">
@@ -66,9 +105,7 @@ export default function LoginPage() {
               </Link>
             </div>
             <Button
-              onClick={() => {
-                router.push("/dashboard/user");
-              }}
+              onClick={handleLogin}
               className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer"
             >
               Đăng Nhập

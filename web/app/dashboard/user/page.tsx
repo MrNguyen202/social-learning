@@ -4,8 +4,15 @@ import { LeftSidebar } from "./components/LeftSideBar";
 import { MainContentArea } from "./components/MainContentArea";
 import { RightSidebar } from "./components/RightSidebar";
 import { TopHeader } from "./components/TopHeader";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import useAuth from "@/hooks/useAuth";
+import { getUserData } from "@/app/api/user/route";
 
 export default function Page() {
+  const { user } = useAuth();
+  const router = useRouter();
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Left Sidebar */}

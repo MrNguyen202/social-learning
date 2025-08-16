@@ -6,7 +6,7 @@ const posts = [
   {
     id: 1,
     username: "sarah_writes",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: "/globe.svg?height=32&width=32",
     timeAgo: "2 hours ago",
     originalSentence: "The weather is very good today and I am happy.",
     rewrittenSentence:
@@ -21,7 +21,7 @@ const posts = [
   {
     id: 2,
     username: "mike_english",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: "/globe.svg?height=32&width=32",
     timeAgo: "4 hours ago",
     originalSentence: "I go to school every day by bus.",
     rewrittenSentence: "I commute to school daily via public transportation.",
@@ -34,7 +34,7 @@ const posts = [
   {
     id: 3,
     username: "emma_learns",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: "/globe.svg?height=32&width=32",
     timeAgo: "6 hours ago",
     originalSentence: "The book was good and I liked it.",
     rewrittenSentence: "The captivating novel left a lasting impression on me.",
@@ -48,7 +48,7 @@ const posts = [
   {
     id: 4,
     username: "alex_writer",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: "/globe.svg?height=32&width=32",
     timeAgo: "8 hours ago",
     originalSentence: "I am tired because I worked a lot.",
     rewrittenSentence:

@@ -9,28 +9,28 @@ const suggestions = [
   {
     username: "grammar_guru",
     name: "Grammar Guru",
-    avatar: "/placeholder.svg?height=40&width=40",
+    avatar: "/globe.svg?height=40&width=40",
     level: "Expert",
     mutualFollowers: 12,
   },
   {
     username: "vocab_master",
     name: "Vocab Master",
-    avatar: "/placeholder.svg?height=40&width=40",
+    avatar: "/globe.svg?height=40&width=40",
     level: "Advanced",
     mutualFollowers: 8,
   },
   {
     username: "writing_pro",
     name: "Writing Pro",
-    avatar: "/placeholder.svg?height=40&width=40",
+    avatar: "/globe.svg?height=40&width=40",
     level: "Expert",
     mutualFollowers: 15,
   },
   {
     username: "english_ace",
     name: "English Ace",
-    avatar: "/placeholder.svg?height=40&width=40",
+    avatar: "/globe.svg?height=40&width=40",
     level: "Intermediate",
     mutualFollowers: 6,
   },
@@ -41,25 +41,25 @@ const activities = [
     username: "sarah_writes",
     action: "liked your post",
     time: "2m",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: "/globe.svg?height=32&width=32",
   },
   {
     username: "mike_english",
     action: "commented on your rewrite",
     time: "5m",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: "/globe.svg?height=32&width=32",
   },
   {
     username: "emma_learns",
     action: "started following you",
     time: "1h",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: "/globe.svg?height=32&width=32",
   },
   {
     username: "alex_writer",
     action: "shared your post",
     time: "2h",
-    avatar: "/placeholder.svg?height=32&width=32",
+    avatar: "/globe.svg?height=32&width=32",
   },
 ];
 
@@ -71,7 +71,7 @@ export function RightSidebar() {
         <CardContent className="p-4">
           <div className="flex items-center space-x-3">
             <Avatar className="h-14 w-14">
-              <AvatarImage src="/placeholder.svg?height=56&width=56" />
+              <AvatarImage src="/globe.svg?height=56&width=56" />
               <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white">
                 JD
               </AvatarFallback>

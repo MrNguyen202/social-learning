@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,8 +13,60 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BookOpen, PenTool } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import { register, verifyOtp } from "@/app/api/auth/route";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [sentOtp, setSentOtp] = useState(false);
+
+  const handleSignUp = async () => {
+    if (!email || !password || !confirmPassword) {
+      toast.warning("Vui lòng điền đầy đủ thông tin.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.warning("Mật khẩu xác nhận không khớp.");
+      return;
+    }
+
+    try {
+      const res = await register({ email, password, name });
+      console.log("res", res.message);
+      toast.success("OTP đã được gửi đến email của bạn.");
+      setSentOtp(true);
+    } catch (err: any) {
+      console.log("error", err.response?.data?.error);
+      toast.error("Đã xảy ra lỗi.");
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp) {
+      toast.warning("Vui lòng nhập mã OTP.");
+      return;
+    }
+
+    try {
+      const res = await verifyOtp({ email, otp });
+      console.log("res", res.data.message);
+      toast.success("Xác nhận thành công");
+      // Sau khi xác thực OTP thành công, có thể chuyển hướng hoặc reset form
+      router.push("/auth/login");
+    } catch (err: any) {
+      console.log("error", err.response?.data?.error);
+      toast.error("Xác thực OTP thất bại.");
+    }
+  };
+
   return (
     <>
       {/* Logo */}
@@ -39,55 +93,95 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">Họ</Label>
-                <Input id="firstName" placeholder="Nguyễn" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Tên</Label>
-                <Input id="lastName" placeholder="A" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="a@gmail.com" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Mật khẩu</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Tạo mật khẩu mạnh"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="Xác nhận mật khẩu của bạn"
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="terms" />
-              <Label htmlFor="terms" className="text-sm">
-                Tôi đồng ý với{" "}
-                <Link href="#" className="text-orange-600 hover:underline">
-                  Điều khoản dịch vụ
-                </Link>{" "}
-                và{" "}
-                <Link href="#" className="text-orange-600 hover:underline">
-                  Chính sách bảo mật
-                </Link>
-              </Label>
-            </div>
-            <Button className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer">
-              Tạo tài khoản
-            </Button>
+            {!sentOtp ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Tên tài khoản</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Nhập tên tài khoản của bạn"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Nhập email của bạn"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Mật khẩu</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Tạo mật khẩu mạnh"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="Xác nhận mật khẩu của bạn"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="terms" />
+                  <Label htmlFor="terms" className="text-sm">
+                    Tôi đồng ý với{" "}
+                    <Link href="#" className="text-orange-600 hover:underline">
+                      Điều khoản dịch vụ
+                    </Link>{" "}
+                    và{" "}
+                    <Link href="#" className="text-orange-600 hover:underline">
+                      Chính sách bảo mật
+                    </Link>
+                  </Label>
+                </div>
+                <Button
+                  className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer"
+                  onClick={handleSignUp}
+                >
+                  Tạo tài khoản
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="otp">Nhập mã OTP đã gửi đến email của bạn</Label>
+                  <Input
+                    id="otp"
+                    type="text"
+                    placeholder="Nhập OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                  />
+                </div>
+                <Button
+                  className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer"
+                  onClick={handleVerifyOtp}
+                >
+                  Xác thực OTP
+                </Button>
+              </>
+            )}
             <div className="text-center text-sm">
               Bạn đã có tài khoản?{" "}
-              <Link href="/auth/login" className="text-orange-600 hover:underline">
+              <Link
+                href="/auth/login"
+                className="text-orange-600 hover:underline"
+              >
                 Đăng nhập
               </Link>
             </div>

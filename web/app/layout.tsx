@@ -3,6 +3,7 @@ import { Jost, Cabin, Overpass } from "next/font/google";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import ChatBotAI from "./chatbot/ChatBotAI";
+import { AuthProvider } from "@/components/contexts/AuthProvider";
 
 const overpass = Overpass({
   subsets: ["latin"],
@@ -21,9 +22,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={overpass.className}>
-        {children}
-        <ChatBotAI />
-        <ToastContainer />
+        <AuthProvider>
+          {children}
+          <ChatBotAI />
+          <ToastContainer />
+        </AuthProvider>
       </body>
     </html>
   );

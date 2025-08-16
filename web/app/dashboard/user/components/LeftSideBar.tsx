@@ -123,7 +123,7 @@ export function LeftSidebar() {
         <div className="mt-4 p-3 rounded-lg bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-100">
           <div className="flex items-center space-x-3">
             <Avatar className="h-10 w-10">
-              <AvatarImage src="/placeholder.svg?height=40&width=40" />
+              <AvatarImage src="/globe.svg?height=40&width=40" />
               <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white">
                 JD
               </AvatarFallback>
