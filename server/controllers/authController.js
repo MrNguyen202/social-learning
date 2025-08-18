@@ -1,4 +1,5 @@
 const authService = require("../services/authService");
+const userService = require("../services/userService");
 
 const authController = {
   async register(req, res) {
@@ -6,6 +7,12 @@ const authController = {
       const { email, password, name } = req.body;
 
       // kiểm tra tồn tại nếu có
+      const { data: existingUser } = await userService.getEmailUser(email);
+      if (existingUser) {
+        return res
+          .status(200)
+          .json({ success: false, message: "Email đã tồn tại" });
+      }
 
       const { data, error } = await authService.register(email, password, name);
 

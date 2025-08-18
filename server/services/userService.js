@@ -37,6 +37,17 @@ const userService = {
 
     return { data: updatedData, error: null };
   },
+
+  async getEmailUser(email) {
+    const { data, error } = await supabase
+      .from("users")
+      .select("email")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (error) throw error;
+    return { data, error };
+  },
 };
 
 module.exports = userService;
