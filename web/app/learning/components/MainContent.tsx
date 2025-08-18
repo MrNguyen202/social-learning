@@ -1,8 +1,8 @@
 export function MainContent() {
     return (
-        <div className="w-full p-6 bg-white col-span-3">
-            <h2 className="text-lg font-semibold">Main Content</h2>
-            <p className="mt-2 text-gray-600">This is the main content area.</p>
+        <div className="w-full px-6 bg-white col-span-3 overflow-y-auto max-h-[calc(100vh-8rem)]">
+            <h1 className="text-2xl font-bold">Các bài tập của bạn</h1>
+
         </div>
     );
 }

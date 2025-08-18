@@ -3,7 +3,7 @@ import { Trophy } from "lucide-react";
 
 export function Rank() {
     return (
-        <div className="w-full p-6 col-span-1 border rounded-xl border-orange-300">
+        <div className="w-full p-6 col-span-1 border rounded-xl border-orange-300 h-fit">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

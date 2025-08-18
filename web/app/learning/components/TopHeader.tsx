@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, BookOpen, PenTool, Settings, Trophy, Users } from "lucide-react"
+import { Bell, BookOpen, PenTool, Settings, Trophy, Users, Volume, Volume1, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -28,6 +28,24 @@ export function TopHeader() {
         </div>
 
         {/* Menu practice */}
+        <nav className="hidden md:flex items-center gap-10">
+          <button className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-orange-500 hover:to-pink-500 hover:text-white hover:cursor-pointer py-2 px-3 rounded-lg">
+            <PenTool className="w-5 h-5" />
+            <span className="text-base">Writing</span>
+          </button>
+          <button className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-orange-500 hover:to-pink-500 hover:text-white hover:cursor-pointer py-2 px-3 rounded-lg">
+            <Volume2 className="w-5 h-5" />
+            <span className="text-base">Listening</span>
+          </button>
+          <button className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-orange-500 hover:to-pink-500 hover:text-white hover:cursor-pointer py-2 px-3 rounded-lg">
+            <BookOpen className="w-5 h-5" />
+            <span className="text-base">Vocabulary</span>
+          </button>
+          <button className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-orange-500 hover:to-pink-500 hover:text-white hover:cursor-pointer py-2 px-3 rounded-lg">
+            <Trophy className="w-5 h-5" />
+            <span className="text-base">Rank</span>
+          </button>
+        </nav>
 
         <div className="flex items-center space-x-4">
           <Button variant="ghost" size="icon" className="relative hover:bg-gray-100">
