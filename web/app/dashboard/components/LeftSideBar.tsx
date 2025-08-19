@@ -13,6 +13,7 @@ import {
   BookOpen,
   Trophy,
   TrendingUp,
+  Volume2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,10 +32,11 @@ const mainNavItems = [
 ];
 
 const learningNavItems = [
-  { icon: PenTool, path: "/learning", label: "Luyện tập tiếng Anh", special: true },
-  { icon: BookOpen, path: "/library", label: "Thư viện học tập" },
-  { icon: Trophy, path: "/ranking", label: "Bảng xếp hạng" },
-  { icon: TrendingUp, path: "/progress", label: "Tiến trình của tôi" },
+  { icon: PenTool, path: "/dashboard/writing", label: "Luyện viết tiếng Anh", special: true },
+  { icon: Volume2, path: "/dashboard/listening", label: "Luyện nghe tiếng Anh" },
+  { icon: BookOpen, path: "/dashboard/vocabulary", label: "Từ vựng của bạn" },
+  { icon: Trophy, path: "/dashboard/ranking", label: "Bảng xếp hạng" },
+  { icon: TrendingUp, path: "/dashboard/progress", label: "Tiến trình của tôi" },
 ];
 
 export function LeftSidebar() {
@@ -96,7 +98,7 @@ export function LeftSidebar() {
                 onClick={() => handleMenuLearningClick(item.path)}
                 key={item.label}
                 variant="ghost"
-                className={`w-full justify-start h-12 px-3 ${item.special
+                className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${item.special
                   ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 hover:from-orange-100 hover:to-pink-100 border border-orange-200"
                   : "text-gray-700 hover:bg-gray-50"
                   }`}
