@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { Jost, Cabin, Overpass } from "next/font/google";
+import { Overpass } from "next/font/google";
 import "./globals.css";
-import { ToastContainer } from "react-toastify";
-import ChatBotAI from "./chatbot/ChatBotAI";
 import { AuthProvider } from "@/components/contexts/AuthProvider";
+import ClientWrapper from "./ClientWrapper";
 
 const overpass = Overpass({
   subsets: ["latin"],
@@ -16,16 +15,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body className={overpass.className}>
         <AuthProvider>
-          {children}
-          <ChatBotAI />
-          <ToastContainer />
+          <ClientWrapper>{children}</ClientWrapper>
         </AuthProvider>
       </body>
     </html>

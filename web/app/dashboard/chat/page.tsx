@@ -1,17 +1,11 @@
-import ListConversation from "./components/ListConversation";
+import { Button } from "@/components/ui/button";
 
 export default function ChatPage() {
     return (
-        <div className="grid grid-cols-4 w-full max-h-[calc(100vh-66px)]">
-            {/* List Conversations */}
-            <div className="col-span-1 h-full w-full min-w-sm border-r border-gray-200">
-                <ListConversation />
-            </div>
-
-            {/* Main Chat Area */}
-            <div className="col-span-3">
-                {/* Render the main chat area here */}
-            </div>
+        <div className="flex flex-col justify-center items-center h-full">
+            <h1 className="text-2xl font-bold">Trò chuyện</h1>
+            <p className="my-4">Hãy bắt đầu một cuộc trò chuyện</p>
+            <Button variant={"default"} className="bg-gradient-to-r from-orange-500 to-pink-500 hover:scale-105 transition-transform hover:cursor-pointer">Gửi tin nhắn</Button>
         </div>
     );
 }

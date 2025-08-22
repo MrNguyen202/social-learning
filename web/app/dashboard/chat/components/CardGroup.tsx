@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
+import AvatarGroup from "./AvatarGroup";
 
 interface User {
     id: string;
@@ -13,19 +14,22 @@ interface Conversation {
     id: string;
     name: string;
     avatarUrl: string;
-    participants: User[];
+    members: User[];
     lastMessage: string;
 }
 
-type CardChatProps = {
+type CardGroupProps = {
     conversation: Conversation;
+    onClick: () => void;
 }
 
-export default function CardChat({ conversation }: CardChatProps) {
+export default function CardGroup({ conversation, onClick }: CardGroupProps) {
     return (
         <>
-            <button className="w-full flex justify-start items-center px-4 gap-3 py-2 border-b border-gray-200">
-                <Image src={conversation.avatarUrl} alt={conversation.name} width={60} height={60} />
+            <button onClick={onClick} className="w-full flex justify-start items-center px-4 gap-3 py-2 border-b border-gray-200 hover:cursor-pointer hover:bg-gray-200">
+                <div className="min-w-[60px] flex justify-center items-center">
+                    <AvatarGroup members={conversation.members} />
+                </div>
                 <div className="flex flex-col items-start gap-2 w-full">
                     <div className="flex items-center justify-between w-full">
                         <span className="font-semibold truncate max-w-64">{conversation.name}</span>
