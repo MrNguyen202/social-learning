@@ -12,41 +12,40 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // useEffect(() => {
-  //   supabase.auth.getSession().then(({ data, error }) => {
-  //     if (error) {
-  //       console.error("Lỗi khi lấy phiên:", error);
-  //     }
-  //     setUser(data?.session?.user || null);
-  //     setLoading(false);
-  //     console.log("User sau getSession:", data?.session?.user || null); // Log ở đây để thời gian chính xác
-  //   });
-
-  //   const { data: listener } = supabase.auth.onAuthStateChange(
-  //     (event, session) => {
-  //       setUser(session?.user || null);
-  //     }
-  //   );
-
-  //   return () => {
-  //     listener?.subscription.unsubscribe();
-  //   };
-  // }, []);
-
   useEffect(() => {
-    supabase.auth.onAuthStateChange((_event, session) => {
-      // console.log("session user", session?.user?.id);
-
-      if (session) {
-        setUser(session?.user);
-        updateUserData(session?.user, session?.user?.email);
-        router.replace("/dashboard");
-      } else {
-        setUser(null);
-        router.replace("/");
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (error) {
+        console.error("Lỗi khi lấy phiên:", error);
       }
+      setUser(data?.session?.user || null);
+      setLoading(false);
     });
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
   }, []);
+
+  // useEffect(() => {
+  //   supabase.auth.onAuthStateChange((_event, session) => {
+  //     // console.log("session user", session?.user?.id);
+
+  //     if (session) {
+  //       setUser(session?.user);
+  //       updateUserData(session?.user, session?.user?.email);
+  //       router.replace("/dashboard");
+  //     } else {
+  //       setUser(null);
+  //       router.replace("/");
+  //     }
+  //   });
+  // }, []);
 
   const updateUserData = async (user, email) => {
     let res = await getUserData(user?.id);

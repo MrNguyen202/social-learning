@@ -11,13 +11,13 @@ import { useState } from "react";
 export default function Page() {
     const router = useRouter();
     const { type } = useParams();
-    const [selectedLevel, setSelectedLevel] = useState<string>("");
-    const [selectedTopic, setSelectedTopic] = useState<string>("");
+    const [selectedLevel, setSelectedLevel] = useState<{ slug: string; name: string } | null>(null);
+    const [selectedTopic, setSelectedTopic] = useState<{ slug: string; name: string } | null>(null);
 
     const handleStart = () => {
         // Handle start button click
         if (selectedLevel && selectedTopic) {
-            router.push(`/dashboard/writing/${type}/${selectedLevel}/${selectedTopic}`);
+            router.push(`/dashboard/writing/${type}/${selectedLevel.slug}/${selectedTopic.slug}`);
         } else {
             alert("Vui lòng chọn mức năng lực và chủ đề trước khi bắt đầu.");
         }
@@ -35,13 +35,16 @@ export default function Page() {
                 </div>
 
                 <div className="flex flex-col max-w-5xl mx-auto mt-10 gap-6">
-                    <Level selectedLevel={selectedLevel} setSelectedLevel={setSelectedLevel} />
-                    <Topic selectedTopic={selectedTopic} setSelectedTopic={setSelectedTopic} />
+                    <Level selectedLevel={selectedLevel} type_exercise={typeof type === "string" ? type : ""} setSelectedLevel={setSelectedLevel} />
+                    <Topic selectedTopic={selectedTopic} type_exercise={typeof type === "string" ? type : ""} setSelectedTopic={setSelectedTopic} />
                 </div>
 
-                <div className="flex justify-center mt-10">
-                    <Button className="bg-blue-500 text-white hover:bg-blue-600" onClick={handleStart}>
-                        Bắt đầu
+                <div className="flex justify-center items-center mt-10 gap-4">
+                    {selectedLevel && selectedTopic && (
+                        <span className="text-lg font-semibold underline">{selectedTopic.name} - {selectedLevel.name}</span>
+                    )}
+                    <Button variant={"default"} className="hover:cursor-pointer" onClick={handleStart}>
+                        Tiếp tục
                     </Button>
                 </div>
             </div>

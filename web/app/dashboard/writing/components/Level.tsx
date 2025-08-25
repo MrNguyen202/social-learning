@@ -1,80 +1,90 @@
 "use client"
 
+import { getAllLevelsByTypeExercise } from "@/app/api/learning/route";
+import { Icon } from "@/components/icons/Icon";
 import { Card } from "@/components/ui/card"
-import * as Icons from "lucide-react"
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
-const levels = [
-    {
-        id: 1,
-        icon: {
-            name: "Sprout",
-            color: "green"
-        },
-        name: "Người mới bắt đầu",
-        slug: "beginner",
-        description: "Dành cho những người mới bắt đầu",
-        time_advice: "15-30 phút mỗi ngày"
-    },
-    {
-        id: 2,
-        icon: {
-            name: "BookOpen",
-            color: "blue"
-        },
-        name: "Trung cấp",
-        slug: "intermediate",
-        description: "Dành cho những người đã có kinh nghiệm",
-        time_advice: "30-60 phút mỗi ngày"
-    },
-    {
-        id: 3,
-        icon: {
-            name: "GraduationCap",
-            color: "purple"
-        },
-        name: "Nâng cao",
-        slug: "advanced",
-        description: "Dành cho những người muốn nâng cao kỹ năng",
-        time_advice: "1-2 giờ mỗi ngày"
-    }
-]
+type Level = {
+    id: number;
+    icon: {
+        name: string;
+        color: string;
+    };
+    name: string;
+    slug: string;
+    description: string;
+    time_advice: string;
+};
 
 interface LevelProps {
-    selectedLevel: string;
-    setSelectedLevel: (level: string) => void;
+    selectedLevel: {
+        slug: string;
+        name: string;
+    } | null;
+    type_exercise: string;
+    setSelectedLevel: (level: { slug: string; name: string } | null) => void;
 }
 
-export function Level({ selectedLevel, setSelectedLevel }: LevelProps) {
+export function Level({ selectedLevel, type_exercise, setSelectedLevel }: LevelProps) {
+    const [levels, setLevels] = useState<Level[]>([]);
+
+    // Lấy list level
+    useEffect(() => {
+        const fetchLevels = async () => {
+            try {
+                const data = await getAllLevelsByTypeExercise(type_exercise);
+                if (Array.isArray(data)) {
+                    setLevels(data);
+                } else {
+                    console.error("No levels found in the fetched data");
+                }
+            } catch (error) {
+                console.error("Error fetching levels:", error);
+            }
+        };
+        if (type_exercise) fetchLevels();
+    }, [type_exercise]);
+
+
     return (
         <div className="flex-1">
             <h2 className="text-xl font-semibold">Chọn mức năng lực</h2>
-            <div className="grid grid-cols-3 gap-4 mt-4">
+            <div className="grid grid-cols-3 gap-4 mt-4 min-h-36">
                 {levels.map(level => {
-                    const IconComponent = Icons[level.icon.name as keyof typeof Icons] as Icons.LucideIcon;
                     return (
-                        <Card
-                            onClick={() => setSelectedLevel(level.slug)}
+                        <motion.div
                             key={level.id}
-                            className={`
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.5, delay: level.id * 0.1 }}
+                            viewport={{ amount: 0.3 }}
+                        >
+                            <Card
+                                onClick={() => setSelectedLevel({ slug: level.slug, name: level.name })}
+                                key={level.id}
+                                className={`
                                 flex flex-row justify-between gap-4 px-4 
                                 transition-all duration-300 
                                 border-2 
-                                ${selectedLevel === level.slug
-                                    ? "shadow-lg -translate-y-1 border-black"
-                                    : "hover:shadow-lg hover:-translate-y-1 hover:border-black"
-                                }
+                                ${(selectedLevel && selectedLevel.slug === level.slug)
+                                        ? "shadow-lg -translate-y-1 border-black"
+                                        : "hover:shadow-lg hover:-translate-y-1 hover:border-black"
+                                    }
                             `}
-                        >
-                            <div className="flex items-center justify-center bg-gray-200 rounded-full h-fit p-4">
-                                {IconComponent && <IconComponent className={'h-6 w-6'} color={level.icon.color} />}
-                            </div>
+                            >
+                                <div className="flex items-center justify-center bg-gray-200 rounded-full h-fit p-4">
+                                    <Icon name={level.icon.name} color={level.icon.color} className={'h-6 w-6'} />
+                                </div>
 
-                            <div className="flex flex-col gap-2">
-                                <h3 className="text-lg font-semibold">{level.name}</h3>
-                                <p className="text-md text-gray-500">{level.description}</p>
-                                <p className="text-sm text-gray-500">{level.time_advice}</p>
-                            </div>
-                        </Card>
+                                <div className="flex flex-col gap-2">
+                                    <h3 className="text-lg font-semibold">{level.name}</h3>
+                                    <p className="text-md text-gray-500">{level.description}</p>
+                                    <p className="text-sm text-gray-500">{level.time_advice}</p>
+                                </div>
+                            </Card>
+                        </motion.div>
                     )
                 })}
             </div>

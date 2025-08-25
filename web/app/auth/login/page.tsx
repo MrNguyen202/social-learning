@@ -25,25 +25,25 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     try {
-      // const res = await login({ email, password });
+      const res = await login({ email, password });
 
-      // if (!res.success || !res?.data?.session) {
-      //   toast.error("Đăng nhập thất bại.");
-      //   console.error("Login failed:", res.message || "No session data");
-      //   return;
-      // }
+      if (!res.success || !res?.data?.session) {
+        toast.error("Đăng nhập thất bại.");
+        console.error("Login failed:", res.message || "No session data");
+        return;
+      }
 
-      // // Đặt phiên với dữ liệu session từ response
-      // const { error: setError } = await supabase.auth.setSession(
-      //   res.data.session
-      // );
+      // Đặt phiên với dữ liệu session từ response
+      const { error: setError } = await supabase.auth.setSession(
+        res.data.session
+      );
 
-      // if (setError) {
-      //   toast.error("Lỗi khi đặt phiên.");
-      //   console.error("Lỗi khi đặt phiên:", setError.message);
-      //   return;
-      // }
-      // toast.success("Đăng nhập thành công.");
+      if (setError) {
+        toast.error("Lỗi khi đặt phiên.");
+        console.error("Lỗi khi đặt phiên:", setError.message);
+        return;
+      }
+      toast.success("Đăng nhập thành công.");
       // Chuyển hướng tới trang được bảo vệ
       router.push("/dashboard");
     } catch (error: any) {

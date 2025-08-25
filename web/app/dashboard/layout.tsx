@@ -17,17 +17,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-  {/* Left Sidebar */}
-  {compact ? <LeftSideBarHiddenLabel /> : <LeftSidebar />}
+      {/* Left Sidebar */}
+      {compact ? <LeftSideBarHiddenLabel /> : <LeftSidebar />}
 
-  {/* Main Content Area */}
-  <div className={`flex flex-col flex-1 ${compact ? "ml-20" : "ml-64"}`}>
-    <TopHeader />
+      {/* Main Content Area */}
+      <div className={`flex flex-col flex-1 ${compact ? "ml-20" : "ml-64"}`}>
+        <TopHeader />
 
-    <div className="flex flex-1 overflow-hidden">
-      {children}
+        <div className="flex flex-1 overflow-hidden">
+          {children}
+        </div>
+      </div>
     </div>
-  </div>
-</div>
   );
 }
