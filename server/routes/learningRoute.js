@@ -11,4 +11,10 @@ router.get('/levels/:type_exercise_id', learningController.getAllLevelsByTypeExe
 // Get all topics by type_exercise
 router.get('/topics/:type_exercise_id', learningController.getAllTopicsByTypeExercise);
 
+// Get list writing-exercises by type_exercise, level and topic
+router.get('/writing-exercises/:type_exercise_slug/:level_slug/:topic_slug', learningController.getListWritingExercisesByTypeLevelTopic);
+
+// Get writing-exercise by id
+router.get('/writing-exercises/:id', learningController.getWritingExerciseById);
+
 module.exports = router;

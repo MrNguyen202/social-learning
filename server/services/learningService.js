@@ -14,7 +14,7 @@ const learningService = {
       icon:icon_id (name, color)
     `) // join với bảng icon
             .eq("slug", slug)
-            .single();
+            .maybeSingle();
 
         if (error) throw error;
         return data;
@@ -122,6 +122,86 @@ const learningService = {
         }
 
         return topics;
+    },
+
+    //Get list writing-exercises by type_exercise, level and topic
+    async getListWritingExercisesByTypeLevelTopic(type_exercise_slug, level_slug, topic_slug) {
+        // Bước 1: tìm id từ slug
+        // Tìm type_exercise_id
+        const { data: typeData, error: errType } = await supabase
+            .from("type_exercises")
+            .select("id")
+            .eq("slug", type_exercise_slug)
+            .single();
+
+        if (errType) {
+            console.error("Error fetching type_exercises:", errType);
+            throw errType;
+        }
+        if (!typeData) return [];
+
+        const type_exercise_id = typeData.id;
+
+        // Tìm level_id
+        const { data: levelData, error: errLevel } = await supabase
+            .from("levels")
+            .select("id")
+            .eq("slug", level_slug)
+            .single();
+
+        if (errLevel) {
+            console.error("Error fetching levels:", errLevel);
+            throw errLevel;
+        }
+        if (!levelData) return [];
+
+        const level_id = levelData.id;
+
+        // Tìm topic_id
+        const { data: topicData, error: errTopic } = await supabase
+            .from("topics")
+            .select("id")
+            .eq("slug", topic_slug)
+            .single();
+
+        if (errTopic) {
+            console.error("Error fetching topics:", errTopic);
+            throw errTopic;
+        }
+        if (!topicData) return [];
+
+        const topic_id = topicData.id;
+
+        // Bước 2: lấy writing_exercise theo type, level và topic
+        const { data: writingExercises, error: err1 } = await supabase
+            .from("writing_exercises")
+            .select("*")
+            .eq("type_exercise_id", type_exercise_id)
+            .eq("level_id", level_id)
+            .eq("topic_id", topic_id);
+
+        if (err1) {
+            console.error("Error fetching writing_exercises:", err1);
+            throw err1;
+        }
+
+        return writingExercises;
+    },
+
+    //Get writing-exercise by id
+    async getWritingExerciseById(id) {
+        const { data: exercise, error: err } = await supabase
+            .from("writing_exercises")
+            .select("*")
+            .eq("id", id)
+            .single();
+
+        if (err) {
+            console.error("Error fetching writing_exercise:", err);
+            throw err;
+        }
+
+        return exercise;
     }
 };
 

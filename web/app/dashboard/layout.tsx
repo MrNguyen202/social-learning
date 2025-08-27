@@ -14,17 +14,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   const compact = pathname.startsWith("/dashboard/chat");
+  const compactWriting = pathname.startsWith("/dashboard/writing/writing-paragraph/") || pathname.startsWith("/dashboard/writing/detail/");
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Left Sidebar */}
-      {compact ? <LeftSideBarHiddenLabel /> : <LeftSidebar />}
+      {compactWriting ? null : compact ? <LeftSideBarHiddenLabel /> : <LeftSidebar />}
 
       {/* Main Content Area */}
-      <div className={`flex flex-col flex-1 ${compact ? "ml-20" : "ml-64"}`}>
+      <div className={`flex flex-col flex-1 ${compactWriting ? "ml-0" : compact ? "ml-20" : "ml-64"}`}>
         <TopHeader />
 
-        <div className="flex flex-1 overflow-hidden">
+        <div className={`flex flex-1 overflow-hidden ${compactWriting ? "container mx-auto" : ""}`}>
           {children}
         </div>
       </div>

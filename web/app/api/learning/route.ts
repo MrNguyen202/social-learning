@@ -4,6 +4,7 @@ const api = axios.create({
     baseURL: "http://localhost:5000",
     headers: {
         "Content-Type": "application/json",
+        'Cache-Control': 'no-cache'
     },
 });
 
@@ -17,7 +18,6 @@ export const getTypeExercisesBySlug = async (slug: string) => {
         throw error;
     }
 };
-
 
 // Get all levels by type_exercise
 export const getAllLevelsByTypeExercise = async (type_exercise_id: string) => {
@@ -37,6 +37,28 @@ export const getAllTopicsByTypeExercise = async (type_exercise_id: string) => {
         return response.data;
     } catch (error) {
         console.error("Error fetching topics by type exercise:", error);
+        throw error;
+    }
+};
+
+// Get list writing-exercises by type_exercise, level and topic
+export const getListWritingExercisesByTypeLevelTopic = async (type_exercise_slug: string, level_slug: string, topic_slug: string) => {
+    try {
+        const response = await api.get(`/api/learning/writing-exercises/${type_exercise_slug}/${level_slug}/${topic_slug}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching writing exercises by type, level and topic:", error);
+        throw error;
+    }
+};
+
+// Get writing-exercise by id
+export const getWritingExerciseById = async (id: number) => {
+    try {
+        const response = await api.get(`/api/learning/writing-exercises/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching writing exercise by id:", error);
         throw error;
     }
 };

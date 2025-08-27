@@ -21,51 +21,17 @@ export function CardTypeEx() {
     const router = useRouter();
     const [types, setTypes] = useState<TypeExercise[]>([]);
 
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         try {
-    //             const res1 = await fetch(
-    //                 "http://localhost:5000/api/learning/type-exercises/writing-paragraph"
-    //             );
-    //             const res2 = await fetch(
-    //                 "http://localhost:5000/api/learning/type-exercises/writing-sentence"
-    //             );
-
-    //             const data1 = await res1.json();
-    //             const data2 = await res2.json();
-
-    //             // Chuẩn hóa dữ liệu
-    //             const normalize = (item: any): TypeExercise => ({
-    //                 id: String(item.id),
-    //                 icon: { name: "PenLine", color: "blue" },
-    //                 title: item.title,
-    //                 description: item.description,
-    //                 features: Array.isArray(item.features)
-    //                     ? item.features
-    //                     : typeof item.features === "string"
-    //                         ? item.features.split(",").map((f) => f.trim())
-    //                         : [],
-    //                 slug: item.slug,
-    //             });
-
-    //             setTypes([normalize(data1), normalize(data2)]);
-    //         } catch (error) {
-    //             console.error("Error fetching data:", error);
-    //         }
-    //     };
-
-    //     fetchData();
-    // }, []);
-
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const data1 = await getTypeExercisesBySlug("writing-paragraph");
                 const data2 = await getTypeExercisesBySlug("writing-sentence");
 
+                console.log("Fetched data:", data1, data2);
+
                 const normalize = (item: any) => ({
                     id: String(item.id),
-                    icon: { name: "PenLine", color: "blue" },
+                    icon: item.icon,
                     title: item.title,
                     description: item.description,
                     features: typeof item.features === "string"
