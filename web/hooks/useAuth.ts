@@ -1,14 +1,16 @@
-import { AuthContext } from "@/components/contexts/AuthProvider";
 import { useContext } from "react";
+import { AuthContext } from "@/components/contexts/AuthProvider";
 
-const useAuth = () => {
+interface AuthState<T> {
+  user: T | null;
+}
+
+export default function useAuth<T = any>(): AuthState<T> {
   const context = useContext(AuthContext);
 
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
 
-  return context;
-};
-
-export default useAuth;
+  return context as AuthState<T>;
+}
