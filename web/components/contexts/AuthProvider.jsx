@@ -38,7 +38,6 @@ const AuthProvider = ({ children }) => {
       if (session) {
         setUser(session?.user);
         updateUserData(session?.user, session?.user?.email);
-        router.replace("/dashboard");
       } else {
         setUser(null);
         router.replace("/");

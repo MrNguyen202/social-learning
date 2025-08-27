@@ -44,7 +44,7 @@ export default function LoginPage() {
         return;
       }
       toast.success("Đăng nhập thành công.");
-      
+      router.replace("/dashboard");
     } catch (error: any) {
       toast.error("Đăng nhập thất bại. Vui lòng thử lại.");
     }
