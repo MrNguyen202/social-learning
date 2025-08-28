@@ -1,12 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { PenTool, Users, Trophy, Target, BookOpen, Star, Bot } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  PenTool,
+  Users,
+  Trophy,
+  Target,
+  BookOpen,
+  Star,
+  Bot,
+} from "lucide-react";
 import Link from "next/link";
 
 export default function Page() {
-
   const testimonials = [
     {
       name: "Sarah Johnson",
@@ -27,11 +34,12 @@ export default function Page() {
     {
       name: "Emily Rodriguez",
       role: "Marketing Specialist",
-      content: "Finally, a learning platform that feels social and engaging. The community support is amazing!",
+      content:
+        "Finally, a learning platform that feels social and engaging. The community support is amazing!",
       avatar: "/globe.svg?height=40&width=40",
       rating: 5,
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50">
@@ -42,21 +50,20 @@ export default function Page() {
             <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
               <PenTool className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">
+            <span className="mt-1 text-3xl font-bold text-gray-900">
               <Link href="/">SocialLearning</Link>
             </span>
           </div>
           <div className="flex items-center space-x-3">
             <Button
               variant="outline"
-              className="bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+              className="bg-white text-gray-800 border-gray-300 hover:bg-gray-100 rounded-full p-6 text-[16px]"
               asChild
             >
               <Link href="/auth/login">Đăng Nhập</Link>
             </Button>
             <Button
-              variant="outline"
-              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white"
+              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white hover:text-white rounded-full p-6 text-[16px]"
               asChild
             >
               <Link href="/auth/register">Đăng kí</Link>
@@ -68,7 +75,7 @@ export default function Page() {
       {/* Hero */}
       <main className="container mx-auto px-4 py-12">
         <div className="text-center max-w-3xl mx-auto">
-          <Badge className="mb-6 bg-orange-100 text-orange-800 hover:bg-orange-100">
+          <Badge className="mb-6 text-sm bg-orange-100 text-orange-800 hover:bg-orange-100">
             Nền tảng Học tập Xã hội
           </Badge>
 
@@ -90,14 +97,14 @@ export default function Page() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-8 py-3 text-lg"
+              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-12 py-6 text-lg cursor-pointer rounded-full"
             >
               <Link href="auth/login">Tham gia ngay</Link>
             </Button>
             <Button
               size="lg"
               variant="outline"
-              className="bg-white text-gray-700 border-gray-300 hover:bg-gray-50 px-8 py-3 text-lg"
+              className="bg-white text-gray-700 border-gray-300 hover:bg-gray-50 px-12 py-6 text-lg cursor-pointer rounded-full"
             >
               Học thử
             </Button>
@@ -240,23 +247,35 @@ export default function Page() {
       <section id="testimonials">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">Bảng xếp hạng</h2>
-            <p className="text-xl text-gray-600">Những thành viên có thành tích cao nhất</p>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+              Bảng xếp hạng
+            </h2>
+            <p className="text-xl text-gray-600">
+              Những thành viên có thành tích cao nhất
+            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-0 shadow-lg transition-transform hover:scale-105">
+              <Card
+                key={index}
+                className="border-0 shadow-lg transition-transform hover:scale-105"
+              >
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-1 mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <Star
+                        key={i}
+                        className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                      />
                     ))}
                   </div>
                   <p className="text-gray-600 mb-6">"{testimonial.content}"</p>
                   <div className="flex items-center space-x-3">
                     <Avatar>
-                      <AvatarImage src={testimonial.avatar || "/placeholder.svg"} />
+                      <AvatarImage
+                        src={testimonial.avatar || "/placeholder.svg"}
+                      />
                       <AvatarFallback>
                         {testimonial.name
                           .split(" ")
@@ -265,8 +284,12 @@ export default function Page() {
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                      <p className="text-sm text-gray-600">{testimonial.role}</p>
+                      <p className="font-semibold text-gray-900">
+                        {testimonial.name}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {testimonial.role}
+                      </p>
                     </div>
                   </div>
                 </CardContent>

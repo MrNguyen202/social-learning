@@ -57,7 +57,7 @@ export default function LoginPage() {
         <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
           <PenTool className="w-5 h-5 text-white" />
         </div>
-        <span className="text-xl ml-2 font-bold text-gray-900">
+        <span className="text-3xl ml-2 mt-1 font-bold text-gray-900">
           <Link href="/">SocialLearning</Link>
         </span>
       </div>
@@ -105,7 +105,7 @@ export default function LoginPage() {
             </div>
             <Button
               onClick={handleLogin}
-              className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer"
+              className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer rounded-full"
             >
               Đăng Nhập
             </Button>

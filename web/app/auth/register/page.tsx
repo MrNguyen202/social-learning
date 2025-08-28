@@ -78,7 +78,7 @@ export default function RegisterPage() {
         <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
           <PenTool className="w-5 h-5 text-white" />
         </div>
-        <span className="text-xl ml-2 font-bold text-gray-900">
+        <span className="text-3xl mt-1 ml-2 font-bold text-gray-900">
           <Link href="/">SocialLearning</Link>
         </span>
       </div>
@@ -154,7 +154,7 @@ export default function RegisterPage() {
                   </Label>
                 </div>
                 <Button
-                  className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer"
+                  className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer rounded-full"
                   onClick={handleSignUp}
                 >
                   Tạo tài khoản
@@ -175,7 +175,7 @@ export default function RegisterPage() {
                   />
                 </div>
                 <Button
-                  className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer"
+                  className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer rounded-full"
                   onClick={handleVerifyOtp}
                 >
                   Xác thực OTP
