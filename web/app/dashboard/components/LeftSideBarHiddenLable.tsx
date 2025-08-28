@@ -78,11 +78,11 @@ export function LeftSideBarHiddenLabel() {
   };
 
   return (
-    <div className="fixed left-0 top-0 h-full w-20 bg-white border-r border-gray-200 flex flex-col">
+    <div className="fixed left-0 top-0 h-full sm:w-20 bg-white border-r border-gray-200 flex flex-col w-15">
       {/* Logo */}
       <div className="p-4 border-b border-gray-100 flex items-center justify-center">
-        <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
-          <PenTool className="w-5 h-5 text-white" />
+        <div className="sm:w-8 sm:h-8 w-6 h-6 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
+          <PenTool className="sm:w-5 sm:h-5 w-4 h-4 text-white" />
         </div>
       </div>
 
@@ -129,7 +129,7 @@ export function LeftSideBarHiddenLabel() {
       <div className="mt-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <div className="p-8 border-t cursor-pointer hover:bg-gray-50">
+            <div className="sm:p-8 p-5 border-t cursor-pointer hover:bg-gray-50">
               <MenuIcon className="h-4 w-4" />
             </div>
           </DropdownMenuTrigger>

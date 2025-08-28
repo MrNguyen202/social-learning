@@ -28,7 +28,7 @@ export function PostCard({ post }: PostCardProps) {
   const [isSaved, setIsSaved] = useState(false)
 
   return (
-    <Card className="border-0 shadow-sm mb-6 bg-white">
+    <Card className="border-0 shadow-sm mb-6 bg-white sm:max-w-full max-w-sm">
       {/* Post Header */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center space-x-3">

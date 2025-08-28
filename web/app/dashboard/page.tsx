@@ -4,7 +4,7 @@ import { RightSidebar } from "./components/RightSidebar";
 export default function DashboardPage() {
   return (
     <>
-      <div className="flex-1 px-6 py-6">
+      <div className="flex-1 sm:px-6 py-6">
         <MainContentArea />
       </div>
 

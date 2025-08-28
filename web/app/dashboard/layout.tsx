@@ -30,7 +30,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50">
       {/* Left Sidebar */}
       {compactWriting || isMobile ? (
         <LeftSideBarHiddenLabel />
@@ -46,7 +46,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           compactWriting
             ? "ml-0"
             : isMobile
-            ? "ml-20"
+            ? "ml-14"
             : compact
             ? "ml-20"
             : "ml-64"

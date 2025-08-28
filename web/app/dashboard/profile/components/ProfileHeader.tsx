@@ -14,55 +14,43 @@ export default function ProfileHeader() {
   const { user } = useAuth<User>();
   return (
     <div className="p-4 border-b border-border">
-      {/* Profile info */}
-      <div className="flex items-start gap-4 sm:gap-16 mb-4">
-        <Avatar className="w-15 h-15 sm:w-20 sm:h-20">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:gap-8 mb-4">
+        {/* Avatar */}
+        <Avatar className="w-20 h-20 mx-auto sm:mx-0 sm:w-24 sm:h-24">
           <AvatarImage src="/anime-character-profile.png" alt="Profile" />
-          <AvatarFallback>TB </AvatarFallback>
+          <AvatarFallback>TB</AvatarFallback>
         </Avatar>
 
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <h1 className="text-xl font-semibold">{user?.name}</h1>
-          </div>
+        {/* Info */}
+        <div className="flex-1 text-center sm:text-left mt-2 sm:mt-0">
+          <h1 className="text-lg font-semibold sm:text-xl">{user?.name}</h1>
 
-          <div className="grid grid-cols-3 text-sm sm:text-md">
-            <div className="">
+          <div className="grid grid-cols-3 text-xs sm:text-sm mt-2">
+            <div>
               <div className="font-semibold">0</div>
               <div className="text-muted-foreground">bài viết</div>
             </div>
-            <div className="">
+            <div>
               <div className="font-semibold">0</div>
               <div className="text-muted-foreground">người theo dõi</div>
             </div>
-            <div className="">
-              <div className="text-muted-foreground">Đang theo dõi</div>
-              <div>
-                <span className="font-semibold">7 </span>{" "}
-                <span className="text-muted-foreground">người dùng</span>
-              </div>
+            <div>
+              <div className="font-semibold">7</div>
+              <div className="text-muted-foreground">đang theo dõi</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Action buttons */}
-      <div className="flex gap-2 mb-4">
-        <Button
-          variant="secondary"
-          className="flex-1 text-sm hover:bg-gray-200 cursor-pointer"
-        >
-          Chỉnh sửa trang cá nhân
+      <div className="flex flex-col sm:flex-row gap-2 mb-4">
+        <Button variant="secondary" className="flex-1 text-sm">
+          Chỉnh sửa
         </Button>
-        <Button
-          variant="secondary"
-          className="flex-1 text-sm hover:bg-gray-200 cursor-pointer"
-        >
-          Xem kho lưu trữ
+        <Button variant="secondary" className="flex-1 text-sm">
+          Kho lưu trữ
         </Button>
-
-        <div className="flex items-center justify-center cursor-pointer">
-          <Settings className="w-6 h-6 ml-2" />
+        <div className="flex items-center justify-center cursor-pointer sm:ml-2 max-sm:hidden">
+          <Settings className="w-5 h-5" />
         </div>
       </div>
 
