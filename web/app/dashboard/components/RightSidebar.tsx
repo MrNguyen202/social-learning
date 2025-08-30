@@ -4,6 +4,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import useAuth from "@/hooks/useAuth";
+import { getUserImageSrc } from "@/app/api/image/route";
 
 const suggestions = [
   {
@@ -64,6 +66,7 @@ const activities = [
 ];
 
 export function RightSidebar() {
+  const { user } = useAuth();
   return (
     <div className="space-y-6">
       {/* Thông tin cá nhân */}
@@ -71,14 +74,18 @@ export function RightSidebar() {
         <CardContent className="p-4">
           <div className="flex items-center space-x-3">
             <Avatar className="h-14 w-14">
-              <AvatarImage src="/globe.svg?height=56&width=56" />
-              <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white">
-                JD
-              </AvatarFallback>
+              <AvatarImage
+                src={
+                  user?.avatar
+                    ? getUserImageSrc(user.avatar)
+                    : "/default-avatar-profile-icon.jpg"
+                }
+                alt="Profile"
+              />
             </Avatar>
             <div className="flex-1">
-              <p className="font-semibold text-gray-900">john_doe</p>
-              <p className="text-sm text-gray-500">John Doe</p>
+              <p className="font-semibold text-gray-900">{user?.name}</p>
+              <p className="text-sm text-gray-500">{user?.nick_name}</p>
               <Badge
                 variant="secondary"
                 className="text-xs bg-orange-100 text-orange-800 mt-1"

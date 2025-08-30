@@ -3,6 +3,8 @@ import { AuthContext } from "@/components/contexts/AuthProvider";
 
 interface AuthState<T> {
   user: T | null;
+  setUser: (user: T | null) => void;
+  loading: boolean;
 }
 
 export default function useAuth<T = any>(): AuthState<T> {

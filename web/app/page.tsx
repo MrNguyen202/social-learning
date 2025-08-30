@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,8 +12,22 @@ import {
   BookOpen,
   Star,
   Bot,
+  User,
+  LogOut,
+  LayoutDashboard,
 } from "lucide-react";
 import Link from "next/link";
+import useAuth from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
+import { toast } from "react-toastify";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { getUserImageSrc } from "./api/image/route";
 
 export default function Page() {
   const testimonials = [
@@ -41,6 +57,18 @@ export default function Page() {
     },
   ];
 
+  const { user, setUser } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      toast.success("Đăng xuất thành công");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50">
       {/* Header */}
@@ -54,20 +82,99 @@ export default function Page() {
               <Link href="/">SocialLearning</Link>
             </span>
           </div>
+
           <div className="flex items-center space-x-3">
-            <Button
-              variant="outline"
-              className="bg-white text-gray-800 border-gray-300 hover:bg-gray-100 rounded-full p-6 text-[16px]"
-              asChild
-            >
-              <Link href="/auth/login">Đăng Nhập</Link>
-            </Button>
-            <Button
-              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white hover:text-white rounded-full p-6 text-[16px]"
-              asChild
-            >
-              <Link href="/auth/register">Đăng kí</Link>
-            </Button>
+            {user ? (
+              // Hiển thị khi đã đăng nhập
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="w-10 h-10 cursor-pointer hover:ring-2 hover:ring-orange-500 transition-all">
+                    <AvatarImage
+                      src={
+                        user.avatar
+                          ? getUserImageSrc(user.avatar)
+                          : "/default-avatar-profile-icon.jpg"
+                      }
+                      alt={user.name || "User Avatar"}
+                    />
+                    <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white">
+                      {user.name?.charAt(0)?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="flex items-center space-x-2 p-2">
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage
+                        src={
+                          user.avatar
+                            ? getUserImageSrc(user.avatar)
+                            : "/default-avatar-profile-icon.jpg"
+                        }
+                        alt={user.name || "User Avatar"}
+                      />
+                      <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs">
+                        {user.name?.charAt(0)?.toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {user.name}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user.nick_name || user.email}
+                      </p>
+                    </div>
+                  </div>
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className="cursor-pointer">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      <span>Trang chủ</span>
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/profile" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Trang cá nhân</span>
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="cursor-pointer text-red-600 focus:text-red-600"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Đăng xuất</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              // Hiển thị khi chưa đăng nhập
+              <>
+                <Button
+                  variant="outline"
+                  className="bg-white text-gray-800 border-gray-300 hover:bg-gray-100 rounded-full p-6 text-[16px]"
+                  asChild
+                >
+                  <Link href="/auth/login">Đăng Nhập</Link>
+                </Button>
+                <Button
+                  className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white hover:text-white rounded-full p-6 text-[16px]"
+                  asChild
+                >
+                  <Link href="/auth/register">Đăng kí</Link>
+                </Button>
+              </>
+            )}
           </div>
         </nav>
       </header>

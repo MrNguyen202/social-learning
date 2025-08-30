@@ -8,10 +8,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { BookOpen, PenTool } from "lucide-react";
+import { BookOpen, Eye, EyeOff, PenTool } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { register, verifyOtp } from "@/app/api/auth/route";
@@ -26,6 +32,8 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [sentOtp, setSentOtp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSignUp = async () => {
     if (!email || !password || !confirmPassword) {
@@ -122,24 +130,56 @@ export default function RegisterPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="password">Mật khẩu</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Tạo mật khẩu mạnh"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Tạo mật khẩu mạnh"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="Xác nhận mật khẩu của bạn"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Xác nhận mật khẩu của bạn"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
+
                 <div className="flex items-center space-x-2">
                   <Checkbox id="terms" />
                   <Label htmlFor="terms" className="text-sm">
@@ -163,17 +203,30 @@ export default function RegisterPage() {
             ) : (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="otp">
+                  <Label htmlFor="otp" className="text-center block">
                     Nhập mã OTP đã gửi đến email của bạn
                   </Label>
-                  <Input
-                    id="otp"
-                    type="text"
-                    placeholder="Nhập OTP"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                  />
+                  <div className="flex justify-center">
+                    <InputOTP
+                      maxLength={6}
+                      value={otp}
+                      onChange={(value) => setOtp(value)}
+                    >
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} className="w-12 h-12 text-xl" />
+                        <InputOTPSlot index={1} className="w-12 h-12 text-xl" />
+                        <InputOTPSlot index={2} className="w-12 h-12 text-xl" />
+                      </InputOTPGroup>
+                      <InputOTPSeparator />
+                      <InputOTPGroup>
+                        <InputOTPSlot index={3} className="w-12 h-12 text-xl" />
+                        <InputOTPSlot index={4} className="w-12 h-12 text-xl" />
+                        <InputOTPSlot index={5} className="w-12 h-12 text-xl" />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
                 </div>
+
                 <Button
                   className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer rounded-full"
                   onClick={handleVerifyOtp}

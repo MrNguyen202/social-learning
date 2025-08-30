@@ -77,12 +77,16 @@ export function LeftSideBarHiddenLabel() {
     router.push("/");
   };
 
+  const handleClickLogo = () => {
+    router.push("/");
+  }
+
   return (
     <div className="fixed left-0 top-0 h-full sm:w-20 bg-white border-r border-gray-200 flex flex-col w-15">
       {/* Logo */}
       <div className="p-4 border-b border-gray-100 flex items-center justify-center">
         <div className="sm:w-8 sm:h-8 w-6 h-6 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
-          <PenTool className="sm:w-5 sm:h-5 w-4 h-4 text-white" />
+          <PenTool className="sm:w-5 sm:h-5 w-4 h-4 text-white" onClick={handleClickLogo} />
         </div>
       </div>
 

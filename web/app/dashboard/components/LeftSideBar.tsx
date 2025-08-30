@@ -29,6 +29,7 @@ import { Separator } from "@/components/ui/separator";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "react-toastify";
+import Link from "next/link";
 
 // Remove the hardcoded `active` property from mainNavItems
 const mainNavItems = [
@@ -89,9 +90,9 @@ export function LeftSidebar() {
           <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
             <PenTool className="w-5 h-5 text-white" />
           </div>
-          <span className="text-xl font-bold text-gray-900">
+          <Link href="/" className="text-xl font-bold text-gray-900">
             SocialLearning
-          </span>
+          </Link>
         </div>
       </div>
 

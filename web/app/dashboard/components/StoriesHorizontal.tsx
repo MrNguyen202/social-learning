@@ -1,8 +1,10 @@
-"use client"
+"use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Plus } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import useAuth from "@/hooks/useAuth";
+import { getUserImageSrc } from "@/app/api/image/route";
 
 const stories = [
   {
@@ -47,22 +49,30 @@ const stories = [
     avatar: "/globe.svg?height=64&width=64",
     hasStory: true,
   },
-]
+];
 
 export function StoriesHorizontal() {
+  const { user } = useAuth();
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
       <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
         {stories.map((story) => (
-          <div key={story.id} className="flex flex-col items-center space-y-2 flex-shrink-0">
+          <div
+            key={story.id}
+            className="flex flex-col items-center space-y-2 flex-shrink-0"
+          >
             <div className="relative">
               {story.isAdd ? (
                 <div className="relative">
                   <Avatar className="h-16 w-16 border-2 border-gray-200">
-                    <AvatarImage src={story.avatar || "/placeholder.svg"} />
-                    <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white">
-                      You
-                    </AvatarFallback>
+                    <AvatarImage
+                      src={
+                        user?.avatar
+                          ? getUserImageSrc(user.avatar)
+                          : "/default-avatar-profile-icon.jpg"
+                      }
+                      alt="Profile"
+                    />
                   </Avatar>
                   <Button
                     size="icon"
@@ -75,7 +85,9 @@ export function StoriesHorizontal() {
                 <div className="p-0.5 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full">
                   <Avatar className="h-16 w-16 border-2 border-white">
                     <AvatarImage src={story.avatar || "/placeholder.svg"} />
-                    <AvatarFallback className="bg-gray-200">{story.username.slice(0, 2).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback className="bg-gray-200">
+                      {story.username.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                 </div>
               )}
@@ -87,5 +99,5 @@ export function StoriesHorizontal() {
         ))}
       </div>
     </div>
-  )
+  );
 }

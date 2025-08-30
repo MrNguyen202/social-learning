@@ -3,11 +3,11 @@ import { Plus } from "lucide-react";
 
 export default function StoryHighlights() {
   return (
-    <div className="p-3 sm:p-4 border-b border-border">
+    <div className="p-3 sm:p-4 border-b border-border md:ml-5">
       <div className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide">
         <div className="flex flex-col items-center gap-1 min-w-12">
           <Avatar className="w-14 h-14 sm:w-16 sm:h-16 ring-2 ring-muted">
-            <AvatarImage src="/serene-mountain-lake.png" alt="Highlight" />
+            <AvatarImage src="/default-avatar-profile-icon.jpg" alt="Highlight" />
             <AvatarFallback>H1</AvatarFallback>
           </Avatar>
           <span className="text-[10px] sm:text-xs text-center">🌿</span>

@@ -5,7 +5,7 @@ import StoryHighlights from "./components/Story";
 
 export default function ProfilePage() {
   return (
-    <div className="mx-auto w-full max-w-md pt-4 sm:max-w-2xl lg:max-w-3xl px-5">
+    <div className="mx-auto w-full max-w-md pt-4 sm:max-w-2xl lg:max-w-4xl px-5">
       <ProfileHeader />
       <StoryHighlights />
       <ProfileTabs />

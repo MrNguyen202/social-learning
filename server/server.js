@@ -11,10 +11,12 @@ const PORT = process.env.PORT || 5000;
 
 const authRoute = require('./routes/authRoute');
 const userRoute = require('./routes/userRoute');
+const imageRoute = require('./routes/imageRoute');
 const learningRoute = require('./routes/learningRoute');
 
 app.use('/api/auth', authRoute);
 app.use('/api/users', userRoute);
+app.use('/api/images', imageRoute);
 app.use('/api/learning', learningRoute);
 
 connectDB().then(() => {

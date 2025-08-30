@@ -13,7 +13,7 @@ export default function ProfileTabs() {
   ];
 
   return (
-    <div className="border-b border-border">
+    <div className="border-b border-border md:ml-5">
       <div className="flex">
         {tabs.map((tab) => (
           <button
