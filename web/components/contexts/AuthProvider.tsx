@@ -43,7 +43,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         if (session?.user) {
           updateUserData(session.user, session.user.email);
         } else {

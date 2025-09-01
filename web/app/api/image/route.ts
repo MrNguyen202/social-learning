@@ -1,11 +1,4 @@
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: "http://localhost:5000",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+import api from "@/lib/api";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 

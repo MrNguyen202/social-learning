@@ -1,11 +1,4 @@
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: "http://localhost:5000",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+import api from "@/lib/api";
 
 export const register = async ({ email, password, name }: any) => {
   try {
