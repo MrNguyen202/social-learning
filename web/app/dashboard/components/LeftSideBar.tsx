@@ -79,7 +79,9 @@ export function LeftSidebar() {
     // Handle menu item click
     if (path === "/dashboard/chat") {
       if (localStorage.getItem("selectedConversation")) {
-        router.push(`/dashboard/chat/${localStorage.getItem("selectedConversation")}`);
+        router.push(
+          `/dashboard/chat/${localStorage.getItem("selectedConversation")}`
+        );
         return;
       }
     }
@@ -115,10 +117,11 @@ export function LeftSidebar() {
               <Button
                 key={item.label}
                 variant="ghost"
-                className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${pathname === item.path
-                  ? "bg-gray-100 text-gray-900 font-medium"
-                  : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${
+                  pathname === item.path
+                    ? "bg-gray-100 text-gray-900 font-medium"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
                 onClick={() => handleMenuClick(item.path)}
               >
                 <div className="relative">
@@ -146,16 +149,18 @@ export function LeftSidebar() {
                 <Button
                   key={item.label}
                   variant="ghost"
-                  className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${item.special
-                    ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 hover:from-orange-100 hover:to-pink-100 border border-orange-200"
-                    : pathname === item.path
+                  className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${
+                    item.special
+                      ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 hover:from-orange-100 hover:to-pink-100 border border-orange-200"
+                      : pathname === item.path
                       ? "bg-gray-100 text-gray-900 font-medium"
                       : "text-gray-700 hover:bg-gray-50"
-                    }`}
+                  }`}
                 >
                   <item.icon
-                    className={`h-6 w-6 mr-4 ${item.special ? "text-orange-600" : ""
-                      }`}
+                    className={`h-6 w-6 mr-4 ${
+                      item.special ? "text-orange-600" : ""
+                    }`}
                   />
                   <span className="text-base font-medium">{item.label}</span>
                   {item.special && (
@@ -167,41 +172,41 @@ export function LeftSidebar() {
               ))}
             </nav>
           </div>
-
-          {/* Info Rank */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div className="p-4 border-t border-gray-100 cursor-pointer">
-                <div className="p-3 rounded-lg bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-100">
-                  <div className="flex items-center space-x-3">
-                    <MenuIcon className="h-4 w-4" />
-                    <p>Xem thêm</p>
-                  </div>
+        </div>
+        
+        {/* Info Rank */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="p-4 border-t border-gray-100 cursor-pointer">
+              <div className="p-3 rounded-lg bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-100">
+                <div className="flex items-center space-x-3">
+                  <MenuIcon className="h-4 w-4" />
+                  <p>Xem thêm</p>
                 </div>
               </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end">
-              <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={() => handleMenuClick("/dashboard/profile")}
-              >
-                Hồ sơ
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={() => handleMenuClick("/dashboard/settings")}
-              >
-                Cài đặt
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
-                Đăng xuất
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end">
+            <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => handleMenuClick("/dashboard/profile")}
+            >
+              Hồ sơ
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => handleMenuClick("/dashboard/settings")}
+            >
+              Cài đặt
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
+              Đăng xuất
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <CreatePostModal
           isOpen={isCreateModalOpen}
