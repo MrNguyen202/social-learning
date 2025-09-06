@@ -59,6 +59,8 @@ export default function Page() {
 
   const { user, setUser } = useAuth();
 
+  
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
