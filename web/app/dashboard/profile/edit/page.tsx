@@ -113,7 +113,7 @@ export default function ProfileEditPage() {
       try {
         setIsLoading(true);
 
-        const res = await uploadFile("profiles", file, true);
+        const res = await uploadFile("profiles", file, "image");
 
         if (res?.success === false) {
           toast.error(res.msg || "Upload thất bại", { autoClose: 1500 });

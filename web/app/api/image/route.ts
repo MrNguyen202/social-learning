@@ -22,7 +22,7 @@ export const getSupabaseFileUrl = (filePath: any) => {
 export const uploadFile = async (
   folderName: any,
   file: any,
-  isImage = true
+  isImage = "image"
 ) => {
   try {
     // Đọc file thành base64

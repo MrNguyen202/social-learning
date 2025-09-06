@@ -13,19 +13,18 @@ const imageService = {
     return null;
   },
 
-  async uploadFile(folderName, fileBase64, isImage = true) {
+  async uploadFile(folderName, fileBase64, fileType = "image") {
     try {
       if (!fileBase64) {
         return { success: false, msg: "Thiếu dữ liệu tệp (fileBase64)" };
       }
 
-      let fileName = this.getFilePath(folderName, isImage);
+      let fileName = this.getFilePath(folderName, fileType);
 
-      let imageData;
+      let fileData;
       try {
-        imageData = decode(fileBase64);
+        fileData = decode(fileBase64);
       } catch (decodeError) {
-        console.log("Lỗi decode base64:", decodeError);
         return {
           success: false,
           msg: "Dữ liệu base64 không hợp lệ",
@@ -33,16 +32,18 @@ const imageService = {
         };
       }
 
+      // Xác định content type dựa trên file type
+      let contentType = this.getContentType(fileType);
+
       let { data, error } = await supabase.storage
         .from("uploads")
-        .upload(fileName, imageData, {
+        .upload(fileName, fileData, {
           cacheControl: "3600",
           upsert: false,
-          contentType: isImage ? "image/*" : "video/*",
+          contentType: contentType,
         });
 
       if (error) {
-        console.log("uploadFile error từ Supabase:", error);
         return {
           success: false,
           msg: "Could not upload media to storage",
@@ -57,10 +58,10 @@ const imageService = {
         data: {
           path: data.path,
           url: this.getSupabaseFileUrl(data.path),
+          fileType: fileType,
         },
       };
     } catch (error) {
-      console.log("uploadFile error tổng quát:", error);
       return {
         success: false,
         msg: "Could not upload media",
@@ -69,8 +70,45 @@ const imageService = {
     }
   },
 
-  getFilePath(folderName, isImage) {
-    return `/${folderName}/${new Date().getTime()}${isImage ? ".png" : ".mp4"}`;
+  getContentType(fileType) {
+    const contentTypes = {
+      image: "image/*",
+      video: "video/*",
+      pdf: "application/pdf",
+      word: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      excel:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      file: "application/octet-stream",
+    };
+    return contentTypes[fileType] || "application/octet-stream";
+  },
+
+  getFileExtension(fileType) {
+    const extensions = {
+      image: ".png",
+      video: ".mp4",
+      pdf: ".pdf",
+      word: ".docx",
+      excel: ".xlsx",
+      file: ".bin",
+    };
+    return extensions[fileType] || ".bin";
+  },
+
+  getFilePath(folderName, fileType) {
+    const extension = this.getFileExtension(fileType);
+    return `/${folderName}/${new Date().getTime()}${extension}`;
+  },
+
+  getFileTypeFromMime(mimeType) {
+    if (mimeType.startsWith("image/")) return "image";
+    if (mimeType.startsWith("video/")) return "video";
+    if (mimeType.includes("pdf")) return "pdf";
+    if (mimeType.includes("excel") || mimeType.includes("spreadsheet"))
+      return "excel";
+    if (mimeType.includes("word") || mimeType.includes("document"))
+      return "word";
+    return "file";
   },
 };
 

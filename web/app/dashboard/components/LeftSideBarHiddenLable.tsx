@@ -27,6 +27,8 @@ import {
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "react-toastify";
+import { useState } from "react";
+import { CreatePostModal } from "./CreatePost";
 
 const mainNavItems = [
   { icon: Home, path: "/dashboard", label: "Trang chủ", active: true },
@@ -66,6 +68,7 @@ const learningNavItems = [
 
 export function LeftSideBarHiddenLabel() {
   const router = useRouter();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const handleMenuClick = (path: string) => {
     // Handle menu item click
@@ -91,86 +94,95 @@ export function LeftSideBarHiddenLabel() {
   };
 
   return (
-    <div className="fixed left-0 top-0 h-full sm:w-20 bg-white border-r border-gray-200 flex flex-col w-15">
-      {/* Logo */}
-      <div className="p-4 border-b border-gray-100 flex items-center justify-center">
-        <div className="sm:w-8 sm:h-8 w-6 h-6 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
-          <PenTool
-            className="sm:w-5 sm:h-5 w-4 h-4 text-white"
-            onClick={handleClickLogo}
-          />
+    <>
+      <div className="fixed left-0 top-0 h-full sm:w-20 bg-white border-r border-gray-200 flex flex-col w-15">
+        {/* Logo */}
+        <div className="p-4 border-b border-gray-100 flex items-center justify-center">
+          <div className="sm:w-8 sm:h-8 w-6 h-6 bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
+            <PenTool
+              className="sm:w-5 sm:h-5 w-4 h-4 text-white"
+              onClick={handleClickLogo}
+            />
+          </div>
+        </div>
+
+        {/* Main Navigation */}
+        <div>
+          <nav className="space-y-1">
+            {mainNavItems.map((item) => (
+              <Button
+                key={item.label}
+                variant="ghost"
+                className={`w-full justify-center h-14 px-3 hover:cursor-pointer ${
+                  item.active
+                    ? "bg-gray-100 text-gray-900 font-medium"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+                onClick={() => handleMenuClick(item.path)}
+              >
+                <item.icon size={48} />
+              </Button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Learning Navigation */}
+        <div className="border-t border-gray-100">
+          <nav className="space-y-1">
+            {learningNavItems.map((item) => (
+              <Button
+                key={item.label}
+                variant="ghost"
+                className={`w-full justify-center h-14 px-3 hover:cursor-pointer ${
+                  item.special
+                    ? "bg-gray-100 text-gray-900 font-medium"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+                onClick={() => handleMenuClick(item.path)}
+              >
+                <item.icon size={48} />
+              </Button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="mt-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="sm:p-8 p-5 border-t cursor-pointer hover:bg-gray-50">
+                <MenuIcon className="h-4 w-4" />
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end">
+              <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => handleMenuClick("/dashboard/profile")}
+              >
+                Hồ sơ
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => handleMenuClick("/dashboard/settings")}
+              >
+                Cài đặt
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={handleLogout}
+              >
+                Đăng xuất
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-
-      {/* Main Navigation */}
-      <div>
-        <nav className="space-y-1">
-          {mainNavItems.map((item) => (
-            <Button
-              key={item.label}
-              variant="ghost"
-              className={`w-full justify-center h-14 px-3 hover:cursor-pointer ${
-                item.active
-                  ? "bg-gray-100 text-gray-900 font-medium"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-              onClick={() => handleMenuClick(item.path)}
-            >
-              <item.icon size={48} />
-            </Button>
-          ))}
-        </nav>
-      </div>
-
-      {/* Learning Navigation */}
-      <div className="border-t border-gray-100">
-        <nav className="space-y-1">
-          {learningNavItems.map((item) => (
-            <Button
-              key={item.label}
-              variant="ghost"
-              className={`w-full justify-center h-14 px-3 hover:cursor-pointer ${
-                item.special
-                  ? "bg-gray-100 text-gray-900 font-medium"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-              onClick={() => handleMenuClick(item.path)}
-            >
-              <item.icon size={48} />
-            </Button>
-          ))}
-        </nav>
-      </div>
-
-      <div className="mt-auto">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <div className="sm:p-8 p-5 border-t cursor-pointer hover:bg-gray-50">
-              <MenuIcon className="h-4 w-4" />
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end">
-            <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => handleMenuClick("/dashboard/profile")}
-            >
-              Hồ sơ
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => handleMenuClick("/dashboard/settings")}
-            >
-              Cài đặt
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
-              Đăng xuất
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>
+      <CreatePostModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
+    </>
   );
 }

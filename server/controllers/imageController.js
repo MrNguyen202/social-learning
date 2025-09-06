@@ -26,7 +26,7 @@ const imageController = {
       const result = await imageService.uploadFile(
         folderName,
         fileBase64,
-        isImage
+        isImage,
       );
 
       if (!result.success) {
