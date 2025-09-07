@@ -38,20 +38,20 @@ const userService = {
     return { data: updatedData, error: null };
   },
 
-  async getEmailUser(email) {
+  async checkNickNameUser(nickName) {
     const { data, error } = await supabase
       .from("users")
-      .select("email")
-      .eq("email", email)
+      .select("id, nick_name")
+      .eq("nick_name", nickName)
       .maybeSingle();
 
-    if (error) throw error;
-    return { data, error };
+    if (error) return { data: null, error };
+    return { data, error: null };
   },
 
   async getUsersByIds(userIds) {
     // đảm bảo userIds là mảng string
-    const ids = userIds.map(id => id.toString());
+    const ids = userIds.map((id) => id.toString());
 
     const { data, error } = await supabase
       .from("users")

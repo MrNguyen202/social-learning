@@ -203,7 +203,13 @@ export default function ProfileEditPage() {
         setUser({ ...user, ...updatedUser });
         router.push("/dashboard/profile");
       } catch (err: any) {
-        toast.error("Đã xảy ra lỗi.", { autoClose: 1500 });
+        if (err.message === "Đã tồn tại nickname") {
+          toast.warn("Biệt danh đã tồn tại", {
+            autoClose: 1500,
+          });
+        } else {
+          toast.error("Đã xảy ra lỗi.", { autoClose: 1500 });
+        }
       } finally {
         setIsLoading(false);
       }

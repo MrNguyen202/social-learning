@@ -36,6 +36,23 @@ const userController = {
       const { userId } = req.params;
       const userData = req.body;
 
+      if (userData.nick_name) {
+        const { data: existingUser, error: nickNameError } =
+          await userService.checkNickNameUser(userData.nick_name);
+
+        if (existingUser && existingUser.id !== userId) {
+          return res
+            .status(400)
+            .json({ success: false, message: "Đã tồn tại nickname" });
+        }
+
+        if (nickNameError) {
+          return res
+            .status(500)
+            .json({ success: false, message: nickNameError.message });
+        }
+      }
+
       const { data, error } = await userService.updateUser(userId, userData);
 
       if (error) {

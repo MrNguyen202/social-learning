@@ -1,8 +1,8 @@
-require('dotenv').config();
-const http = require('http');
-const app = require('./app');
-const { socketInit } = require('./socket/socket');
-const connectDB = require('./config/db');
+require("dotenv").config();
+const http = require("http");
+const app = require("./app");
+const { socketInit } = require("./socket/socket");
+const connectDB = require("./config/db");
 
 const server = http.createServer(app);
 
@@ -11,21 +11,23 @@ socketInit(server);
 
 const PORT = process.env.PORT || 5000;
 
-const authRoute = require('./routes/authRoute');
-const userRoute = require('./routes/userRoute');
-const imageRoute = require('./routes/imageRoute');
-const postRoute = require('./routes/postRoute');
-const learningRoute = require('./routes/learningRoute');
-const conversationRoute = require('./routes/conversationRoute');
-const messageRoute = require('./routes/messageRoute');
+const authRoute = require("./routes/authRoute");
+const userRoute = require("./routes/userRoute");
+const imageRoute = require("./routes/imageRoute");
+const postRoute = require("./routes/postRoute");
+const followRoute = require("./routes/followRoute");
+const learningRoute = require("./routes/learningRoute");
+const conversationRoute = require("./routes/conversationRoute");
+const messageRoute = require("./routes/messageRoute");
 
-app.use('/api/auth', authRoute);
-app.use('/api/users', userRoute);
-app.use('/api/images', imageRoute);
-app.use('/api/posts', postRoute);
-app.use('/api/learning', learningRoute);
-app.use('/api/conversations', conversationRoute);
-app.use('/api/messages', messageRoute);
+app.use("/api/auth", authRoute);
+app.use("/api/users", userRoute);
+app.use("/api/images", imageRoute);
+app.use("/api/posts", postRoute);
+app.use("/api/follows", followRoute);
+app.use("/api/learning", learningRoute);
+app.use("/api/conversations", conversationRoute);
+app.use("/api/messages", messageRoute);
 
 connectDB().then(() => {
   server.listen(PORT, () => {
