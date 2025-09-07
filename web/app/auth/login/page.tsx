@@ -50,6 +50,12 @@ export default function LoginPage() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleLogin();
+    }
+  };
+
   return (
     <>
       {/* Logo */}
@@ -83,6 +89,7 @@ export default function LoginPage() {
                 placeholder="Nhập email của bạn"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={handleKeyDown}
               />
             </div>
 
@@ -94,6 +101,7 @@ export default function LoginPage() {
                 placeholder="Nhập mật khẩu của bạn"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="pr-10"
               />
               <button
