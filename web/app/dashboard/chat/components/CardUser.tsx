@@ -1,10 +1,11 @@
 "use client";
 
 import { fetchUnreadCount } from "@/app/api/chat/conversation/route";
+import { getUserImageSrc } from "@/app/api/image/route";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import useAuth from "@/hooks/useAuth";
 import { convertToTime } from "@/utils/formatTime";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 
 interface User {
@@ -66,7 +67,10 @@ export default function CardUser({ conversation, onClick }: CardUserProps) {
     return (
         <>
             <button onClick={onClick} className="w-full flex justify-start items-center px-4 gap-3 py-2 border-b border-gray-200 hover:cursor-pointer hover:bg-gray-200">
-                <Image src={conversation.members.filter(member => member.id !== user?.id)[0]?.avatarUrl} alt={conversation.members.filter(member => member.id !== user?.id)[0]?.name} width={60} height={60} className="rounded-full" />
+                <Avatar className="w-12 h-12">
+                    <AvatarImage src={getUserImageSrc(conversation.members.filter(member => member.id !== user?.id)[0]?.avatarUrl)} alt={conversation.members.filter(member => member.id !== user?.id)[0]?.name} />
+                    <AvatarFallback className="bg-gray-300">{conversation.members.filter(member => member.id !== user?.id)[0]?.name.charAt(0)}</AvatarFallback>
+                </Avatar>
                 <div className="flex flex-col items-start gap-2 w-full">
                     <div className="flex items-center justify-between w-full">
                         <span className="font-semibold truncate max-w-64">{conversation.members.filter(member => member.id !== user?.id)[0]?.name}</span>
@@ -77,15 +81,15 @@ export default function CardUser({ conversation, onClick }: CardUserProps) {
                         )}
                     </div>
                     <div className="flex items-center justify-between w-full text-sm text-gray-500">
-                        <div>
-                            <span>{conversation.lastMessage?.senderId === user?.id ? "Bạn: " : ""}</span>
-                            <span>
+                        <div className="flex items-center">
+                            <p className="truncate max-w-52">
+                                {conversation.lastMessage?.senderId === user?.id ? "Bạn: " : ""}
                                 {typeof conversation.lastMessage?.content === "string"
                                     ? conversation.lastMessage?.content
                                     : conversation.lastMessage?.content?.text || "[Nội dung không hỗ trợ]"}
-                            </span>
+                            </p>
                         </div>
-                        <span>{convertToTime(conversation.lastMessage?.createdAt)}</span>
+                        <span className="text-gray-400 text-xs">{convertToTime(conversation.lastMessage?.createdAt)}</span>
                     </div>
                 </div>
             </button>

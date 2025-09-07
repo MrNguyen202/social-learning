@@ -47,8 +47,8 @@ const messageSchema = new mongoose.Schema({
     },
     seens: [
         {
-            userId: String,
-            seenAt: Date
+            userId: { type: String, required: true },
+            seenAt: { type: Date, default: Date.now }
         }
     ],
     replyTo: {

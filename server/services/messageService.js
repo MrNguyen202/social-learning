@@ -93,6 +93,35 @@ const messageService = {
 
         return messagesWithSender;
     },
+
+    // Đánh dấu đã đọc cho các tin nhắn trong cuộc trò chuyện mà chưa đọc(không bao gồm tin nhắn do chính user gửi)
+    async markMessagesAsRead(conversationId, userId) {
+        // Lấy danh sách message chưa đọc (user chưa nằm trong seens)
+        const messages = await Message.find({
+            conversationId,
+            senderId: { $ne: userId },
+            "seens.userId": { $ne: userId } // check userId chưa tồn tại trong mảng
+        }).select("_id");
+
+        if (!messages.length) {
+            return { modifiedCount: 0, data: [] };
+        }
+
+        // Update đồng loạt
+        const result = await Message.updateMany(
+            {
+                conversationId,
+                senderId: { $ne: userId },
+                "seens.userId": { $ne: userId }
+            },
+            {
+                $addToSet: { seens: { userId, seenAt: new Date() } }
+            },
+            { runValidators: true }
+        );
+
+        return { modifiedCount: result.modifiedCount, data: messages };
+    }
 };
 
 module.exports = messageService;

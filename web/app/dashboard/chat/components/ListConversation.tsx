@@ -7,7 +7,6 @@ import CardGroup from "./CardGroup";
 import { useRouter } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 import { fetchConversations } from "@/app/api/chat/conversation/route";
-import { getSocket } from "@/socket/socketClient";
 import { ConversationSkeleton } from "./ConversationSkeleton";
 
 export default function ListConversation() {
@@ -36,7 +35,7 @@ export default function ListConversation() {
     }, [user?.id, loading]);
 
     //Handle card click
-    const handleCardClick = (conversationId: string) => {
+    const handleCardClick = async (conversationId: string) => {
         // Navigate to the chat detail page for the selected conversation
         localStorage.setItem("selectedConversation", conversationId);
         router.push(`/dashboard/chat/${conversationId}`);
@@ -47,7 +46,7 @@ export default function ListConversation() {
             {/* Top bar */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 h-[73px]">
                 <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-semibold">nguyenvana123</h2>
+                    <h2 className="text-lg font-semibold">{user?.nick_name}</h2>
                     <ChevronDown className="w-5 h-5 text-gray-500" />
                 </div>
                 <SquarePen className="w-6 h-6 text-gray-500" />

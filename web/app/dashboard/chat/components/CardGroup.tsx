@@ -1,7 +1,6 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
 import AvatarGroup from "./AvatarGroup";
 
 interface User {
@@ -32,7 +31,7 @@ export default function CardGroup({ conversation, onClick }: CardGroupProps) {
                 </div>
                 <div className="flex flex-col items-start gap-2 w-full">
                     <div className="flex items-center justify-between w-full">
-                        <span className="font-semibold truncate max-w-64">{conversation.name}</span>
+                        <span className="font-semibold truncate max-w-52">{conversation.name}</span>
                         <Badge className="h-7 w-7 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0">
                             {99}
                         </Badge>

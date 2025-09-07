@@ -7,6 +7,7 @@ import MessageReceiver from "./components/MessageReceiver";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { fetchMessages, sendMessage } from "@/app/api/chat/message/route";
 import { getSocket } from "@/socket/socketClient";
+import { getUserImageSrc } from "@/app/api/image/route";
 
 export default function ChatDetail() {
     const [text, setText] = useState("");
@@ -22,7 +23,8 @@ export default function ChatDetail() {
         if (conversationId) {
             socket.emit("joinRoom", conversationId);
         }
-        
+
+        // Nhận tin nhắn mới
         socket.on("newMessage", (newMessage: any) => {
             setMessages(prev => [newMessage, ...prev]);
         });
@@ -30,7 +32,7 @@ export default function ChatDetail() {
         return () => {
             socket.off("newMessage");
         };
-    }, []);
+    }, [user?.id]);
 
     // Hàm lấy tin nhắn từ server
     useEffect(() => {
@@ -69,7 +71,7 @@ export default function ChatDetail() {
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <div className="flex items-center gap-4">
                     <Avatar className="w-10 h-10">
-                        <AvatarImage src={user?.avatarUrl} alt={user?.name} className="rounded-full" />
+                        <AvatarImage src={getUserImageSrc(user?.avatarUrl)} alt={user?.name} className="rounded-full" />
                         <AvatarFallback className="bg-gray-300">{user?.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <span className="font-semibold">{user?.name}</span>

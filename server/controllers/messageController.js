@@ -63,6 +63,42 @@ const messageController = {
             res.status(500).json({ error: error.message });
         }
     },
+
+    // Đánh dấu đã đọc tin nhắn trong cuộc trò chuyện
+    markMessagesAsRead: async (req, res) => {
+        try {
+            const { conversationId } = req.params;
+            const { userId } = req.body;
+
+            const result = await messageService.markMessagesAsRead(conversationId, userId);
+
+            // Custom sender
+            const senderIds = [...new Set(result.data.map(m => m.senderId))];
+            const { data: users, error } = await userService.getUsersByIds(senderIds);
+            if (error) throw new Error("Failed to fetch user data");
+
+            const userMap = {};
+            users.forEach(u => {
+                userMap[u.id] = u;
+            });
+
+            result.data = result.data.map(m => ({
+                ...m,
+                sender: userMap[m.senderId] || null,
+            }));
+
+            console.log(`modifiedCount: ${result.modifiedCount}, data: ${result.data}`);
+
+            // Gửi socket thông báo đã đọc tin nhắn
+            const io = getIO();
+            io.to(conversationId).emit("messageRead", { conversationId, userId, updatedMessageIds: result.data.map(m => m._id), seens: result.data.flatMap(m => m.seens) });
+
+            res.status(200).json({ message: "Messages marked as read" });
+        } catch (error) {
+            console.error("Error marking messages as read:", error);
+            res.status(500).json({ error: error.message });
+        }
+    }
 };
 
 module.exports = messageController;
