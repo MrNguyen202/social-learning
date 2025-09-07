@@ -68,7 +68,7 @@ const activities = [
 export function RightSidebar() {
   const { user } = useAuth();
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 fixed mt-20">
       {/* Thông tin cá nhân */}
       <Card className="border-0 shadow-sm">
         <CardContent className="p-4">

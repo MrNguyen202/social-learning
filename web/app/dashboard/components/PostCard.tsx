@@ -14,7 +14,8 @@ import {
 import { useState } from "react";
 import { CommentModal } from "./CommentModal";
 import { get } from "http";
-import { getSupabaseFileUrl } from "@/app/api/image/route";
+import { getSupabaseFileUrl, getUserImageSrc } from "@/app/api/image/route";
+import { convertToDate } from "@/utils/formatTime";
 
 interface PostCardProps {
   post: any;
@@ -25,29 +26,23 @@ export function PostCard({ post }: PostCardProps) {
   const [isSaved, setIsSaved] = useState(false);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
 
-  console.log("POST", post);
-
   return (
     <>
       <Card className="border-0 shadow-sm mb-6 bg-white sm:max-w-full max-w-sm">
         {/* Post Header */}
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between px-4">
           <div className="flex items-center space-x-3">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={post?.user?.avatar} />
+            <Avatar className="h-12 w-12">
+              <AvatarImage src={getUserImageSrc(post?.user?.avatar)} />
             </Avatar>
             <div>
-              <p className="text-sm font-semibold text-gray-900">
+              <p className="text-md font-semibold text-gray-900">
                 {post?.user?.nick_name}
               </p>
-              <p className="text-xs text-gray-500">{post?.created_at}</p>
+              <p className="text-xs text-gray-500">
+                {convertToDate(post?.created_at)}
+              </p>
             </div>
-            <Badge
-              variant="secondary"
-              className="text-xs bg-orange-100 text-orange-800"
-            >
-              {post?.user?.name}
-            </Badge>
           </div>
           <Button variant="ghost" size="icon">
             <MoreHorizontal className="h-4 w-4" />
@@ -57,18 +52,52 @@ export function PostCard({ post }: PostCardProps) {
         {/* Post Content */}
         <CardContent className="px-4 pb-4">
           <div className="space-y-4">
-            {/* Image */}
-            {post?.file && (
-              <img
-                src={getSupabaseFileUrl(post?.file) ?? undefined}
-                alt="Post Image"
-                className="w-full h-auto max-h-96 object-cover rounded-md"
-              />
-            )}
+            {/* file */}
+            {post?.file &&
+              (() => {
+                const fileUrl = getSupabaseFileUrl(post.file);
+                const ext = post.file.split(".").pop()?.toLowerCase();
+
+                if (!fileUrl) return null;
+
+                if (["png", "jpg", "jpeg", "gif"].includes(ext!)) {
+                  return (
+                    <img
+                      src={fileUrl}
+                      alt="Post Image"
+                      className="w-full h-auto max-h-96 object-cover rounded-md"
+                    />
+                  );
+                }
+
+                if (["mp4", "webm", "ogg"].includes(ext!)) {
+                  return (
+                    <video controls className="w-full rounded-md max-h-96">
+                      <source src={fileUrl} type={`video/${ext}`} />
+                      Trình duyệt không hỗ trợ video.
+                    </video>
+                  );
+                }
+
+                // Các loại file khác (pdf, docx, xlsx...)
+                return (
+                  <div className="flex items-center space-x-3 p-3 border rounded-md bg-gray-50">
+                    <span className="text-2xl">📄</span>
+                    <a
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline text-sm"
+                    >
+                      {post?.original_name.split("/").pop()}
+                    </a>
+                  </div>
+                );
+              })()}
 
             {/* Caption */}
             <div>
-              <p className="text-sm text-gray-900">
+              <p className="text-[16px] text-gray-900">
                 <span className="font-semibold">{post?.user?.nick_name}</span>{" "}
                 {post?.content}
               </p>
@@ -84,7 +113,7 @@ export function PostCard({ post }: PostCardProps) {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsLiked(!isLiked)}
-                className="hover:bg-gray-100"
+                className="hover:bg-gray-100 cursor-pointer"
               >
                 <Heart
                   className={`h-6 w-6 ${
@@ -96,11 +125,15 @@ export function PostCard({ post }: PostCardProps) {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsCommentModalOpen(true)}
-                className="hover:bg-gray-100"
+                className="hover:bg-gray-100 cursor-pointer"
               >
                 <MessageCircle className="h-6 w-6 text-gray-700" />
               </Button>
-              <Button variant="ghost" size="icon" className="hover:bg-gray-100">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:bg-gray-100 cursor-pointer"
+              >
                 <Send className="h-6 w-6 text-gray-700" />
               </Button>
             </div>
@@ -120,12 +153,12 @@ export function PostCard({ post }: PostCardProps) {
 
           {/* Likes and Comments */}
           <div className="space-y-1">
-            <p className="text-sm font-semibold text-gray-900">likes</p>
+            <p className="text-sm font-semibold text-gray-900">Lượt thích</p>
             <button
               onClick={() => setIsCommentModalOpen(true)}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer"
             >
-              View all comments
+              Xem tất cả bình luận
             </button>
           </div>
         </div>

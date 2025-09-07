@@ -72,12 +72,19 @@ export function LeftSideBarHiddenLabel() {
 
   const handleMenuClick = (path: string) => {
     // Handle menu item click
-    if(path === "/dashboard/chat"){
-      if(localStorage.getItem("selectedConversation")){
-        router.push(`/dashboard/chat/${localStorage.getItem("selectedConversation")}`);
+    if (path === "/dashboard/chat") {
+      if (localStorage.getItem("selectedConversation")) {
+        router.push(
+          `/dashboard/chat/${localStorage.getItem("selectedConversation")}`
+        );
         return;
       }
     }
+    if (path === "/dashboard/create") {
+      setIsCreateModalOpen(true); 
+      return;
+    }
+
     router.push(path);
   };
 

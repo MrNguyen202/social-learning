@@ -30,6 +30,7 @@ const postController = {
         userId: userId,
         content: content || "",
         file: file || null,
+        original_name: null,
         created_at: new Date().toISOString(),
       };
 
@@ -47,6 +48,7 @@ const postController = {
 
       if (fileResult.success) {
         post.file = fileResult.data.path; // Chỉ lưu path
+        post.original_name = fileName || null;
       } else {
         return res.status(400).json({
           success: false,
@@ -59,7 +61,6 @@ const postController = {
       const { data, error } = await postService.createOrUpdatePost(post);
 
       if (error) {
-        console.error("Database error:", error);
         return res.status(400).json({
           success: false,
           message: error.message,

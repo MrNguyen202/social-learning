@@ -85,6 +85,11 @@ export function LeftSidebar() {
         return;
       }
     }
+    if (path === "/dashboard/create") {
+      setIsCreateModalOpen(true);
+      return;
+    }
+
     router.push(path);
   };
 
@@ -173,7 +178,7 @@ export function LeftSidebar() {
             </nav>
           </div>
         </div>
-        
+
         {/* Info Rank */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
