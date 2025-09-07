@@ -29,6 +29,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "react-toastify";
 import { useState } from "react";
 import { CreatePostModal } from "./CreatePost";
+import { SearchPanel } from "./Search";
 
 const mainNavItems = [
   { icon: Home, path: "/dashboard", label: "Trang chủ", active: true },
@@ -69,6 +70,7 @@ const learningNavItems = [
 export function LeftSideBarHiddenLabel() {
   const router = useRouter();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const handleMenuClick = (path: string) => {
     // Handle menu item click
@@ -80,8 +82,14 @@ export function LeftSideBarHiddenLabel() {
         return;
       }
     }
+
+    if (path === "/dashboard/search") {
+      setIsSearchOpen(true);
+      return;
+    }
+
     if (path === "/dashboard/create") {
-      setIsCreateModalOpen(true); 
+      setIsCreateModalOpen(true);
       return;
     }
 
@@ -186,6 +194,12 @@ export function LeftSideBarHiddenLabel() {
           </DropdownMenu>
         </div>
       </div>
+
+      <SearchPanel
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
+
       <CreatePostModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}

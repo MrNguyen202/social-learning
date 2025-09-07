@@ -38,10 +38,10 @@ const userService = {
     return { data: updatedData, error: null };
   },
 
-  async checkNickNameUser(nickName) {
+  async getUserByNickName(nickName) {
     const { data, error } = await supabase
       .from("users")
-      .select("id, nick_name")
+      .select("id, name, nick_name, avatar")
       .eq("nick_name", nickName)
       .maybeSingle();
 
@@ -60,6 +60,17 @@ const userService = {
 
     if (error) throw error;
     return { data, error };
+  },
+
+  async searchUsers(keyword, currentUserId) {
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, name, nick_name, avatar")
+      .or(`name.ilike.%${keyword}%,nick_name.ilike.%${keyword}%`)
+      .neq("id", currentUserId); // loại bỏ chính mình
+
+    if (error) throw error;
+    return { data, error: null };
   },
 };
 

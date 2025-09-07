@@ -32,6 +32,7 @@ import { toast } from "react-toastify";
 import Link from "next/link";
 import { useState } from "react";
 import { CreatePostModal } from "./CreatePost";
+import { SearchPanel } from "./Search";
 
 // Remove the hardcoded `active` property from mainNavItems
 const mainNavItems = [
@@ -74,6 +75,7 @@ export function LeftSidebar() {
   const router = useRouter();
   const pathname = usePathname(); // Get the current path
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const handleMenuClick = (path: string) => {
     // Handle menu item click
@@ -85,6 +87,12 @@ export function LeftSidebar() {
         return;
       }
     }
+
+    if (path === "/dashboard/search") {
+      setIsSearchOpen(true);
+      return;
+    }
+
     if (path === "/dashboard/create") {
       setIsCreateModalOpen(true);
       return;
@@ -213,6 +221,11 @@ export function LeftSidebar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
+        <SearchPanel
+          isOpen={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+        />
+        
         <CreatePostModal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
