@@ -67,7 +67,7 @@ const userService = {
       .from("users")
       .select("id, name, nick_name, avatar")
       .or(`name.ilike.%${keyword}%,nick_name.ilike.%${keyword}%`)
-      .neq("id", currentUserId); // loại bỏ chính mình
+       .neq("id", currentUserId); // loại bỏ chính mình
 
     if (error) throw error;
     return { data, error: null };
