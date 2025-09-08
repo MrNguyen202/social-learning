@@ -12,6 +12,6 @@ router.post('/save', upload.array("files"), messageController.saveMessage);
 router.get('/conversation/:conversationId', messageController.getMessagesByConversationId);
 
 // Đánh dấu đã đọc tin nhắn trong cuộc trò chuyện
-router.post('/conversation/:conversationId/read', messageController.markMessagesAsRead);
+router.post('/markAsRead/:conversationId', messageController.markMessagesAsRead);
 
 module.exports = router;

@@ -40,7 +40,17 @@ export default function ListConversation() {
             fetchData();
         });
 
+        socket.on("notificationMessagesRead", () => {
+            fetchData();
+        });
+
         fetchData();
+
+        // Đóng socket khi unmount
+        return () => {
+            socket.off("notificationNewMessage");
+            socket.off("notificationMessagesRead");
+        };
     }, [user?.id, loading]);
 
     //Handle card click

@@ -33,10 +33,6 @@ const conversationService = {
             ]
         });
 
-        console.log(
-            `Unread messages for user ${userId} in conversation ${conversationId}: ${unreadCount}`
-        );
-
         return unreadCount;
     },
 

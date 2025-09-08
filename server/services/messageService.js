@@ -107,6 +107,8 @@ const messageService = {
             return { modifiedCount: 0, data: [] };
         }
 
+        let seenAtTime = new Date();
+
         // Update đồng loạt
         const result = await Message.updateMany(
             {
@@ -115,12 +117,12 @@ const messageService = {
                 "seens.userId": { $ne: userId }
             },
             {
-                $addToSet: { seens: { userId, seenAt: new Date() } }
+                $addToSet: { seens: { userId, seenAt: seenAtTime } }
             },
             { runValidators: true }
         );
 
-        return { modifiedCount: result.modifiedCount, data: messages };
+        return { modifiedCount: result.modifiedCount, data: messages, seenAt: seenAtTime };
     }
 };
 

@@ -53,7 +53,6 @@ export default function CardUser({ conversation, onClick }: CardUserProps) {
     const [unreadCount, setUnreadCount] = useState(0);
 
     useEffect(() => {
-        const socket = getSocket();
         const fetchData = async () => {
             try {
                 const response = await fetchUnreadCount(conversation.id, user?.id);
@@ -63,13 +62,8 @@ export default function CardUser({ conversation, onClick }: CardUserProps) {
             }
         };
 
-        // Lắng nghe sự kiện 'newMessage' từ server để cập nhật số lượng tin nhắn chưa đọc
-        socket.on("notificationNewMessage", () => {
-            fetchData();
-        });
-
         fetchData();
-    }, [conversation.id, user?.id]);
+    }, [conversation.id, user?.id, conversation.lastMessage]);
 
     return (
         <>
@@ -83,7 +77,7 @@ export default function CardUser({ conversation, onClick }: CardUserProps) {
                         <span className="font-semibold truncate max-w-64">{conversation.members.filter(member => member.id !== user?.id)[0]?.name}</span>
                         {unreadCount > 0 && (
                             <Badge className="h-7 w-7 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0">
-                                {unreadCount}
+                                {unreadCount > 99 ? "99+" : unreadCount}
                             </Badge>
                         )}
                     </div>

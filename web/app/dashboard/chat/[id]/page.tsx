@@ -6,7 +6,7 @@ import MessageSender from "./components/MessageSender";
 import MessageReceiver from "./components/MessageReceiver";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AvatarGroup from "../components/AvatarGroup";
-import { fetchMessages, sendMessage } from "@/app/api/chat/message/route";
+import { fetchMessages, markMessagesAsRead, sendMessage } from "@/app/api/chat/message/route";
 import { getSocket } from "@/socket/socketClient";
 import { getUserImageSrc } from "@/app/api/image/route";
 import { useConversation } from "@/components/contexts/ConversationContext";
@@ -30,15 +30,35 @@ export default function ChatDetail() {
         // Nhận tin nhắn mới
         socket.on("newMessage", (newMessage: any) => {
             setMessages(prev => [newMessage, ...prev]);
+
+            // Nếu tin nhắn không phải do chính user gửi, thì đánh dấu đã xem
+            if (newMessage.senderId !== user?.id && selectedConversation && user) {
+                markMessagesAsRead(selectedConversation.id, user.id);
+            }
+        });
+
+        // Nhận sự kiện tin nhắn đã xem
+        socket.on("markMessagesAsRead", ({ userId, seenAt, messageIds }: { userId: string, seenAt: string, messageIds: string[] }) => {
+            // Cập nhật trạng thái đã xem cho các tin nhắn tương ứng
+            setMessages(prevMessages => prevMessages.map(msg => {
+                if (messageIds.includes(msg._id)) {
+                    // Kiểm tra nếu userId đã có trong seens thì không thêm nữa
+                    if (!msg.seens.some((seen: { userId: string }) => seen.userId === userId)) {
+                        msg.seens.push({ userId, seenAt });
+                    }
+                }
+                return msg;
+            }))
         });
 
         return () => {
             socket.off("newMessage");
+            socket.off("markMessagesAsRead");
             if (conversationId) {
                 socket.emit("leaveRoom", conversationId);
             }
         };
-    }, [user?.id]);
+    }, [user?.id, selectedConversation?.id]);
 
     // Hàm lấy tin nhắn từ server
     useEffect(() => {
@@ -48,6 +68,11 @@ export default function ChatDetail() {
             // Gọi API lấy tin nhắn
             const data = await fetchMessages(conversationId);
             setMessages(data);
+
+            // Đánh dấu tất cả tin nhắn là đã xem
+            if (user) {
+                await markMessagesAsRead(conversationId, user.id);
+            }
         };
         fetchDataMessages();
     }, [selectedConversation?.id]);

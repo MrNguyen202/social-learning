@@ -61,7 +61,6 @@ const conversationController = {
     // Đếm số tin nhắn chưa đọc trong một cuộc trò chuyện của user
     countUnreadMessages: async (req, res) => {
         const { conversationId, userId } = req.params;
-        console.log("Counting unread messages for conversation:", conversationId, "and user:", userId);
         try {
             const count = await conversationService.countUnreadMessages(conversationId, userId);
             res.status(200).json({ count });

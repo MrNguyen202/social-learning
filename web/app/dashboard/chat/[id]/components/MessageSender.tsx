@@ -40,7 +40,6 @@ interface MessageSenderProps {
 }
 
 export default function MessageSender({ message }: MessageSenderProps) {
-    console.log("Message sender render with seens:", message?.seens);
     return (
         <div className="flex flex-col justify-start items-end">
             <div className="bg-blue-100 text-blue-800 p-3 rounded-lg shadow-md max-w-2/3 flex justify-end">

@@ -34,3 +34,14 @@ export async function sendMessage({ conversationId, senderId, text, files }) {
         throw error;
     }
 }
+
+// Hàm để đánh dấu tin nhắn đã đọc
+export async function markMessagesAsRead(conversationId, userId) {
+    try {
+        const response = await api.post(`/api/messages/markAsRead/${conversationId}`, { userId });
+        return response.data;
+    } catch (error) {
+        console.error("Error marking messages as read:", error);
+        throw error;
+    }
+}
