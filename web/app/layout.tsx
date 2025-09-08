@@ -3,6 +3,7 @@ import { Overpass } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/contexts/AuthProvider";
 import ClientWrapper from "./ClientWrapper";
+import { ConversationProvider } from "@/components/contexts/ConversationContext";
 
 const overpass = Overpass({
   subsets: ["latin"],
@@ -22,7 +23,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={overpass.className}>
         <AuthProvider>
-          <ClientWrapper>{children}</ClientWrapper>
+          <ConversationProvider>
+            <ClientWrapper>{children}</ClientWrapper>
+          </ConversationProvider>
         </AuthProvider>
       </body>
     </html>

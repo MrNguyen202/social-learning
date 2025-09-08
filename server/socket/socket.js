@@ -1,6 +1,7 @@
 const { Server } = require("socket.io");
 
 let io;
+const userSockets = new Map();
 
 function socketInit(server) {
     io = new Server(server, {
@@ -9,7 +10,10 @@ function socketInit(server) {
     });
 
     io.on("connection", (socket) => {
-        console.log("🟢 User connected:", socket.id);
+        socket.on("user-online", ({ userId }) => {
+            socket.userId = userId;
+            userSockets.set(userId, socket);
+        });
 
         socket.on("joinRoom", (conversationId) => {
             console.log("User joined room:", conversationId);
@@ -25,6 +29,8 @@ function socketInit(server) {
             console.log("🔴 User disconnected:", socket.id);
         });
     });
+
+    io.userSockets = userSockets;
 
     return io;
 }

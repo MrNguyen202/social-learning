@@ -1,13 +1,16 @@
 "use client";
 
+import { getUserImageSrc } from "@/app/api/image/route";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 interface MessageSenderProps {
     message: Message;
 }
 
 type MemberSeen = {
-    id: string;
-    name: string;
-    avatarUrl: string;
+    userId: string;
+    seenAt: string;
+    _id: string;
 };
 
 // Update Message type to allow memberSeens to be an array
@@ -22,11 +25,11 @@ export type Message = {
     sender: {
         id: string;
         name: string;
-        avatarUrl: string;
+        avatar: string;
     };
     replyTo: any;
     revoked: boolean;
-    memberSeens: MemberSeen[];
+    seens: MemberSeen[];
     like: any[];
     createdAt: string;
     updatedAt: string;
@@ -37,10 +40,11 @@ interface MessageSenderProps {
 }
 
 export default function MessageSender({ message }: MessageSenderProps) {
+    console.log("Message sender render with seens:", message?.seens);
     return (
-        <div className="flex justify-end">
+        <div className="flex flex-col justify-start items-end">
             <div className="bg-blue-100 text-blue-800 p-3 rounded-lg shadow-md max-w-2/3 flex justify-end">
-                <p>{message.content.text}</p>
+                <p>{message?.content.text}</p>
             </div>
         </div>
     );

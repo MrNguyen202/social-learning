@@ -5,49 +5,59 @@ import { useEffect, useState } from "react";
 import MessageSender from "./components/MessageSender";
 import MessageReceiver from "./components/MessageReceiver";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarGroup from "../components/AvatarGroup";
 import { fetchMessages, sendMessage } from "@/app/api/chat/message/route";
 import { getSocket } from "@/socket/socketClient";
+import { getUserImageSrc } from "@/app/api/image/route";
+import { useConversation } from "@/components/contexts/ConversationContext";
 
 export default function ChatDetail() {
     const [text, setText] = useState("");
     const { user } = useAuth();
     const [files, setFiles] = useState<File[]>([]);
     const [messages, setMessages] = useState<any[]>([]);
+    const { selectedConversation } = useConversation();
 
     // Lắng nghe sự kiện tin nhắn mới từ socket
     useEffect(() => {
         const socket = getSocket();
         // join room
-        const conversationId = localStorage.getItem("selectedConversation") || "";
+        const conversationId = selectedConversation?.id;
         if (conversationId) {
             socket.emit("joinRoom", conversationId);
         }
-        
+
+        // Nhận tin nhắn mới
         socket.on("newMessage", (newMessage: any) => {
             setMessages(prev => [newMessage, ...prev]);
         });
 
         return () => {
             socket.off("newMessage");
+            if (conversationId) {
+                socket.emit("leaveRoom", conversationId);
+            }
         };
-    }, []);
+    }, [user?.id]);
 
     // Hàm lấy tin nhắn từ server
     useEffect(() => {
         const fetchDataMessages = async () => {
-            const conversationId = localStorage.getItem("selectedConversation") || "";
+            const conversationId = selectedConversation?.id;
             if (!conversationId) return;
             // Gọi API lấy tin nhắn
             const data = await fetchMessages(conversationId);
             setMessages(data);
         };
         fetchDataMessages();
-    }, []);
+    }, [selectedConversation?.id]);
 
     // Hàm xử lý logic gửi tin nhắn dạng text
     const handleSendMessage = async () => {
+        if (text.trim() === "" && files.length === 0) return;
+        if (!user) return;
         const formData = new FormData();
-        formData.append("conversationId", localStorage.getItem("selectedConversation") || "");
+        formData.append("conversationId", selectedConversation?.id || "");
         formData.append("senderId", user.id);
         if (text) formData.append("text", text);
         if (files.length > 0) {
@@ -55,7 +65,7 @@ export default function ChatDetail() {
         }
 
         const res = await sendMessage({
-            conversationId: localStorage.getItem("selectedConversation") || "",
+            conversationId: selectedConversation?.id || "",
             senderId: user.id,
             text,
             files
@@ -68,11 +78,30 @@ export default function ChatDetail() {
             {/* Chat header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <div className="flex items-center gap-4">
-                    <Avatar className="w-10 h-10">
-                        <AvatarImage src={user?.avatarUrl} alt={user?.name} className="rounded-full" />
-                        <AvatarFallback className="bg-gray-300">{user?.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span className="font-semibold">{user?.name}</span>
+                    {selectedConversation?.type === "private" ? (
+                        <Avatar className="w-10 h-10">
+                            <AvatarImage src={getUserImageSrc(selectedConversation?.members.filter((member: { id: string }) => member.id !== user?.id)[0]?.avatarUrl)} alt={user?.name} className="rounded-full" />
+                            <AvatarFallback className="bg-gray-300">{user?.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                    ) : (
+                        selectedConversation?.avatar === "" ? (
+                            <Avatar className="w-10 h-10">
+                                <AvatarImage src={getUserImageSrc(selectedConversation?.avatar)} alt={selectedConversation?.name} className="rounded-full" />
+                                <AvatarFallback className="bg-gray-300">{selectedConversation?.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                        ) : (
+                            <AvatarGroup members={selectedConversation?.members || []} />
+                        )
+                    )}
+                    {selectedConversation?.type === "private" ? (
+                        <h2 className="text-lg font-semibold">{selectedConversation?.members.filter((member: { id: string }) => member.id !== user?.id)[0]?.name}</h2>
+                    ) : (
+                        selectedConversation?.name ? (
+                            <h2 className="text-lg font-semibold">{selectedConversation?.name}</h2>
+                        ) : (
+                            <h2 className="text-lg font-semibold">Bạn, {selectedConversation?.members.filter((m: { id: string }) => m.id !== user?.id).map((m: { name: string }) => m.name).join(", ")}</h2>
+                        )
+                    )}
                 </div>
 
             </div>

@@ -33,6 +33,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { CreatePostModal } from "./CreatePost";
 import { SearchPanel } from "./Search";
+import { useConversation } from "@/components/contexts/ConversationContext";
 
 // Remove the hardcoded `active` property from mainNavItems
 const mainNavItems = [
@@ -76,14 +77,13 @@ export function LeftSidebar() {
   const pathname = usePathname(); // Get the current path
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { selectedConversation, setSelectedConversation } = useConversation();
 
   const handleMenuClick = (path: string) => {
     // Handle menu item click
     if (path === "/dashboard/chat") {
-      if (localStorage.getItem("selectedConversation")) {
-        router.push(
-          `/dashboard/chat/${localStorage.getItem("selectedConversation")}`
-        );
+      if (selectedConversation) {
+        router.push(`/dashboard/chat/${selectedConversation.id}`);
         return;
       }
     }
@@ -103,7 +103,9 @@ export function LeftSidebar() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    // Xử lý sau khi đăng xuất
     localStorage.removeItem("selectedConversation");
+    setSelectedConversation(null);
     toast.success("Đăng xuất thành công!", { autoClose: 1500 });
     router.push("/");
   };
@@ -130,11 +132,10 @@ export function LeftSidebar() {
               <Button
                 key={item.label}
                 variant="ghost"
-                className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${
-                  pathname === item.path
+                className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${pathname === item.path
                     ? "bg-gray-100 text-gray-900 font-medium"
                     : "text-gray-700 hover:bg-gray-100"
-                }`}
+                  }`}
                 onClick={() => handleMenuClick(item.path)}
               >
                 <div className="relative">
@@ -162,18 +163,16 @@ export function LeftSidebar() {
                 <Button
                   key={item.label}
                   variant="ghost"
-                  className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${
-                    item.special
+                  className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${item.special
                       ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 hover:from-orange-100 hover:to-pink-100 border border-orange-200"
                       : pathname === item.path
-                      ? "bg-gray-100 text-gray-900 font-medium"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
+                        ? "bg-gray-100 text-gray-900 font-medium"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
                 >
                   <item.icon
-                    className={`h-6 w-6 mr-4 ${
-                      item.special ? "text-orange-600" : ""
-                    }`}
+                    className={`h-6 w-6 mr-4 ${item.special ? "text-orange-600" : ""
+                      }`}
                   />
                   <span className="text-base font-medium">{item.label}</span>
                   {item.special && (
@@ -225,7 +224,7 @@ export function LeftSidebar() {
           isOpen={isSearchOpen}
           onClose={() => setIsSearchOpen(false)}
         />
-        
+
         <CreatePostModal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}

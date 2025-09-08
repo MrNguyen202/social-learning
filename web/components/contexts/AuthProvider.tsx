@@ -3,8 +3,8 @@
 import { getUserData } from "@/app/api/user/route";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
-import { createContext, ReactNode, useEffect, useState } from "react";
-import socket from "@/socket/socketClient"
+import { createContext, ReactNode, use, useEffect, useState } from "react";
+import { getSocket } from "@/socket/socketClient";
 
 interface User {
   id: string;
@@ -87,6 +87,13 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       });
     }
   };
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (user?.id) {
+      socket.emit("user-online", { userId: user.id });
+    }
+  }, [user]);
 
   const contextValue: AuthContextType = {
     user,

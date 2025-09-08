@@ -1,8 +1,12 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
 import AvatarGroup from "./AvatarGroup";
+import useAuth from "@/hooks/useAuth";
+import { useEffect, useState } from "react";
+import { getSocket } from "@/socket/socketClient";
+import { fetchUnreadCount } from "@/app/api/chat/conversation/route";
+import { convertToTime } from "@/utils/formatTime";
 
 interface User {
     id: string;
@@ -15,8 +19,27 @@ interface Conversation {
     name: string;
     avatarUrl: string;
     members: User[];
-    lastMessage: string;
+    lastMessage: LastMessage | null;
 }
+
+type MessageContent = {
+    system?: boolean;
+    type: "text" | "image" | "file";
+    text?: string;
+    images?: string[];
+    file?: {
+        name: string;
+        url: string;
+    } | null;
+};
+
+type LastMessage = {
+    id: string;
+    senderId: string;
+    content: MessageContent;
+    createdAt: string;
+    updatedAt: string;
+};
 
 type CardGroupProps = {
     conversation: Conversation;
@@ -24,6 +47,29 @@ type CardGroupProps = {
 }
 
 export default function CardGroup({ conversation, onClick }: CardGroupProps) {
+    const { user } = useAuth();
+
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        const socket = getSocket();
+        const fetchData = async () => {
+            try {
+                const response = await fetchUnreadCount(conversation.id, user?.id);
+                setUnreadCount(response);
+            } catch (error) {
+                console.error("Error fetching unread count:", error);
+            }
+        };
+
+        // Lắng nghe sự kiện 'newMessage' từ server để cập nhật số lượng tin nhắn chưa đọc
+        socket.on("notificationNewMessage", () => {
+            fetchData();
+        });
+
+        fetchData();
+    }, [conversation.id, user?.id]);
+
     return (
         <>
             <button onClick={onClick} className="w-full flex justify-start items-center px-4 gap-3 py-2 border-b border-gray-200 hover:cursor-pointer hover:bg-gray-200">
@@ -32,14 +78,27 @@ export default function CardGroup({ conversation, onClick }: CardGroupProps) {
                 </div>
                 <div className="flex flex-col items-start gap-2 w-full">
                     <div className="flex items-center justify-between w-full">
-                        <span className="font-semibold truncate max-w-64">{conversation.name}</span>
-                        <Badge className="h-7 w-7 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0">
-                            {99}
-                        </Badge>
+                        {conversation.name ? (
+                            <h3 className="font-medium text-gray-900">{conversation.name}</h3>
+                        ) : (
+                            <h3 className="font-medium text-gray-900">Bạn, {conversation.members.filter(m => m.id !== user?.id).map(m => m.name).join(", ")}</h3>
+                        )}
+                        {unreadCount > 0 && (
+                            <Badge className="h-7 w-7 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0">
+                                {unreadCount}
+                            </Badge>
+                        )}
                     </div>
                     <div className="flex items-center justify-between w-full text-sm text-gray-500">
-                        <span>{conversation.lastMessage}</span>
-                        <span>{`14m ago`}</span>
+                        <div className="flex items-center">
+                            <p className="truncate max-w-52">
+                                {conversation.lastMessage?.senderId === user?.id ? "Bạn: " : ""}
+                                {typeof conversation.lastMessage?.content === "string"
+                                    ? conversation.lastMessage?.content
+                                    : conversation.lastMessage?.content?.text || "[Nội dung không hỗ trợ]"}
+                            </p>
+                        </div>
+                        <span className="text-gray-400 text-xs">{convertToTime(conversation.lastMessage?.createdAt)}</span>
                     </div>
                 </div>
             </button>

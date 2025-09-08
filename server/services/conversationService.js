@@ -39,6 +39,13 @@ const conversationService = {
 
         return unreadCount;
     },
+
+    // Lấy thành viên của cuộc trò chuyện
+    async getConversationMembers(conversationId) {
+        const conversation = await Conversation.findById(conversationId);
+        if (!conversation) throw new Error("Conversation not found");
+        return conversation.members;
+    }
 };
 
 module.exports = conversationService;

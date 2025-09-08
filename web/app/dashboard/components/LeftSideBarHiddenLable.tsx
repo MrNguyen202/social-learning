@@ -30,6 +30,7 @@ import { toast } from "react-toastify";
 import { useState } from "react";
 import { CreatePostModal } from "./CreatePost";
 import { SearchPanel } from "./Search";
+import { useConversation } from "@/components/contexts/ConversationContext";
 
 const mainNavItems = [
   { icon: Home, path: "/dashboard", label: "Trang chủ", active: true },
@@ -71,14 +72,13 @@ export function LeftSideBarHiddenLabel() {
   const router = useRouter();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { selectedConversation, setSelectedConversation } = useConversation();
 
   const handleMenuClick = (path: string) => {
     // Handle menu item click
     if (path === "/dashboard/chat") {
-      if (localStorage.getItem("selectedConversation")) {
-        router.push(
-          `/dashboard/chat/${localStorage.getItem("selectedConversation")}`
-        );
+      if (selectedConversation) {
+        router.push(`/dashboard/chat/${selectedConversation.id}`);
         return;
       }
     }
@@ -98,8 +98,9 @@ export function LeftSideBarHiddenLabel() {
 
   const handleLogout = () => {
     supabase.auth.signOut();
-    localStorage.removeItem("selectedConversation");
     // Xử lý sau khi đăng xuất
+    localStorage.removeItem("selectedConversation");
+    setSelectedConversation(null);
     toast.success("Đăng xuất thành công!", { autoClose: 1500 });
     router.push("/");
   };
@@ -128,11 +129,10 @@ export function LeftSideBarHiddenLabel() {
               <Button
                 key={item.label}
                 variant="ghost"
-                className={`w-full justify-center h-14 px-3 hover:cursor-pointer ${
-                  item.active
-                    ? "bg-gray-100 text-gray-900 font-medium"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
+                className={`w-full justify-center h-14 px-3 hover:cursor-pointer ${item.active
+                  ? "bg-gray-100 text-gray-900 font-medium"
+                  : "text-gray-700 hover:bg-gray-50"
+                  }`}
                 onClick={() => handleMenuClick(item.path)}
               >
                 <item.icon size={48} />
@@ -148,11 +148,10 @@ export function LeftSideBarHiddenLabel() {
               <Button
                 key={item.label}
                 variant="ghost"
-                className={`w-full justify-center h-14 px-3 hover:cursor-pointer ${
-                  item.special
-                    ? "bg-gray-100 text-gray-900 font-medium"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
+                className={`w-full justify-center h-14 px-3 hover:cursor-pointer ${item.special
+                  ? "bg-gray-100 text-gray-900 font-medium"
+                  : "text-gray-700 hover:bg-gray-50"
+                  }`}
                 onClick={() => handleMenuClick(item.path)}
               >
                 <item.icon size={48} />
