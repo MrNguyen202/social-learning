@@ -21,7 +21,6 @@ export const searchUsers = async (keyword: string) => {
 };
 
 export const getUserByNickName = async (nickname: string) => {
-  console.log("Fetching user with nickname:", nickname);
   const response = await api.get(`/api/users/nickname/${nickname}`);
   return response.data;
 };
