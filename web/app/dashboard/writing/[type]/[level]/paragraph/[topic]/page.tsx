@@ -4,7 +4,7 @@ import Link from 'next/link';
 import CardWritingExercise from '@/app/dashboard/writing/components/CardExercise';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { getListWritingExercisesByTypeLevelTopic } from '@/app/api/learning/route';
+import { getAllTopics, getListWritingParagraphsByTypeLevelTypeParagraph } from '@/app/api/learning/route';
 import { useRouter } from 'next/navigation';
 
 interface WritingExercise {
@@ -15,17 +15,30 @@ interface WritingExercise {
     progress: number;
 };
 
+type Topic = {
+    id: number;
+    icon: {
+        name: string;
+        color: string;
+    };
+    name: string;
+    slug: string;
+    description: string;
+};
+
 export default function Page() {
     const { type, level, topic } = useParams();
     const router = useRouter();
     const [writingExercises, setWritingExercises] = useState<WritingExercise[]>([]);
+    const [topicFilters, setTopicFilters] = useState<Topic[]>([]);
+    const [selectedTopic, setSelectedTopic] = useState<string>("");
 
     // Lấy danh sách bài viết theo type, level và topic
     useEffect(() => {
         const fetchWritingExercises = async () => {
             if (typeof type === "string" && typeof level === "string" && typeof topic === "string") {
                 try {
-                    const data = await getListWritingExercisesByTypeLevelTopic(type, level, topic);
+                    const data = await getListWritingParagraphsByTypeLevelTypeParagraph(type, level, topic);
                     setWritingExercises(data);
                 } catch (error) {
                     console.error("Error fetching writing exercises:", error);
@@ -33,6 +46,20 @@ export default function Page() {
             }
         };
 
+        const fetchTopics = async () => {
+            try {
+                const response = await getAllTopics();
+                if (Array.isArray(response)) {
+                    setTopicFilters(response);
+                } else {
+                    console.error("No topics found in the fetched data");
+                }
+            } catch (error) {
+                console.error("Error fetching topics:", error);
+            }
+        };
+
+        fetchTopics();
         fetchWritingExercises();
     }, [type, level, topic]);
 
@@ -65,8 +92,14 @@ export default function Page() {
                 <div className='flex items-center justify-between'>
                     <h2 className='text-2xl font-bold'>Danh sách các bài tập</h2>
                     {/* Bộ lọc */}
-                    <div>
-
+                    <div className='flex items-center gap-2'>
+                        <span>Lọc theo chủ đề</span>
+                        <select id="topic-select">
+                            <option value="">Tất cả</option>
+                            {topicFilters.map((topic) => (
+                                <option key={topic.id} value={topic.slug}>{topic.name}</option>
+                            ))}
+                        </select>
                     </div>
                 </div>
                 <div className='w-full py-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>

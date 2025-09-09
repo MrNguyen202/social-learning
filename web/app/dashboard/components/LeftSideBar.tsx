@@ -133,8 +133,8 @@ export function LeftSidebar() {
                 key={item.label}
                 variant="ghost"
                 className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${pathname === item.path
-                    ? "bg-gray-100 text-gray-900 font-medium"
-                    : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-gray-100 text-gray-900 font-medium"
+                  : "text-gray-700 hover:bg-gray-100"
                   }`}
                 onClick={() => handleMenuClick(item.path)}
               >
@@ -164,11 +164,12 @@ export function LeftSidebar() {
                   key={item.label}
                   variant="ghost"
                   className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${item.special
-                      ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 hover:from-orange-100 hover:to-pink-100 border border-orange-200"
-                      : pathname === item.path
-                        ? "bg-gray-100 text-gray-900 font-medium"
-                        : "text-gray-700 hover:bg-gray-50"
+                    ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 hover:from-orange-100 hover:to-pink-100 border border-orange-200"
+                    : pathname === item.path
+                      ? "bg-gray-100 text-gray-900 font-medium"
+                      : "text-gray-700 hover:bg-gray-50"
                     }`}
+                  onClick={() => handleMenuClick(item.path)}
                 >
                   <item.icon
                     className={`h-6 w-6 mr-4 ${item.special ? "text-orange-600" : ""

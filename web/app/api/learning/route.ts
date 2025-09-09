@@ -11,55 +11,68 @@ export const getTypeExercisesBySlug = async (slug: string) => {
   }
 };
 
-// Get all levels by type_exercise
-export const getAllLevelsByTypeExercise = async (type_exercise_id: string) => {
-  try {
-    const response = await api.get(`/api/learning/levels/${type_exercise_id}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching levels by type exercise:", error);
-    throw error;
-  }
-};
-
-// Get all topics by type_exercise
-export const getAllTopicsByTypeExercise = async (type_exercise_id: string) => {
-  try {
-    const response = await api.get(`/api/learning/topics/${type_exercise_id}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching topics by type exercise:", error);
-    throw error;
-  }
-};
-
-// Get list writing-exercises by type_exercise, level and topic
-export const getListWritingExercisesByTypeLevelTopic = async (
+// Get list writing-paragraphs by type_exercise, level and type paragraph
+export const getListWritingParagraphsByTypeLevelTypeParagraph = async (
   type_exercise_slug: string,
   level_slug: string,
-  topic_slug: string
+  type_paragraph_slug: string
 ) => {
   try {
     const response = await api.get(
-      `/api/learning/writing-exercises/${type_exercise_slug}/${level_slug}/${topic_slug}`
+      `/api/learning/writing-paragraphs/${type_exercise_slug}/${level_slug}/${type_paragraph_slug}`
     );
     return response.data;
   } catch (error) {
     console.error(
-      "Error fetching writing exercises by type, level and topic:",
+      "Error fetching writing paragraphs by type, level and type paragraph:",
       error
     );
     throw error;
   }
 };
 
-// Get writing-exercise by id
-export const getWritingExerciseById = async (id: number) => {
+// Get writing-paragraph by id
+export const getWritingParagraphById = async (id: number) => {
   try {
-    const response = await api.get(`/api/learning/writing-exercises/${id}`);
+    const response = await api.get(`/api/learning/writing-paragraphs/${id}`);
     return response.data;
   } catch (error) {
-    console.error("Error fetching writing exercise by id:", error);
+    console.error("Error fetching writing paragraph by id:", error);
+    throw error;
+  }
+};
+
+//Get all levels
+export const getAllLevels = async () => {
+  try {
+    const response = await api.get(`/api/learning/levels`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching all levels:", error);
+    throw error;
+  }
+};
+
+//Get all type paragraphs
+export const getAllTypeParagraphs = async () => {
+  try {
+    const response = await api.get(`/api/learning/type-paragraphs`);
+    return response.data;
+  }
+  catch (error) {
+    console.error("Error fetching all type paragraphs:", error);
+    throw error;
+  }
+};
+
+//Get all topics
+export const getAllTopics = async () => {
+  try {
+    const response = await api.get(`/api/learning/topics`);
+    return response.data;
+  }
+  catch (error) {
+    console.error("Error fetching all topics:", error);
     throw error;
   }
 };

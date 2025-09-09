@@ -1,6 +1,6 @@
 "use client"
 
-import { getAllLevelsByTypeExercise } from "@/app/api/learning/route";
+import { getAllLevels } from "@/app/api/learning/route";
 import { Icon } from "@/components/icons/Icon";
 import { Card } from "@/components/ui/card"
 import { useEffect, useState } from "react";
@@ -23,18 +23,17 @@ interface LevelProps {
         slug: string;
         name: string;
     } | null;
-    type_exercise: string;
     setSelectedLevel: (level: { slug: string; name: string } | null) => void;
 }
 
-export function Level({ selectedLevel, type_exercise, setSelectedLevel }: LevelProps) {
+export function Level({ selectedLevel, setSelectedLevel }: LevelProps) {
     const [levels, setLevels] = useState<Level[]>([]);
 
     // Lấy list level
     useEffect(() => {
         const fetchLevels = async () => {
             try {
-                const data = await getAllLevelsByTypeExercise(type_exercise);
+                const data = await getAllLevels();
                 if (Array.isArray(data)) {
                     setLevels(data);
                 } else {
@@ -44,8 +43,8 @@ export function Level({ selectedLevel, type_exercise, setSelectedLevel }: LevelP
                 console.error("Error fetching levels:", error);
             }
         };
-        if (type_exercise) fetchLevels();
-    }, [type_exercise]);
+        fetchLevels();
+    }, []);
 
 
     return (

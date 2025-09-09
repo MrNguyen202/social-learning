@@ -1,4 +1,4 @@
-const learningService = require('../services/learningService');
+const learningService = require('../services/learning/learningService');
 
 const learningController = {
     // Get type exercises by slug
@@ -37,29 +37,62 @@ const learningController = {
         }
     },
 
-    // Get list writing-exercises by type_exercise, level and topic
-    getListWritingExercisesByTypeLevelTopic: async (req, res) => {
-        const { type_exercise_slug, level_slug, topic_slug } = req.params;
+    // Get list writing-paragraphs by type_exercise, level and type_paragraph
+    getListWritingParagraphsByTypeLevelTypeParagraphs: async (req, res) => {
+        const { type_exercise_slug, level_slug, type_paragraph_slug } = req.params;
         try {
-            const data = await learningService.getListWritingExercisesByTypeLevelTopic(type_exercise_slug, level_slug, topic_slug);
+            const data = await learningService.getListWritingParagraphsByTypeLevelTypeParagraph(type_exercise_slug, level_slug, type_paragraph_slug);
             res.json(data);
         } catch (error) {
-            console.error("Error fetching writing exercises by type, level and topic:", error);
+            console.error("Error fetching writing paragraphs by type, level and type_paragraph:", error);
             res.status(500).json({ error: "Internal Server Error" });
         }
     },
 
-    // Get writing-exercise by id
-    getWritingExerciseById: async (req, res) => {
+    // Get writing-paragraph by id
+    getWritingParagraphById: async (req, res) => {
         const { id } = req.params;
         try {
-            const data = await learningService.getWritingExerciseById(id);
+            const data = await learningService.getWritingParagraphById(id);
             res.json(data);
         } catch (error) {
-            console.error("Error fetching writing exercise by id:", error);
+            console.error("Error fetching writing paragraph by id:", error);
             res.status(500).json({ error: "Internal Server Error" });
         }
-    }
+    },
+
+    // Get all levels
+    getAllLevels: async (req, res) => {
+        try {
+            const data = await learningService.getAllLevels();
+            res.json(data);
+        } catch (error) {
+            console.error("Error fetching all levels:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    },
+
+    // Get all type paragraphs
+    getAllTypeParagraphs: async (req, res) => {
+        try {
+            const data = await learningService.getAllTypeParagraphs();
+            res.json(data);
+        } catch (error) {
+            console.error("Error fetching all type paragraphs:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    },
+
+    // Get all topics
+    getAllTopics: async (req, res) => {
+        try {
+            const data = await learningService.getAllTopics();
+            res.json(data);
+        } catch (error) {
+            console.error("Error fetching all topics:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    },
 };
 
 module.exports = learningController;

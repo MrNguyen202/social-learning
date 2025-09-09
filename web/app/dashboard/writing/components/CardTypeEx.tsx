@@ -27,8 +27,6 @@ export function CardTypeEx() {
                 const data1 = await getTypeExercisesBySlug("writing-paragraph");
                 const data2 = await getTypeExercisesBySlug("writing-sentence");
 
-                console.log("Fetched data:", data1, data2);
-
                 const normalize = (item: any) => ({
                     id: String(item.id),
                     icon: item.icon,

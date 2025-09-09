@@ -1,6 +1,6 @@
 "use client";
 
-import { getWritingExerciseById } from '@/app/api/learning/route';
+import { getWritingParagraphById } from '@/app/api/learning/route';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeftFromLine, BookMarked, CircleEqual, Lightbulb, Snowflake, Target } from 'lucide-react';
@@ -26,7 +26,7 @@ export default function PageExerciseDetail() {
     useEffect(() => {
         const fetchExerciseDetail = async () => {
             try {
-                const response = await getWritingExerciseById(Number(id));
+                const response = await getWritingParagraphById(Number(id));
                 setExerciseDetail(response);
             } catch (error) {
                 console.error("Error fetching exercise detail:", error);
