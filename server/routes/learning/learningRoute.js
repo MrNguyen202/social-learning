@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const learningController = require('../controllers/learningController');
+const learningController = require('../../controllers/learning/learningController');
 
 // Get type exercises by slug
 router.get('/type-exercises/:slug', learningController.getTypeExercisesBySlug);
@@ -10,12 +10,6 @@ router.get('/levels/:type_exercise_id', learningController.getAllLevelsByTypeExe
 
 // Get all topics by type_exercise
 router.get('/topics/:type_exercise_id', learningController.getAllTopicsByTypeExercise);
-
-// Get list writing-paragraphs by type_exercise, level and type_paragraph
-router.get('/writing-paragraphs/:type_exercise_slug/:level_slug/:type_paragraph_slug', learningController.getListWritingParagraphsByTypeLevelTypeParagraphs);
-
-// Get writing-paragraph by id
-router.get('/writing-paragraphs/:id', learningController.getWritingParagraphById);
 
 // Get all levels
 router.get('/levels', learningController.getAllLevels);

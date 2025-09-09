@@ -1,6 +1,6 @@
 "use client";
 
-import { getWritingParagraphById } from '@/app/api/learning/route';
+import { getWritingParagraphById } from '@/app/api/learning/writing/route';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeftFromLine, BookMarked, CircleEqual, Lightbulb, Snowflake, Target } from 'lucide-react';

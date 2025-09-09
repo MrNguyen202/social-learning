@@ -16,10 +16,11 @@ const userRoute = require("./routes/userRoute");
 const imageRoute = require("./routes/imageRoute");
 const postRoute = require("./routes/postRoute");
 const followRoute = require("./routes/followRoute");
-const learningRoute = require("./routes/learningRoute");
+const learningRoute = require("./routes/learning/learningRoute");
 const conversationRoute = require("./routes/conversationRoute");
 const messageRoute = require("./routes/messageRoute");
 const botCoverLearningRoute = require("./routes/botCoverLearningRoute");
+const writtingRoute = require("./routes/learning/writingRoute");
 
 app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
@@ -30,6 +31,7 @@ app.use("/api/learning", learningRoute);
 app.use("/api/conversations", conversationRoute);
 app.use("/api/messages", messageRoute);
 app.use("/api/bot-cover-learning", botCoverLearningRoute);
+app.use("/api/learning/writing", writtingRoute);
 
 connectDB().then(() => {
   server.listen(PORT, () => {
