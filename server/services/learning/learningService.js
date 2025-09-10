@@ -200,6 +200,27 @@ const learningService = {
         return data;
     },
 
+    // Get level by slug
+    async getLevelBySlug(slug) {
+        const { data, error } = await supabase
+            .from("levels")
+            .select(`
+            id,
+            name,
+            description,
+            slug,
+            icon: icon_id (name, color)
+        `)
+            .eq("slug", slug)
+            .single();
+
+        if (error) {
+            console.error("Error fetching level by slug:", error);
+            throw error;
+        }
+        return data;
+    },
+
     // Get type paragraph by id
     async getTypeParagraphById(id) {
         const { data, error } = await supabase
@@ -220,6 +241,26 @@ const learningService = {
         }
         return data;
     },
+
+    // Get type paragraph by slug
+    async getTypeParagraphBySlug(slug) {
+        const { data, error } = await supabase
+            .from("typeParagraphs")
+            .select(`
+            id,
+            name,
+            description,
+            slug,
+            icon: icon_id (name, color)
+        `)
+            .eq("slug", slug)
+            .single();
+        if (error) {
+            console.error("Error fetching type paragraph by slug:", error);
+            throw error;
+        }
+        return data;
+    }
 };
 
 module.exports = learningService;

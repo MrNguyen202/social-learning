@@ -9,7 +9,7 @@ const writingService = {
             .from("typeExercises")
             .select("id")
             .eq("slug", type_exercise_slug)
-            .single();
+            .maybeSingle();
 
         if (errType) {
             console.error("Error fetching typeExercises:", errType);
@@ -24,7 +24,7 @@ const writingService = {
             .from("levels")
             .select("id")
             .eq("slug", level_slug)
-            .single();
+            .maybeSingle();
 
         if (errLevel) {
             console.error("Error fetching levels:", errLevel);
@@ -39,7 +39,7 @@ const writingService = {
             .from("typeParagraphs")
             .select("id")
             .eq("slug", type_paragraph_slug)
-            .single();
+            .maybeSingle();
 
         if (errTypeParagraph) {
             console.error("Error fetching typeParagraphs:", errTypeParagraph);
@@ -80,6 +80,99 @@ const writingService = {
 
         return exercise;
     },
+
+    // Lưu submit bài tập writingParagraph
+    async submitWritingParagraphExercise(data) {
+        const { data: insertedData, error } = await supabase
+            .from("submitExParagraph")
+            .insert(data)
+            .select();
+
+        if (error) {
+            console.error("Error submitting writing paragraph exercise:", error);
+            throw error;
+        }
+
+        return insertedData;
+    },
+
+    // Lấy progress bài tập writingParagraph của user
+    async getProgressWritingParagraph(user_id, paragraph_id) {
+        const { data: progress, error } = await supabase
+            .from("progressWritingParagraph")
+            .select("*")
+            .eq("user_id", user_id)
+            .eq("writingParagraph_id", paragraph_id)
+            .maybeSingle();
+
+        if (error) {
+            console.error("Error fetching writing progress:", error);
+            throw error;
+        }
+
+        return progress;
+    },
+
+    // Lưu progress bài tập writingParagraph
+    async saveProgressWritingParagraph(data) {
+        const { data: insertedData, error } = await supabase
+            .from("progressWritingParagraph")
+            .insert(data)
+            .select();
+        if (error) {
+            console.error("Error saving writing progress:", error);
+            throw error;
+        }
+        return insertedData;
+    },
+
+    // Cập nhật progress bài tập writingParagraph
+    async updateProgressWritingParagraph(user_id, paragraph_id, data) {
+        const { data: updatedData, error } = await supabase
+            .from("progressWritingParagraph")
+            .update(data)
+            .eq("user_id", user_id)
+            .eq("writingParagraph_id", paragraph_id)
+            .select();
+
+        if (error) {
+            console.error("Error updating writing progress:", error);
+            throw error;
+        }
+
+        return updatedData;
+    },
+
+    // Đếm số lần submit bài tập writingParagraph của user
+    async countSubmitsWritingParagraph(user_id, paragraph_id) {
+        const { count, error } = await supabase
+            .from("submitExParagraph")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", user_id)
+            .eq("exParagraph_id", paragraph_id);
+        if (error) {
+            console.error("Error counting submits:", error);
+            throw error;
+        }
+        return count;
+    },
+
+    // Đếm số lần submit cho câu hiện tại (để tính điểm)
+    async countSubmitsForCurrentSentence(user_id, paragraph_id, sentence_index) {
+        const { count, error } = await supabase
+            .from("submitExParagraph")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", user_id)
+            .eq("exParagraph_id", paragraph_id)
+            .eq("sentence_index", sentence_index);
+
+        if (error) {
+            console.error("Error counting submits for current sentence:", error);
+            throw error;
+        }
+
+        return count;
+    }
 };
 
 module.exports = writingService;

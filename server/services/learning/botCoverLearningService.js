@@ -1,4 +1,4 @@
-const supabase = require("../lib/supabase").supabase;
+const supabase = require("../../lib/supabase").supabase;
 
 const botCoverLearningService = {
     // Generate paragraph exercise lưu vào bảng writingParagraphs
@@ -24,7 +24,28 @@ const botCoverLearningService = {
             throw new Error("Error creating paragraph exercise");
         }
 
-        console.log("Inserted data:", insertedData);
+        return insertedData;
+    },
+
+    // Lưu feedback bài tập viết
+    async saveWritingFeedback(data) {
+        const { data: insertedData, error } = await supabase
+            .from("feedbackAI")
+            .insert([
+                {
+                    accuracy: data.accuracy,
+                    highlighted: data.highlighted,
+                    suggestions: data.suggestions,
+                    comment: data.comment,
+                    score: data.score,
+                }
+            ])
+            .select();
+
+        if (error) {
+            console.error("Error inserting data:", error);
+            throw new Error("Error saving writing feedback");
+        }
 
         return insertedData;
     }

@@ -19,7 +19,7 @@ const followRoute = require("./routes/followRoute");
 const learningRoute = require("./routes/learning/learningRoute");
 const conversationRoute = require("./routes/conversationRoute");
 const messageRoute = require("./routes/messageRoute");
-const botCoverLearningRoute = require("./routes/botCoverLearningRoute");
+const botCoverLearningRoute = require("./routes/learning/botCoverLearningRoute");
 const writtingRoute = require("./routes/learning/writingRoute");
 
 app.use("/api/auth", authRoute);

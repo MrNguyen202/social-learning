@@ -1,6 +1,6 @@
-const botCoverLearningService = require("../services/botCoverLearningService");
-const learningService = require("../services/learning/learningService");
-const promptGenerateParagraph = require("../utils/prompt/generateParagraph");
+const botCoverLearningService = require("../../services/learning/botCoverLearningService");
+const learningService = require("../../services/learning/learningService");
+const promptGenerateParagraph = require("../../utils/prompt/generateParagraph");
 require('dotenv').config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
@@ -10,9 +10,9 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const botCoverLearningController = {
     // Generate paragraph exercise lưu vào bảng writingParagraphs
     createGenerateParagraphExercise: async (req, res) => {
-        const { level_id, type_paragraph } = req.body;
+        const { level_slug, type_paragraph_slug } = req.body;
 
-        if (!level_id || !type_paragraph) {
+        if (!level_slug || !type_paragraph_slug) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
@@ -20,15 +20,15 @@ const botCoverLearningController = {
         const typeExerciseData = await learningService.getTypeExercisesBySlug("writing-paragraph");
 
         // Lấy thông tin level từ Supabase
-        const level = await learningService.getLevelById(level_id);
+        const level = await learningService.getLevelBySlug(level_slug);
         if (!level) {
-            return res.status(400).json({ error: "Invalid level_id" });
+            return res.status(400).json({ error: "Invalid level_slug" });
         }
 
         // Lấy thông tin type_paragraph từ Supabase
-        const typeParagraph = await learningService.getTypeParagraphById(type_paragraph);
+        const typeParagraph = await learningService.getTypeParagraphBySlug(type_paragraph_slug);
         if (!typeParagraph) {
-            return res.status(400).json({ error: "Invalid type_paragraph" });
+            return res.status(400).json({ error: "Invalid type_paragraph_slug" });
         }
 
         // Lấy danh sách topics từ Supabase
@@ -64,12 +64,12 @@ const botCoverLearningController = {
 
             const resultSave = await botCoverLearningService.createParagraphExercise(data);
 
-            res.json({ paragraph: resultSave });
+            res.json({ message: "Tạo đoạn văn bản thành công", data: resultSave[0] });
         } catch (err) {
             console.error(err.message);
             res.status(500).json({ error: 'Lỗi khi gọi Gemini API', raw: err.message });
         }
-    }
+    },
 };
 
 module.exports = botCoverLearningController;
