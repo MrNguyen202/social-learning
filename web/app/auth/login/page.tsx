@@ -38,6 +38,18 @@ export default function LoginPage() {
         res.data.session
       );
 
+      const { data, error } = await supabase.functions.invoke(
+        "update-last-seen",
+        {
+          body: { name: "Functions" },
+          method: "POST",
+          headers: { Authorization: `Bearer ${res.data.session.access_token}` },
+        }
+      );
+
+      if (error) console.error("Error updating last_seen:", error);
+      else console.log("Updated last_seen:", data);
+
       if (setError) {
         toast.error("Lỗi khi đặt phiên.", { autoClose: 1500 });
         console.error("Lỗi khi đặt phiên:", setError.message);

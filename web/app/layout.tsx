@@ -4,6 +4,9 @@ import "./globals.css";
 import { AuthProvider } from "@/components/contexts/AuthProvider";
 import ClientWrapper from "./ClientWrapper";
 import { ConversationProvider } from "@/components/contexts/ConversationContext";
+import { use } from "react";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import OnlineStatusProvider from "@/components/contexts/OnlineStatusProvider";
 
 const overpass = Overpass({
   subsets: ["latin"],
@@ -24,7 +27,9 @@ export default function RootLayout({
       <body className={overpass.className}>
         <AuthProvider>
           <ConversationProvider>
-            <ClientWrapper>{children}</ClientWrapper>
+            <ClientWrapper>
+              <OnlineStatusProvider>{children}</OnlineStatusProvider>
+            </ClientWrapper>
           </ConversationProvider>
         </AuthProvider>
       </body>
