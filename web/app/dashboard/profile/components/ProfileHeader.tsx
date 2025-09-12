@@ -14,11 +14,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import useAuth from "@/hooks/useAuth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getUserImageSrc, uploadFile } from "@/app/api/image/route";
 import { updateUserData } from "@/app/api/user/route";
 import { toast } from "react-toastify";
+import { getFollowers, getFollowing } from "@/app/api/follow/route";
+import FollowModal from "./FollowModal";
 
 interface User {
   id: string;
@@ -28,10 +30,21 @@ interface User {
   bio?: string;
 }
 
+interface Follower {
+  id: string;
+  name: string;
+  nick_name: string;
+  avatar?: string;
+}
+
 export default function ProfileHeader() {
   const router = useRouter();
   const { user, setUser } = useAuth<User>();
   const [open, setOpen] = useState(false);
+  const [openFollowing, setOpenFollowing] = useState(false);
+  const [following, setFollowing] = useState<Follower[]>([]);
+  const [openFollower, setOpenFollower] = useState(false);
+  const [follower, setFollower] = useState<Follower[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,19 +57,19 @@ export default function ProfileHeader() {
       const res = await uploadFile("profiles", file, "image");
 
       if (res?.success === false) {
-        toast.error(res.msg || "Upload thất bại", {autoClose: 1500});
+        toast.error(res.msg || "Upload thất bại", { autoClose: 1500 });
         return;
       }
 
       const updateData = { avatar: res.data.path };
       await updateUserData(user.id, updateData);
 
-      toast.success("Tải ảnh thành công!", {autoClose: 1500});
+      toast.success("Tải ảnh thành công!", { autoClose: 1500 });
 
       setUser({ ...user, avatar: res.data.path });
       setOpen(false);
     } catch (err: any) {
-      toast.error("Đã xảy ra lỗi khi upload ảnh.", {autoClose: 1500});
+      toast.error("Đã xảy ra lỗi khi upload ảnh.", { autoClose: 1500 });
     } finally {
       setIsLoading(false);
     }
@@ -71,123 +84,178 @@ export default function ProfileHeader() {
       const updateData = { avatar: null };
       await updateUserData(user.id, updateData);
 
-      toast.success("Đã gỡ ảnh đại diện!", {autoClose: 1500});
+      toast.success("Đã gỡ ảnh đại diện!", { autoClose: 1500 });
 
       setUser({ ...user, avatar: undefined });
       setOpen(false);
     } catch (err: any) {
-      toast.error("Đã xảy ra lỗi khi gỡ ảnh.", {autoClose: 1500});
+      toast.error("Đã xảy ra lỗi khi gỡ ảnh.", { autoClose: 1500 });
     } finally {
       setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    if (user?.id) {
+      getListFollowing();
+      getListFollowers();
+    }
+  }, [user?.id]);
+
+  const getListFollowing = async () => {
+    if (!user?.id) {
+      return;
+    }
+    setIsLoading(true);
+    let res = await getFollowing(user?.id);
+    if (res.success) {
+      setFollowing(res.data);
+    }
+    setIsLoading(false);
+  };
+
+  const getListFollowers = async () => {
+    if (!user?.id) {
+      return;
+    }
+    setIsLoading(true);
+    let res = await getFollowers(user?.id);
+    if (res.success) {
+      setFollower(res.data);
+    }
+    setIsLoading(false);
+  };
+
   return (
-    <div className="p-4 border-b border-border md:ml-5">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:gap-8 mb-4">
-        {/* Avatar */}
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Avatar className="w-20 h-20 cursor-pointer mx-auto sm:mx-0 sm:w-28 sm:h-28">
-              <AvatarImage
-                src={
-                  user?.avatar
-                    ? getUserImageSrc(user.avatar)
-                    : "/default-avatar-profile-icon.jpg"
-                }
-                alt="Profile"
-              />
-            </Avatar>
-          </DialogTrigger>
-
-          <DialogContent className="sm:max-w-md rounded-2xl p-0">
-            <DialogHeader className="p-4 pb-2">
-              <DialogTitle className="text-center text-lg">
-                Thay đổi ảnh đại diện
-              </DialogTitle>
-            </DialogHeader>
-
-            <div className="flex flex-col divide-y">
-              <label className="py-3 text-blue-600 border-t font-medium hover:bg-gray-50 text-center cursor-pointer">
-                {isLoading ? "Đang tải..." : "Tải ảnh lên"}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleUpload}
-                  disabled={isLoading}
+    <>
+      <div className="p-4 border-b border-border md:ml-5">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:gap-8 mb-4">
+          {/* Avatar */}
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Avatar className="w-20 h-20 cursor-pointer mx-auto sm:mx-0 sm:w-28 sm:h-28">
+                <AvatarImage
+                  src={
+                    user?.avatar
+                      ? getUserImageSrc(user.avatar)
+                      : "/default-avatar-profile-icon.jpg"
+                  }
+                  alt="Profile"
                 />
-              </label>
-              <button
-                className="py-3 text-red-600 font-medium hover:bg-gray-50 cursor-pointer disabled:opacity-50"
-                onClick={handleRemove}
-                disabled={isLoading}
-              >
-                {isLoading ? "Đang xử lý..." : "Gỡ ảnh hiện tại"}
-              </button>
-              <DialogClose asChild>
+              </Avatar>
+            </DialogTrigger>
+
+            <DialogContent className="sm:max-w-md rounded-2xl p-0">
+              <DialogHeader className="p-4 pb-2">
+                <DialogTitle className="text-center text-lg">
+                  Thay đổi ảnh đại diện
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="flex flex-col divide-y">
+                <label className="py-3 text-blue-600 border-t font-medium hover:bg-gray-50 text-center cursor-pointer">
+                  {isLoading ? "Đang tải..." : "Tải ảnh lên"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleUpload}
+                    disabled={isLoading}
+                  />
+                </label>
                 <button
-                  className="py-3 font-medium cursor-pointer"
+                  className="py-3 text-red-600 font-medium hover:bg-gray-50 cursor-pointer disabled:opacity-50"
+                  onClick={handleRemove}
                   disabled={isLoading}
                 >
-                  Hủy
+                  {isLoading ? "Đang xử lý..." : "Gỡ ảnh hiện tại"}
                 </button>
-              </DialogClose>
-            </div>
-          </DialogContent>
-        </Dialog>
+                <DialogClose asChild>
+                  <button
+                    className="py-3 font-medium cursor-pointer"
+                    disabled={isLoading}
+                  >
+                    Hủy
+                  </button>
+                </DialogClose>
+              </div>
+            </DialogContent>
+          </Dialog>
 
-        {/* Info */}
-        <div className="flex-1 text-center sm:text-left mt-2 sm:mt-0">
-          <h1 className="text-lg font-semibold sm:text-xl">{user?.name}</h1>
-          {/* nick name */}
-          <p className="text-sm text-muted-foreground">{user?.nick_name}</p>
+          {/* Info */}
+          <div className="flex-1 text-center sm:text-left mt-2 sm:mt-0">
+            <h1 className="text-lg font-semibold sm:text-xl">{user?.name}</h1>
+            {/* nick name */}
+            <p className="text-sm text-muted-foreground">{user?.nick_name}</p>
 
-          <div className="grid grid-cols-3 text-xs sm:text-sm mt-2">
-            <div>
-              <div className="font-semibold">0</div>
-              <div className="text-muted-foreground">bài viết</div>
-            </div>
-            <div>
-              <div className="font-semibold">0</div>
-              <div className="text-muted-foreground">người theo dõi</div>
-            </div>
-            <div>
-              <div className="font-semibold">7</div>
-              <div className="text-muted-foreground">đang theo dõi</div>
+            <div className="grid grid-cols-3 text-xs sm:text-sm mt-2">
+              <div>
+                <div className="font-semibold">0</div>
+                <div className="text-muted-foreground">bài viết</div>
+              </div>
+              <div
+                className="cursor-pointer"
+                onClick={() => setOpenFollower(true)}
+              >
+                <div className="font-semibold">{follower.length}</div>
+                <div className="text-muted-foreground">người theo dõi</div>
+              </div>
+              <div
+                className="cursor-pointer"
+                onClick={() => setOpenFollowing(true)}
+              >
+                <div className="font-semibold">{following.length}</div>
+                <div className="text-muted-foreground">đang theo dõi</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex flex-col sm:flex-row gap-2 mb-4">
-        <Button
-          variant="secondary"
-          className="flex-1 text-sm cursor-pointer hover:bg-gray-200"
-          onClick={() => {
-            router.push("/dashboard/profile/edit");
-          }}
-        >
-          Chỉnh sửa trang cá nhân
-        </Button>
-        <Button
-          variant="secondary"
-          className="flex-1 text-sm cursor-pointer hover:bg-gray-200"
-          onClick={() => {
-            router.push("/dashboard/profile/storage");
-          }}
-        >
-          Kho lưu trữ
-        </Button>
-        <div className="flex items-center justify-center cursor-pointer sm:ml-2 max-sm:hidden">
-          <Settings className="w-5 h-5" />
+        <div className="flex flex-col sm:flex-row gap-2 mb-4">
+          <Button
+            variant="secondary"
+            className="flex-1 text-sm cursor-pointer hover:bg-gray-200"
+            onClick={() => {
+              router.push("/dashboard/profile/edit");
+            }}
+          >
+            Chỉnh sửa trang cá nhân
+          </Button>
+          <Button
+            variant="secondary"
+            className="flex-1 text-sm cursor-pointer hover:bg-gray-200"
+            onClick={() => {
+              router.push("/dashboard/profile/storage");
+            }}
+          >
+            Kho lưu trữ
+          </Button>
+          <div className="flex items-center justify-center cursor-pointer sm:ml-2 max-sm:hidden">
+            <Settings className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* Bio */}
+        <div className="text-sm text-center md:text-left">
+          <p>{user?.bio}</p>
         </div>
       </div>
+      {/* Follow Modal */}
+      <FollowModal
+        isOpen={openFollowing}
+        onClose={() => setOpenFollowing(false)}
+        title="Đang theo dõi"
+        active="Đang theo dõi"
+        data={following}
+      />
 
-      {/* Bio */}
-      <div className="text-sm text-center md:text-left">
-        <p>{user?.bio}</p>
-      </div>
-    </div>
+      <FollowModal
+        isOpen={openFollower}
+        onClose={() => setOpenFollower(false)}
+        title="Người theo dõi"
+        active="Xóa"
+        data={follower}
+      />
+    </>
   );
 }

@@ -53,7 +53,16 @@ const followService = {
   async getFollowers(userId) {
     const { data, error } = await supabase
       .from("follows")
-      .select("followerId")
+      .select(
+        `
+      follower:followerId (
+        id,
+        name,
+        nick_name,
+        avatar
+      )
+    `
+      )
       .eq("userId", userId)
       .eq("status", "active");
 
@@ -61,11 +70,20 @@ const followService = {
     return { data, error: null };
   },
 
-  // Danh sách user mà 1 user đang follow (following)
+  // Danh sách user mà 1 user đang follow (following) (đang theo dõi ai)
   async getFollowing(followerId) {
     const { data, error } = await supabase
       .from("follows")
-      .select("userId")
+      .select(
+        `
+      users:userId (
+        id,
+        name,
+        nick_name,
+        avatar
+      )
+    `
+      )
       .eq("followerId", followerId)
       .eq("status", "active");
 

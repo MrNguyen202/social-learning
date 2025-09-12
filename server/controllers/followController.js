@@ -47,9 +47,10 @@ const followController = {
   },
 
   // Danh sách follower của 1 user
+
   async getFollowers(req, res) {
     try {
-      const { userId } = req.params;
+      const { userId } = req.query;
 
       const { data, error } = await followService.getFollowers(userId);
 
@@ -57,24 +58,26 @@ const followController = {
         return res.status(400).json({ success: false, message: error.message });
       }
 
-      return res.status(200).json({ success: true, data });
+      const followers = data.map((item) => item.follower);
+
+      return res.status(200).json({ success: true, data: followers });
     } catch (error) {
       return res.status(500).json({ success: false, message: error.message });
     }
   },
-
   // Danh sách following của 1 user
   async getFollowing(req, res) {
     try {
-      const { userId } = req.params;
-
-      const { data, error } = await followService.getFollowing(userId);
+      const { followerId } = req.query;
+      const { data, error } = await followService.getFollowing(followerId);
 
       if (error) {
         return res.status(400).json({ success: false, message: error.message });
       }
 
-      return res.status(200).json({ success: true, data });
+      const followingUsers = data.map((item) => item.users);
+
+      return res.status(200).json({ success: true, data: followingUsers });
     } catch (error) {
       return res.status(500).json({ success: false, message: error.message });
     }

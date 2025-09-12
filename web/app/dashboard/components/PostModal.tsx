@@ -4,11 +4,10 @@ import type React from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Heart, Send } from "lucide-react";
 import { useState } from "react";
-import { DialogTitle } from "@radix-ui/react-dialog";
 import { getSupabaseFileUrl, getUserImageSrc } from "@/app/api/image/route";
 import { convertToDate, formatTime } from "@/utils/formatTime";
 

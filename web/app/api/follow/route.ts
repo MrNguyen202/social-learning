@@ -18,15 +18,19 @@ export const unfollowUser = async (followerId: string, userId: string) => {
   return response.data;
 };
 
-// Danh sách follower của 1 user (ai follow userId)
+// Danh sách follower của 1 user (ai follow userId) (ai đang theo dõi)
 export const getFollowers = async (userId: string) => {
-  const response = await api.get(`/api/follows/followers/${userId}`);
+  const response = await api.get("/api/follows/followers", {
+    params: { userId },
+  });
   return response.data;
 };
 
-// Danh sách user mà 1 user đang follow (following)
+// Danh sách user mà 1 user đang follow (following) (đang theo dõi ai)
 export const getFollowing = async (followerId: string) => {
-  const response = await api.get(`/api/follows/following/${followerId}`);
+  const response = await api.get("/api/follows/following", {
+    params: { followerId },
+  });
   return response.data;
 };
 

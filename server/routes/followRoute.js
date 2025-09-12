@@ -9,10 +9,10 @@ router.post("/", followController.followUser);
 router.delete("/", followController.unfollowUser);
 
 // Lấy danh sách followers của một user
-router.get("/followers/:userId", followController.getFollowers);
+router.get("/followers", followController.getFollowers);
 
 // Lấy danh sách following của một user
-router.get("/following/:userId", followController.getFollowing);
+router.get("/following", followController.getFollowing);
 
 // Kiểm tra A có follow B không
 router.get("/is-following", followController.isFollowing);

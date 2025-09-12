@@ -184,7 +184,7 @@ export function PostCard({ post }: PostCardProps) {
 
       <Dialog open={isOptionsModalOpen} onOpenChange={setIsOptionsModalOpen}>
         <DialogContent className="sm:max-w-md rounded-2xl p-0">
-          <DialogHeader className="p-4 pb-2">
+          <DialogHeader className="pt-4">
             <DialogTitle className="text-center text-lg">Tùy chọn</DialogTitle>
           </DialogHeader>
 
