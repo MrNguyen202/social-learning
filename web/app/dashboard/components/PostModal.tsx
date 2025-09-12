@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Heart, Send } from "lucide-react";
 import { useState } from "react";
 import { DialogTitle } from "@radix-ui/react-dialog";
+import { getSupabaseFileUrl, getUserImageSrc } from "@/app/api/image/route";
+import { convertToDate, formatTime } from "@/utils/formatTime";
 
 interface Comment {
   id: number;
@@ -20,16 +22,21 @@ interface Comment {
   isLiked: boolean;
 }
 
-interface CommentModalProps {
+interface PostModalProps {
   isOpen: boolean;
   onClose: () => void;
   post: {
     id: number;
-    username: string;
-    avatar: string;
-    originalSentence: string;
-    rewrittenSentence: string;
-    caption: string;
+    content: string;
+    created_at: string;
+    file?: string | null;
+    original_name?: string | null;
+    user?: {
+      id: string;
+      name: string;
+      nick_name: string;
+      avatar?: string | null;
+    };
   };
 }
 
@@ -63,7 +70,7 @@ const mockComments: Comment[] = [
   },
 ];
 
-export function CommentModal({ isOpen, onClose, post }: CommentModalProps) {
+export function PostModal({ isOpen, onClose, post }: PostModalProps) {
   const [comments, setComments] = useState<Comment[]>(mockComments);
   const [newComment, setNewComment] = useState("");
 
@@ -107,42 +114,70 @@ export function CommentModal({ isOpen, onClose, post }: CommentModalProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="xl:max-w-6xl xl:h-[80vh] lg:max-w-5xl lg:h-[70vh] md:max-w-4xl md:h-[60vh] sm:max-w-2xl sm:h-[60vh] max-w-xl h-[60vh] p-0 overflow-hidden">
         <DialogHeader className="hidden">
-          <DialogTitle className="hidden">Comments</DialogTitle>
+          <DialogTitle className="hidden">Chi tiết</DialogTitle>
         </DialogHeader>
         <div className="flex h-full">
-          {/* Left side - Post content */}
-          <div className="flex-1 bg-black flex items-center justify-center">
-            <div className="bg-gradient-to-r from-orange-50 to-pink-50 rounded-lg p-8 m-8 max-w-md">
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-2">
-                    Original:
-                  </p>
-                  <p className="text-gray-800 line-through opacity-75">
-                    {post.originalSentence}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-2">
-                    Rewritten:
-                  </p>
-                  <p className="text-gray-900 font-medium">
-                    {post.rewrittenSentence}
-                  </p>
-                </div>
+          {/* Post content */}
+          <div className="flex-1 flex justify-center items-center bg-gray-50">
+            {post?.file &&
+              (() => {
+                const fileUrl = getSupabaseFileUrl(post.file);
+                const ext = post.file.split(".").pop()?.toLowerCase();
+
+                if (!fileUrl) return null;
+
+                if (["png", "jpg", "jpeg", "gif"].includes(ext!)) {
+                  return (
+                    <img
+                      src={fileUrl}
+                      alt="Post Image"
+                      className="w-full h-auto max-h-full object-cover"
+                    />
+                  );
+                }
+
+                if (["mp4", "webm", "ogg"].includes(ext!)) {
+                  return (
+                    <video controls className="w-full max-h-160">
+                      <source src={fileUrl} type={`video/${ext}`} />
+                      Trình duyệt không hỗ trợ video.
+                    </video>
+                  );
+                }
+
+                // Các loại file khác (pdf, docx, xlsx...)
+                return (
+                  <div className="flex items-center space-x-3 p-3 border rounded-md bg-gray-50">
+                    <span className="text-2xl">📄</span>
+                    <a
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline text-sm"
+                    >
+                      {post?.original_name}
+                    </a>
+                  </div>
+                );
+              })()}
+            {!post?.file && (
+              <div className="p-4">
+                <p className="text-sm text-gray-500">{post?.content}</p>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Right side - Comments */}
+          {/* Comments */}
           <div className="w-[450px] border-l flex flex-col">
             {/* Header */}
             <DialogHeader className="p-4 border-b">
               <div className="flex items-center space-x-3">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={post.avatar || "/placeholder.svg"} />
+                  <AvatarImage src={getUserImageSrc(post.user?.avatar)} />
                 </Avatar>
-                <span className="font-semibold text-sm">{post.username}</span>
+                <span className="font-semibold text-sm">
+                  {post.user?.nick_name}
+                </span>
               </div>
             </DialogHeader>
 
@@ -150,14 +185,19 @@ export function CommentModal({ isOpen, onClose, post }: CommentModalProps) {
             <div className="p-4 border-b">
               <div className="flex items-start space-x-3">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={post.avatar || "/placeholder.svg"} />
+                  <AvatarImage src={getUserImageSrc(post.user?.avatar)} />
                 </Avatar>
                 <div className="flex-1">
                   <p className="text-sm">
-                    <span className="font-semibold">{post.username}</span>{" "}
-                    {post.caption}
+                    <span className="font-semibold">
+                      {post.user?.nick_name}
+                    </span>{" "}
+                    {post.content}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {convertToDate(post.created_at)}{" "}
+                    {formatTime(post.created_at)}
+                  </p>
                 </div>
               </div>
             </div>

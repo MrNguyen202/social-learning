@@ -11,9 +11,16 @@ export const createOrUpdatePost = async (data: CreatePostData) => {
   return response.data;
 };
 
-export const fetchPosts = async (limit = 10, userId?: string) => {
+export const fetchPosts = async (currentUserId: string, limit = 10) => {
   const response = await api.get("/api/posts/posts", {
-    params: { limit, userId },
+    params: { currentUserId, limit },
+  });
+  return response.data;
+};
+
+export const fetchPostsByUserId = async (userId?: string) => {
+  const response = await api.get("/api/posts/posts-user", {
+    params: { userId },
   });
   return response.data;
 };

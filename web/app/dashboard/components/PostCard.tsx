@@ -3,7 +3,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Heart,
   MessageCircle,
@@ -11,11 +10,20 @@ import {
   Bookmark,
   MoreHorizontal,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useState } from "react";
-import { CommentModal } from "./CommentModal";
-import { get } from "http";
 import { getSupabaseFileUrl, getUserImageSrc } from "@/app/api/image/route";
-import { convertToDate } from "@/utils/formatTime";
+import { convertToDate, formatTime } from "@/utils/formatTime";
+import { PostModal } from "./PostModal";
 
 interface PostCardProps {
   post: any;
@@ -24,6 +32,7 @@ interface PostCardProps {
 export function PostCard({ post }: PostCardProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
 
   return (
@@ -40,11 +49,16 @@ export function PostCard({ post }: PostCardProps) {
                 {post?.user?.nick_name}
               </p>
               <p className="text-xs text-gray-500">
-                {convertToDate(post?.created_at)}
+                {convertToDate(post?.created_at)} {formatTime(post?.created_at)}
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="icon">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsOptionsModalOpen(true)}
+            className="cursor-pointer"
+          >
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </div>
@@ -65,7 +79,7 @@ export function PostCard({ post }: PostCardProps) {
                     <img
                       src={fileUrl}
                       alt="Post Image"
-                      className="w-full h-auto max-h-96 object-cover rounded-md"
+                      className="w-full h-auto max-h-full object-cover rounded-md"
                     />
                   );
                 }
@@ -96,12 +110,16 @@ export function PostCard({ post }: PostCardProps) {
               })()}
 
             {/* Caption */}
-            <div>
-              <p className="text-[16px] text-gray-900">
-                <span className="font-semibold">{post?.user?.nick_name}</span>{" "}
-                {post?.content}
-              </p>
-            </div>
+            {post?.content ? (
+              <div>
+                <p className="text-[16px] text-gray-900">
+                  <span className="font-semibold">{post?.user?.nick_name}</span>{" "}
+                  {post?.content}
+                </p>
+              </div>
+            ) : (
+              <div className="mb-[-20px]"></div>
+            )}
           </div>
         </CardContent>
 
@@ -164,7 +182,38 @@ export function PostCard({ post }: PostCardProps) {
         </div>
       </Card>
 
-      <CommentModal
+      <Dialog open={isOptionsModalOpen} onOpenChange={setIsOptionsModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-2xl p-0">
+          <DialogHeader className="p-4 pb-2">
+            <DialogTitle className="text-center text-lg">Tùy chọn</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col divide-y">
+            <label className="py-3 text-red-600 border-t font-medium hover:bg-gray-50 text-center cursor-pointer">
+              Báo cáo
+            </label>
+            <label className="py-3 text-red-600 border-t font-medium hover:bg-gray-50 text-center cursor-pointer">
+              Bỏ theo dõi
+            </label>
+            <label className="py-3 border-t font-medium hover:bg-gray-50 text-center cursor-pointer">
+              Đi đến bài viết
+            </label>
+            <label className="py-3 border-t font-medium hover:bg-gray-50 text-center cursor-pointer">
+              Giới thiệu về tài khoản này
+            </label>
+            <DialogClose asChild>
+              <button
+                className="py-3 font-medium cursor-pointer"
+                onClick={() => setIsOptionsModalOpen(false)}
+              >
+                Hủy
+              </button>
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <PostModal
         isOpen={isCommentModalOpen}
         onClose={() => setIsCommentModalOpen(false)}
         post={post}

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { fetchPosts } from "@/app/api/post/route";
 
 interface Post {
-  id: number; // int8 trong DB
+  id: number;
   content: string;
   created_at: string;
   file?: string | null;
@@ -15,29 +15,30 @@ interface Post {
     id: string;
     name: string;
     nick_name: string;
-    avatar: string;
+    avatar?: string | null;
   };
 }
 
 var limit = 0;
 
 export function MainFeed() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingPost, setLoadingPost] = useState(false);
 
   useEffect(() => {
+    if (loading || !user?.id) return;
     getPosts();
-  }, []);
+  }, [loading, user]);
 
   const getPosts = async () => {
     limit += 10;
-    setLoading(true);
-    let res = await fetchPosts(limit, user?.id);
+    setLoadingPost(true);
+    let res = await fetchPosts(user?.id, limit);
     if (res.success) {
       setPosts(res.data);
     }
-    setLoading(false);
+    setLoadingPost(false);
   };
 
   return (
@@ -45,8 +46,8 @@ export function MainFeed() {
       {posts.map((post) => (
         <PostCard key={post?.id} post={post} />
       ))}
-      {loading && <p className="text-center text-gray-500">Đang tải...</p>}{" "}
-      {posts.length === 0 && !loading && (
+      {loadingPost && <p className="text-center text-gray-500">Đang tải...</p>}{" "}
+      {posts.length === 0 && !loadingPost && (
         <p className="text-center text-gray-500">Chưa có bài viết nào</p>
       )}
     </div>

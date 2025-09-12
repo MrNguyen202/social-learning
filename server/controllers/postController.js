@@ -34,27 +34,30 @@ const postController = {
         created_at: new Date().toISOString(),
       };
 
-      const { fileBase64, fileName, mimeType } = file;
+      // Xử lý file nếu có
+      if (file) {
+        const { fileBase64, fileName, mimeType } = file;
 
-      // Xác định file type và folder
-      const fileType = imageService.getFileTypeFromMime(mimeType);
-      const folderName = getFolderName(fileType);
+        // Xác định file type và folder
+        const fileType = imageService.getFileTypeFromMime(mimeType);
+        const folderName = getFolderName(fileType);
 
-      const fileResult = await imageService.uploadFile(
-        folderName,
-        fileBase64,
-        fileType
-      );
+        const fileResult = await imageService.uploadFile(
+          folderName,
+          fileBase64,
+          fileType
+        );
 
-      if (fileResult.success) {
-        post.file = fileResult.data.path; // Chỉ lưu path
-        post.original_name = fileName || null;
-      } else {
-        return res.status(400).json({
-          success: false,
-          msg: "Could not upload file",
-          error: fileResult,
-        });
+        if (fileResult.success) {
+          post.file = fileResult.data.path; // Chỉ lưu path
+          post.original_name = fileName || null;
+        } else {
+          return res.status(400).json({
+            success: false,
+            msg: "Could not upload file",
+            error: fileResult,
+          });
+        }
       }
 
       // Lưu post vào database
@@ -81,12 +84,12 @@ const postController = {
     }
   },
 
-  // API để lấy danh sách posts
+  // API để lấy danh sách tất cả posts
   async getPosts(req, res) {
     try {
       const limit = parseInt(req.query.limit) || 10;
-      const { userId } = req.query;
-      const { data, error } = await postService.getPosts(userId);
+      const currentUserId = req.query.currentUserId;
+      const { data, error } = await postService.getPosts(currentUserId, limit);
 
       if (error) {
         return res.status(400).json({
@@ -97,6 +100,29 @@ const postController = {
       return res.status(200).json({ success: true, data: data || [] });
     } catch (error) {
       console.error("getPosts error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+        error: error.message,
+      });
+    }
+  },
+
+  // API để lấy danh sách posts của chính user đó
+  async getPostsByUserId(req, res) {
+    try {
+      const userId = req.query.userId;
+      const { data, error } = await postService.getPostsByUserId(userId);
+
+      if (error) {
+        return res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      }
+      return res.status(200).json({ success: true, data: data || [] });
+    } catch (error) {
+      console.error("getMyPost error:", error);
       return res.status(500).json({
         success: false,
         message: "Internal Server Error",

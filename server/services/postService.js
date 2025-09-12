@@ -13,24 +13,56 @@ const postService = {
     return { data, error: null };
   },
 
-  async getPosts(userId) {
+  async getPosts(currentUserId, limit) {
     let query = supabase
       .from("posts")
       .select(
         `
-        *,
-        user:users (
           id,
-          name,
-          nick_name,
-          avatar
-        ),
-        postLikes(id, postId, userId),
-        comments(count)
-      `
+          created_at,
+          content,
+          file,
+          userId,
+          original_name,
+          user:users(id, name, nick_name, avatar),
+          postLikes(id, postId, userId),
+          comments(count)
+        `
+      )
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    // lọc theo các bài posts không có currentUserId
+    if (currentUserId) {
+      query = query.neq("userId", currentUserId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    return { data, error: null };
+  },
+
+  async getPostsByUserId(userId) {
+    let query = supabase
+      .from("posts")
+      .select(
+        `
+          id,
+          created_at,
+          content,
+          file,
+          userId,
+          original_name,
+          user:users(id, name, nick_name, avatar),
+          postLikes(id, postId, userId),
+          comments(count)
+        `
       )
       .order("created_at", { ascending: false });
 
+    // lọc theo các bài posts của user đó
     if (userId) {
       query = query.eq("userId", userId);
     }
