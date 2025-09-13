@@ -31,10 +31,12 @@ interface Follower {
   avatar?: string;
 }
 
-export default function ProfileFollowerHeader() {
+export default function ProfileFollowerHeader({
+  userSearch,
+}: {
+  userSearch: User | undefined;
+}) {
   const { user } = useAuth();
-  const { nickname } = useParams();
-  const [userSearch, setUserSearch] = useState<User>();
   const [openFollowing, setOpenFollowing] = useState(false);
   const [following, setFollowing] = useState<Follower[]>([]);
   const [openFollower, setOpenFollower] = useState(false);
@@ -44,18 +46,13 @@ export default function ProfileFollowerHeader() {
   const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
-    if (!nickname || !user?.id) return;
+    if (!user?.id) return;
 
     const fetchUser = async () => {
       try {
-        const res = await getUserByNickName(nickname as string);
-        if (res.success && res.data) {
-          setUserSearch(res.data);
-
-          if (res.data?.id) {
-            const followRes = await checkIsFollowing(user.id, res.data.id);
-            setIsFollowing(followRes.isFollowing);
-          }
+        if (userSearch) {
+          const followRes = await checkIsFollowing(user.id, userSearch.id);
+          setIsFollowing(followRes.isFollowing);
         }
       } catch (err) {
         console.error("Failed to fetch user:", err);
@@ -65,7 +62,7 @@ export default function ProfileFollowerHeader() {
     };
 
     fetchUser();
-  }, [nickname, user?.id]);
+  }, [user?.id]);
 
   useEffect(() => {
     if (userSearch?.id) {
@@ -120,7 +117,7 @@ export default function ProfileFollowerHeader() {
 
   return (
     <>
-      <div className="p-4 mt-4 border-b border-border md:mx-5">
+      <div className="py-4 mt-4 border-b border-border md:mx-5 max-lg:pl-2">
         <div className="flex flex-col md:flex-row md:items-start md:gap-8 mb-4">
           {/* Avatar */}
           <Avatar className="w-20 h-20 cursor-pointer mx-auto md:mx-0 sm:w-28 sm:h-28">
@@ -179,7 +176,6 @@ export default function ProfileFollowerHeader() {
 
             {/* Info */}
             <div className="flex-1 text-center sm:text-left mt-2 sm:mt-0">
-
               <div className="grid grid-cols-3 text-xs sm:text-sm mt-2">
                 <div>
                   <div className="font-semibold">0</div>
