@@ -7,12 +7,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getUserImageSrc } from "@/app/api/image/route";
 import { getUserByNickName } from "@/app/api/user/route";
-import { toast } from "react-toastify";
 import {
   checkIsFollowing,
   followUser,
+  getFollowers,
+  getFollowing,
   unfollowUser,
 } from "@/app/api/follow/route";
+import UserFollowModal from "./UserFollowModal";
 
 interface User {
   id: string;
@@ -22,10 +24,21 @@ interface User {
   bio?: string;
 }
 
+interface Follower {
+  id: string;
+  name: string;
+  nick_name: string;
+  avatar?: string;
+}
+
 export default function ProfileFollowerHeader() {
   const { user } = useAuth();
   const { nickname } = useParams();
   const [userSearch, setUserSearch] = useState<User>();
+  const [openFollowing, setOpenFollowing] = useState(false);
+  const [following, setFollowing] = useState<Follower[]>([]);
+  const [openFollower, setOpenFollower] = useState(false);
+  const [follower, setFollower] = useState<Follower[]>([]);
   const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -54,6 +67,37 @@ export default function ProfileFollowerHeader() {
     fetchUser();
   }, [nickname, user?.id]);
 
+  useEffect(() => {
+    if (userSearch?.id) {
+      getListFollowing();
+      getListFollowers();
+    }
+  }, [userSearch?.id]);
+
+  const getListFollowing = async () => {
+    if (!user?.id || !userSearch?.id) {
+      return;
+    }
+    setLoading(true);
+    let res = await getFollowing(userSearch?.id);
+    if (res.success) {
+      setFollowing(res.data);
+    }
+    setLoading(false);
+  };
+
+  const getListFollowers = async () => {
+    if (!user?.id || !userSearch?.id) {
+      return;
+    }
+    setLoading(true);
+    let res = await getFollowers(userSearch?.id);
+    if (res.success) {
+      setFollower(res.data);
+    }
+    setLoading(false);
+  };
+
   const handleFollowToggle = async () => {
     if (!userSearch) return;
     setFollowLoading(true);
@@ -75,84 +119,110 @@ export default function ProfileFollowerHeader() {
   if (loading) return <p className="p-6">Đang tải...</p>;
 
   return (
-    <div className="p-4 mt-4 border-b border-border md:mx-5">
-      <div className="flex flex-col md:flex-row md:items-start md:gap-8 mb-4">
-        {/* Avatar */}
-        <Avatar className="w-20 h-20 cursor-pointer mx-auto md:mx-0 sm:w-28 sm:h-28">
-          <AvatarImage
-            src={
-              userSearch?.avatar
-                ? getUserImageSrc(userSearch.avatar)
-                : "/default-avatar-profile-icon.jpg"
-            }
-            alt="Profile"
-          />
-        </Avatar>
-
-        {/* Info */}
-        <div className="flex-1 text-center md:text-left mt-2 md:mt-0">
-          <div className="flex flex-col md:flex-row gap-2 mb-4">
-            <div className="mr-4">
-              <h1 className="text-lg font-semibold sm:text-xl">
-                {userSearch?.name}
-              </h1>
-              {/* nick name */}
-              <p className="text-sm text-muted-foreground">
-                {userSearch?.nick_name}
-              </p>
-            </div>
-
-            <button
-              onClick={handleFollowToggle}
-              disabled={followLoading}
-              className={`md:w-45 w-full h-8 px-4 py-1.5 rounded-lg font-medium cursor-pointer  ${
-                isFollowing
-                  ? "bg-gray-200 text-black hover:bg-gray-300"
-                  : "bg-blue-500 text-white hover:bg-blue-600"
-              }`}
-            >
-              {followLoading ? (
-                <LoaderIcon className="h-4 w-4 m-auto" />
-              ) : isFollowing ? (
-                "Bỏ theo dõi"
-              ) : (
-                "Theo dõi"
-              )}
-            </button>
-
-            <button
-              className={
-                "md:w-45 w-full h-8 px-4 py-1.5 rounded-lg font-medium cursor-pointer bg-gray-200 text-black hover:bg-gray-300"
+    <>
+      <div className="p-4 mt-4 border-b border-border md:mx-5">
+        <div className="flex flex-col md:flex-row md:items-start md:gap-8 mb-4">
+          {/* Avatar */}
+          <Avatar className="w-20 h-20 cursor-pointer mx-auto md:mx-0 sm:w-28 sm:h-28">
+            <AvatarImage
+              src={
+                userSearch?.avatar
+                  ? getUserImageSrc(userSearch.avatar)
+                  : "/default-avatar-profile-icon.jpg"
               }
-            >
-              Nhắn tin
-            </button>
-            <div className="mt-2 cursor-pointer sm:ml-2 max-lg:hidden">
-              <Ellipsis className="w-5 h-5" />
-            </div>
-          </div>
+              alt="Profile"
+            />
+          </Avatar>
 
-          <div className="grid grid-cols-3 text-xs sm:text-sm mt-2">
-            <div>
-              <div className="font-semibold">0</div>
-              <div className="text-muted-foreground">bài viết</div>
+          {/* Info */}
+          <div className="flex-1 text-center md:text-left mt-2 md:mt-0">
+            <div className="flex flex-col md:flex-row gap-2 mb-4">
+              <div className="mr-4">
+                <h1 className="text-lg font-semibold sm:text-xl">
+                  {userSearch?.name}
+                </h1>
+                {/* nick name */}
+                <p className="text-sm text-muted-foreground">
+                  {userSearch?.nick_name}
+                </p>
+              </div>
+
+              <button
+                onClick={handleFollowToggle}
+                disabled={followLoading}
+                className={`md:w-45 w-full h-8 px-4 py-1.5 rounded-lg font-medium cursor-pointer  ${
+                  isFollowing
+                    ? "bg-gray-200 text-black hover:bg-gray-300"
+                    : "bg-blue-500 text-white hover:bg-blue-600"
+                }`}
+              >
+                {followLoading ? (
+                  <LoaderIcon className="h-4 w-4 m-auto" />
+                ) : isFollowing ? (
+                  "Bỏ theo dõi"
+                ) : (
+                  "Theo dõi"
+                )}
+              </button>
+
+              <button
+                className={
+                  "md:w-45 w-full h-8 px-4 py-1.5 rounded-lg font-medium cursor-pointer bg-gray-200 text-black hover:bg-gray-300"
+                }
+              >
+                Nhắn tin
+              </button>
+              <div className="mt-2 cursor-pointer sm:ml-2 max-lg:hidden">
+                <Ellipsis className="w-5 h-5" />
+              </div>
             </div>
-            <div>
-              <div className="font-semibold">0</div>
-              <div className="text-muted-foreground">người theo dõi</div>
-            </div>
-            <div>
-              <div className="font-semibold">7</div>
-              <div className="text-muted-foreground">đang theo dõi</div>
+
+            {/* Info */}
+            <div className="flex-1 text-center sm:text-left mt-2 sm:mt-0">
+
+              <div className="grid grid-cols-3 text-xs sm:text-sm mt-2">
+                <div>
+                  <div className="font-semibold">0</div>
+                  <div className="text-muted-foreground">bài viết</div>
+                </div>
+                <div
+                  className="cursor-pointer"
+                  onClick={() => setOpenFollower(true)}
+                >
+                  <div className="font-semibold">{follower.length}</div>
+                  <div className="text-muted-foreground">người theo dõi</div>
+                </div>
+                <div
+                  className="cursor-pointer"
+                  onClick={() => setOpenFollowing(true)}
+                >
+                  <div className="font-semibold">{following.length}</div>
+                  <div className="text-muted-foreground">đang theo dõi</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Bio */}
-      <div className="text-sm text-center md:text-left">
-        <p>{userSearch?.bio}</p>
+        {/* Bio */}
+        <div className="text-sm text-center md:text-left">
+          <p>{userSearch?.bio}</p>
+        </div>
       </div>
-    </div>
+      {/* Follow Modal */}
+      <UserFollowModal
+        isOpen={openFollowing}
+        onClose={() => setOpenFollowing(false)}
+        title="Đang theo dõi"
+        data={following}
+      />
+
+      <UserFollowModal
+        isOpen={openFollower}
+        onClose={() => setOpenFollower(false)}
+        title="Người theo dõi"
+        data={follower}
+      />
+    </>
   );
 }

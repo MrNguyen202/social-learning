@@ -1,14 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Settings, Archive } from "lucide-react";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Settings } from "lucide-react";
 import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -245,7 +243,7 @@ export default function ProfileHeader() {
         isOpen={openFollowing}
         onClose={() => setOpenFollowing(false)}
         title="Đang theo dõi"
-        active="Đang theo dõi"
+        currentUserId={user?.id}
         data={following}
       />
 
@@ -253,7 +251,7 @@ export default function ProfileHeader() {
         isOpen={openFollower}
         onClose={() => setOpenFollower(false)}
         title="Người theo dõi"
-        active="Xóa"
+        currentUserId={user?.id}
         data={follower}
       />
     </>
