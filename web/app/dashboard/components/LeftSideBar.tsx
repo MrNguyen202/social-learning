@@ -3,7 +3,6 @@
 import {
   Home,
   Search,
-  Compass,
   MessageCircle,
   Heart,
   PlusSquare,
@@ -14,6 +13,7 @@ import {
   Trophy,
   TrendingUp,
   Volume2,
+  AudioLines,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -39,7 +39,6 @@ import { useConversation } from "@/components/contexts/ConversationContext";
 const mainNavItems = [
   { icon: Home, path: "/dashboard", label: "Trang chủ" },
   { icon: Search, path: "/dashboard/search", label: "Tìm kiếm" },
-  { icon: Compass, path: "/dashboard/explore", label: "Khám phá" },
   { icon: MessageCircle, path: "/dashboard/chat", label: "Tin nhắn", badge: 3 },
   {
     icon: Heart,
@@ -59,10 +58,11 @@ const learningNavItems = [
     special: true,
   },
   {
-    icon: Volume2,
+    icon: AudioLines,
     path: "/dashboard/listening",
     label: "Luyện nghe tiếng Anh",
   },
+  { icon: Volume2, path: "/dashboard/speaking", label: "Luyện nói" },
   { icon: BookOpen, path: "/dashboard/vocabulary", label: "Từ vựng của bạn" },
   { icon: Trophy, path: "/dashboard/ranking", label: "Bảng xếp hạng" },
   {
@@ -132,10 +132,11 @@ export function LeftSidebar() {
               <Button
                 key={item.label}
                 variant="ghost"
-                className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${pathname === item.path
-                  ? "bg-gray-100 text-gray-900 font-medium"
-                  : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${
+                  pathname === item.path
+                    ? "bg-gray-100 text-gray-900 font-medium"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
                 onClick={() => handleMenuClick(item.path)}
               >
                 <div className="relative">
@@ -163,17 +164,19 @@ export function LeftSidebar() {
                 <Button
                   key={item.label}
                   variant="ghost"
-                  className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${item.special
-                    ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 hover:from-orange-100 hover:to-pink-100 border border-orange-200"
-                    : pathname === item.path
+                  className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${
+                    item.special
+                      ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 hover:from-orange-100 hover:to-pink-100 border border-orange-200"
+                      : pathname === item.path
                       ? "bg-gray-100 text-gray-900 font-medium"
                       : "text-gray-700 hover:bg-gray-50"
-                    }`}
+                  }`}
                   onClick={() => handleMenuClick(item.path)}
                 >
                   <item.icon
-                    className={`h-6 w-6 mr-4 ${item.special ? "text-orange-600" : ""
-                      }`}
+                    className={`h-6 w-6 mr-4 ${
+                      item.special ? "text-orange-600" : ""
+                    }`}
                   />
                   <span className="text-base font-medium">{item.label}</span>
                   {item.special && (

@@ -188,7 +188,7 @@ export default function RecommendFriends() {
           friends.map((friend, index) => (
             <div
               key={friend.id}
-              className="flex items-center gap-4 bg-white shadow-md rounded-lg p-4 hover:shadow-lg transition-shadow border-l-4 border-blue-500 hover:bg-gray-50"
+              className="flex items-center gap-4 bg-white shadow-md rounded-lg p-4 hover:shadow-lg transition-shadow border-l-4 border-pink-300 hover:bg-gray-50"
             >
               <div
                 className="cursor-pointer"
@@ -227,7 +227,7 @@ export default function RecommendFriends() {
                 <p className="text-sm text-gray-600 mb-1">{friend.nick_name}</p>
 
                 <div className="flex items-center gap-3 text-sm">
-                  <span className="text-blue-600 font-medium">
+                  <span className="text-orange-600 font-medium">
                     Level: {friend.level}
                   </span>
                   <span className="text-gray-500">

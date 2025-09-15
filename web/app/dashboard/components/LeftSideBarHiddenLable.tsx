@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import {
+  AudioLines,
   BookOpen,
   Compass,
   Heart,
@@ -35,7 +36,6 @@ import { useConversation } from "@/components/contexts/ConversationContext";
 const mainNavItems = [
   { icon: Home, path: "/dashboard", label: "Trang chủ", active: true },
   { icon: Search, path: "/dashboard/search", label: "Tìm kiếm" },
-  { icon: Compass, path: "/dashboard/explore", label: "Khám phá" },
   { icon: MessageCircle, path: "/dashboard/chat", label: "Tin nhắn", badge: 3 },
   {
     icon: Heart,
@@ -55,10 +55,11 @@ const learningNavItems = [
     special: true,
   },
   {
-    icon: Volume2,
+    icon: AudioLines,
     path: "/dashboard/listening",
     label: "Luyện nghe tiếng Anh",
   },
+  { icon: Volume2, path: "/dashboard/speaking", label: "Luyện nói" },
   { icon: BookOpen, path: "/dashboard/vocabulary", label: "Từ vựng của bạn" },
   { icon: Trophy, path: "/dashboard/ranking", label: "Bảng xếp hạng" },
   {
@@ -129,10 +130,11 @@ export function LeftSideBarHiddenLabel() {
               <Button
                 key={item.label}
                 variant="ghost"
-                className={`w-full justify-center h-14 px-3 hover:cursor-pointer ${item.active
-                  ? "bg-gray-100 text-gray-900 font-medium"
-                  : "text-gray-700 hover:bg-gray-50"
-                  }`}
+                className={`w-full justify-center h-14 px-3 hover:cursor-pointer ${
+                  item.active
+                    ? "bg-gray-100 text-gray-900 font-medium"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
                 onClick={() => handleMenuClick(item.path)}
               >
                 <item.icon size={48} />
@@ -148,10 +150,11 @@ export function LeftSideBarHiddenLabel() {
               <Button
                 key={item.label}
                 variant="ghost"
-                className={`w-full justify-center h-14 px-3 hover:cursor-pointer ${item.special
-                  ? "bg-gray-100 text-gray-900 font-medium"
-                  : "text-gray-700 hover:bg-gray-50"
-                  }`}
+                className={`w-full justify-center h-14 px-3 hover:cursor-pointer ${
+                  item.special
+                    ? "bg-gray-100 text-gray-900 font-medium"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
                 onClick={() => handleMenuClick(item.path)}
               >
                 <item.icon size={48} />
