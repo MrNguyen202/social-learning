@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import SpeechRecognition, {
   useSpeechRecognition,
@@ -7,7 +8,8 @@ import SpeechRecognition, {
 import { JSX } from "react/jsx-runtime";
 
 export default function SpeechPage() {
-  const sampleSentence = "Refreshments will be provided";
+  const router = useRouter();
+  const sampleSentence = "I am learning to speak English";
   const { transcript, listening, resetTranscript } = useSpeechRecognition();
   const [result, setResult] = useState<JSX.Element | null>(null);
   const [isClient, setIsClient] = useState(false);
@@ -72,6 +74,35 @@ export default function SpeechPage() {
     setResult(<div className="mt-2">{compared}</div>);
   };
 
+  const getVoices = () => {
+    const voices = speechSynthesis.getVoices();
+    console.log(voices);
+  };
+
+  window.speechSynthesis.onvoiceschanged = getVoices;
+
+  const speak = (text: string, voiceName?: string) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voices = speechSynthesis.getVoices();
+
+    if (voiceName) {
+      const selectedVoice = voices.find((v) => v.name === voiceName);
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+    }
+
+    utterance.lang = "en-US";
+    utterance.rate = 1;
+    speechSynthesis.speak(utterance);
+  };
+
+  // Ví dụ: đọc bằng giọng nữ
+  // speak("Hello, how are you?", "Google UK English Female");
+
+  // Ví dụ: đọc bằng giọng nam
+  // speak("I am fine, thank you.", "Microsoft David - English (United States)");
+
   return (
     <div className="max-w-xl mx-auto p-6 space-y-6">
       <h2 className="text-xl font-bold text-gray-800">
@@ -89,6 +120,19 @@ export default function SpeechPage() {
           {listening ? "🎙️ Đang nghe..." : "⏹️ Dừng"}
         </span>
       </p>
+
+      <button
+        onClick={() => {
+          const utterance = new SpeechSynthesisUtterance(sampleSentence);
+          utterance.lang = "en-US";
+          utterance.rate = 1;
+          utterance.pitch = 1;
+          speechSynthesis.speak(utterance);
+        }}
+        className="px-4 py-2 rounded-lg bg-purple-500 text-white hover:bg-purple-600"
+      >
+        🔊 Nghe mẫu
+      </button>
 
       <div className="flex gap-3">
         <button
@@ -136,6 +180,13 @@ export default function SpeechPage() {
         </h3>
         <div className="mt-1 p-2 border rounded bg-gray-50">{result}</div>
       </div>
+
+      <button
+          onClick={() => router.push("/dashboard/speaking/ipa")}
+          className="px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600"
+        >
+          Bảng phiên âm IPA
+        </button>
     </div>
   );
 }
