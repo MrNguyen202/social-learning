@@ -209,6 +209,51 @@ const postController = {
       });
     }
   },
+
+  async likePost(req, res) {
+    try {
+      const { data, error } = await postService.likePost(req.body);
+      if (error) {
+        return res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      }
+      return res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+        error: error.message,
+      });
+    }
+  },
+
+  async unlikePost(req, res) {
+    try {
+      const { postId, userId } = req.body;
+      const { data, error } = await postService.unLikePost(postId, userId);
+      if (error) {
+        return res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      }
+      return res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+        error: error.message,
+      });
+    }
+  },
 };
 
 module.exports = postController;

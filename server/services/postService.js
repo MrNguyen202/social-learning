@@ -33,9 +33,9 @@ const postService = {
       .limit(limit);
 
     // lọc theo các bài posts không có currentUserId
-    if (currentUserId) {
-      query = query.neq("userId", currentUserId);
-    }
+    // if (currentUserId) {
+    //   query = query.neq("userId", currentUserId);
+    // }
 
     const { data, error } = await query;
 
@@ -101,9 +101,33 @@ const postService = {
       .from("posts")
       .delete()
       .eq("id", postId)
-      .eq("user_id", userId)
+      .eq("userId", userId)
       .select()
       .single();
+
+    if (error) throw error;
+
+    return { data, error: null };
+  },
+
+  async likePost(postLike) {
+    const { data, error } = await supabase
+      .from("postLikes")
+      .insert(postLike)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return { data, error: null };
+  },
+
+  async unLikePost(postId, userId) {
+    const { data, error } = await supabase
+      .from("postLikes")
+      .delete()
+      .eq("postId", postId)
+      .eq("userId", userId);
 
     if (error) throw error;
 
