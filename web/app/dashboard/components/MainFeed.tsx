@@ -4,6 +4,8 @@ import useAuth from "@/hooks/useAuth";
 import { PostCard } from "./PostCard";
 import { useEffect, useState } from "react";
 import { fetchPosts } from "@/app/api/post/route";
+import { supabase } from "@/lib/supabase";
+import { getUserData } from "@/app/api/user/route";
 
 interface Post {
   id: number;
@@ -25,6 +27,38 @@ export function MainFeed() {
   const { user, loading } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loadingPost, setLoadingPost] = useState(false);
+
+  const handlePostEvent = async (payload: any) => {
+    if (payload.eventType === "INSERT" && payload?.new?.id) {
+      let newPost = { ...payload.new };
+      let res = await getUserData(newPost.userId);
+      newPost.postLikes = [];
+      newPost.comments = [{ count: 0 }];
+      newPost.user = res.success ? res.data : {};
+      setPosts((prevPosts) => [newPost, ...prevPosts]);
+    }
+  };
+
+  useEffect(() => {
+    const init = async () => {
+      await getPosts();
+
+      const postChannel = supabase
+        .channel("posts")
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "posts" },
+          handlePostEvent
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(postChannel);
+      };
+    };
+    
+    init();
+  }, []);
 
   useEffect(() => {
     if (loading || !user?.id) return;

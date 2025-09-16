@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,26 +14,76 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getSupabaseFileUrl, getUserImageSrc } from "@/app/api/image/route";
 import { convertToDate, formatTime } from "@/utils/formatTime";
 import { PostModal } from "./PostModal";
+import useAuth from "@/hooks/useAuth";
+import { likePost, unlikePost } from "@/app/api/post/route";
+import { toast } from "react-toastify";
 
 interface PostCardProps {
   post: any;
 }
 
 export function PostCard({ post }: PostCardProps) {
-  const [isLiked, setIsLiked] = useState(false);
+  const { user } = useAuth();
+  const [likes, setLikes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
   const [isSaved, setIsSaved] = useState(false);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+
+  useEffect(() => {
+    setLikes(post?.postLikes);
+  }, []);
+
+  const onLike = async () => {
+    if (liked) {
+      // unlike
+      let updatedLikes = likes.filter((like) => like.userId != user?.id);
+      setLikes([...updatedLikes]);
+      let res = await unlikePost(post?.id, user?.id);
+      if (!res.success) {
+        toast.error("Something went wrong!");
+      }
+    } else {
+      // like
+      let data = {
+        userId: user?.id,
+        postId: post?.id,
+      };
+      setLikes([...likes, data]);
+      let res = await likePost(data);
+      if (!res.success) {
+        toast.error("Something went wrong!");
+      }
+    }
+  };
+
+  const onShare = () => {
+    if (navigator.share) {
+      navigator
+        .share({
+          title: "Chia sẻ bài viết",
+          text: post?.content,
+          url: window.location.href,
+        })
+        .catch((error) =>
+          toast.error("Chia sẻ bài viết thất bại", { autoClose: 1000 })
+        );
+    } else {
+      toast.info("Trình duyệt không hỗ trợ chia sẻ bài viết.");
+    }
+  };
+
+  const liked = likes.filter((like) => like.userId == user?.id)[0]
+    ? true
+    : false;
 
   return (
     <>
@@ -130,14 +180,15 @@ export function PostCard({ post }: PostCardProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setIsLiked(!isLiked)}
-                className="hover:bg-gray-100 cursor-pointer"
+                onClick={onLike}
+                className="hover:bg-gray-100 cursor-pointer "
               >
                 <Heart
                   className={`h-6 w-6 ${
-                    isLiked ? "fill-red-500 text-red-500" : "text-gray-700"
+                    liked ? "fill-red-500 text-red-500" : "text-gray-700"
                   }`}
                 />
+                <span className="mt-1">{likes?.length}</span>
               </Button>
               <Button
                 variant="ghost"
@@ -150,7 +201,8 @@ export function PostCard({ post }: PostCardProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="hover:bg-gray-100 cursor-pointer"
+                className="hover:bg-gray-100 cursor-pointer mt-1"
+                onClick={onShare}
               >
                 <Send className="h-6 w-6 text-gray-700" />
               </Button>
