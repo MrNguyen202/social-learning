@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getSupabaseFileUrl, getUserImageSrc } from "@/app/api/image/route";
 import { convertToDate, formatTime } from "@/utils/formatTime";
 import { PostModal } from "./PostModal";
@@ -32,7 +32,9 @@ interface PostCardProps {
 
 export function PostCard({ post, onDelete }: PostCardProps) {
   const { user } = useAuth();
-  const [likes, setLikes] = useState<any[]>([]);
+  const [likes, setLikes] = useState<any[]>(() =>
+    Array.isArray(post?.postLikes) ? post.postLikes : []
+  );
   const [isSaved, setIsSaved] = useState(false);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
@@ -42,8 +44,14 @@ export function PostCard({ post, onDelete }: PostCardProps) {
   const [editingPost, setEditingPost] = useState<any>(null);
 
   useEffect(() => {
-    setLikes(post?.postLikes);
-  }, []);
+    setLikes(Array.isArray(post?.postLikes) ? post.postLikes : []);
+  }, [post?.postLikes]);
+
+  const liked = useMemo(() => {
+    return (likes ?? []).some(
+      (like) => String(like?.userId) === String(user?.id)
+    );
+  }, [likes, user?.id]);
 
   const onLike = async () => {
     if (liked) {
@@ -97,10 +105,6 @@ export function PostCard({ post, onDelete }: PostCardProps) {
       toast.info("Trình duyệt không hỗ trợ chia sẻ bài viết.");
     }
   };
-
-  const liked = likes.filter((like) => like.userId == user?.id)[0]
-    ? true
-    : false;
 
   return (
     <>

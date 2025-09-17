@@ -110,8 +110,8 @@ const postController = {
       };
 
       // Xử lý file nếu có
-      if (file) {
-        const { fileBase64, fileName, mimeType } = file;
+      if (file.fileData.fileBase64) {
+        const { fileBase64, fileName, mimeType } = file.fileData;
 
         // Xác định file type và folder
         const fileType = imageService.getFileTypeFromMime(mimeType);
@@ -132,6 +132,10 @@ const postController = {
             error: fileResult,
           });
         }
+      } else {
+        const { fileData, originalName } = file;
+        post.file = fileData;
+        post.original_name = originalName || null;
       }
 
       // Lưu post vào database

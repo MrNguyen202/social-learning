@@ -13,7 +13,7 @@ import { X, Upload, ArrowLeft, FileText, Video, File } from "lucide-react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { ImageIcon } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
-import { getUserImageSrc } from "@/app/api/image/route";
+import { getSupabaseFileUrl, getUserImageSrc } from "@/app/api/image/route";
 import {
   convertFileToBase64,
   CreatePostData,
@@ -38,6 +38,8 @@ export function CreateOrUpdatePostModal({
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // Chỉ lưu một file
+  const [existingFileUrl, setExistingFileUrl] = useState<string | null>(null);
+  const [original_name, setOriginal_name] = useState<string>();
   const [content, setContent] = useState("");
   const [postId, setPostId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,8 +53,9 @@ export function CreateOrUpdatePostModal({
     const maxFileSize = 30 * 1024 * 1024; // 30MB
     if (file.size > maxFileSize) {
       toast.error(
-        `File "${file.name}" quá lớn. Vui lòng chọn file nhỏ hơn 30MB.`
-      , { autoClose: 1000 });
+        `File "${file.name}" quá lớn. Vui lòng chọn file nhỏ hơn 30MB.`,
+        { autoClose: 1000 }
+      );
       return;
     }
 
@@ -64,13 +67,15 @@ export function CreateOrUpdatePostModal({
   };
 
   useEffect(() => {
-    if (isEdit && post) {
+    if (isOpen && isEdit && post) {
       setPostId(post.id || null);
       setContent(post.content || "");
-      setSelectedFile(null);
+      setSelectedFile(null); // reset file mới
+      setExistingFileUrl(post.file || null); // giữ file cũ (từ DB)
+      setOriginal_name(post?.original_name);
       setStep(2);
     }
-  }, [isEdit, post]);
+  }, [isOpen, isEdit, post]);
 
   const handleShare = async () => {
     if (!content.trim() && !selectedFile) {
@@ -117,17 +122,25 @@ export function CreateOrUpdatePostModal({
 
     try {
       let fileData = null;
+      let originalName = null;
+
+      // Nếu user upload file mới
       if (selectedFile) {
         fileData = await convertFileToBase64(selectedFile);
+      } else if (existingFileUrl) {
+        // Giữ nguyên file cũ
+        fileData = existingFileUrl;
+        originalName = original_name;
       }
+
       if (!postId) return;
       const postData: CreatePostData = {
         id: postId,
         content: content.trim(),
         userId: user?.id,
-        file: fileData,
+        file: { fileData, originalName },
       };
-
+      
       const res = await updatePost(postData);
 
       if (res.success) {
@@ -203,26 +216,32 @@ export function CreateOrUpdatePostModal({
               </Button>
             )}
             <DialogTitle className="text-lg font-semibold">
-              {step === 1 ? "Tạo bài viết mới" : "Tạo bài viết mới"}
+              {step === 1 && !isEdit
+                ? "Tạo bài viết mới"
+                : "Chỉnh sửa bài viết"}
             </DialogTitle>
           </div>
           <div className="flex items-center space-x-2">
-            {step === 2 && !isEdit ? (
-              <Button
-                onClick={handleShare}
-                disabled={isLoading}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-6 mr-[30px] cursor-pointer disabled:opacity-50"
-              >
-                {isLoading ? "Đang đăng..." : "Chia sẻ"}
-              </Button>
-            ) : (
-              <Button
-                onClick={handleUpdate}
-                disabled={isLoading}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-6 mr-[30px] cursor-pointer disabled:opacity-50"
-              >
-                {isLoading ? "Đang cập nhật..." : "Cập nhật"}
-              </Button>
+            {step === 2 && (
+              <>
+                {isEdit ? (
+                  <Button
+                    onClick={handleUpdate}
+                    disabled={isLoading}
+                    className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white hover:text-white rounded-full px-6 mr-[30px] text-[14px] cursor-pointer"
+                  >
+                    {isLoading ? "Đang cập nhật..." : "Cập nhật"}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleShare}
+                    disabled={isLoading}
+                    className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white hover:text-white rounded-full px-6 mr-[30px] text-[14px] cursor-pointer"
+                  >
+                    {isLoading ? "Đang đăng..." : "Chia sẻ"}
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </DialogHeader>
@@ -296,6 +315,7 @@ export function CreateOrUpdatePostModal({
             <>
               <div className="flex-1 flex justify-center items-center bg-gray-50">
                 {selectedFile ? (
+                  // Preview file mới
                   isImageFile(selectedFile) ? (
                     <img
                       src={URL.createObjectURL(selectedFile)}
@@ -321,6 +341,32 @@ export function CreateOrUpdatePostModal({
                           </p>
                         </div>
                       </div>
+                    </div>
+                  )
+                ) : existingFileUrl ? (
+                  existingFileUrl.endsWith(".mp4") ? (
+                    <video
+                      src={`${getSupabaseFileUrl(existingFileUrl)}`}
+                      controls
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  ) : existingFileUrl.endsWith(".jpg") ||
+                    existingFileUrl.endsWith(".png") ? (
+                    <img
+                      src={`${getSupabaseFileUrl(existingFileUrl)}`}
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  ) : (
+                    <div className="flex items-center space-x-3 p-3 border rounded-md bg-gray-50">
+                      <span className="text-2xl">📄</span>
+                      <a
+                        href={`${getSupabaseFileUrl(existingFileUrl)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline text-sm"
+                      >
+                        {post?.original_name}
+                      </a>
                     </div>
                   )
                 ) : (
