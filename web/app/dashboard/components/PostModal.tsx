@@ -13,6 +13,7 @@ import { Heart, Send } from "lucide-react";
 import { getSupabaseFileUrl, getUserImageSrc } from "@/app/api/image/route";
 import { convertToDate, formatTime } from "@/utils/formatTime";
 import { CreateOrUpdatePostModal } from "./CreateOrUpdatePost";
+import { createNotification } from "@/app/api/notification/route";
 
 interface PostModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ interface PostModalProps {
   postId: number;
   post: any;
   userId: string;
+  highlightCommentId: number | null;
 }
 
 export function PostModal({
@@ -28,6 +30,7 @@ export function PostModal({
   postId,
   post,
   userId,
+  highlightCommentId,
 }: PostModalProps) {
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -99,7 +102,20 @@ export function PostModal({
     try {
       const res = await addComment(data);
       if (res.success) {
-        setNewComment(""); // clear input
+        if (userId !== post.user.id) {
+          // Gửi thông báo cho chủ bài viết nếu người bình luận không phải là họ
+          let notify = {
+            senderId: userId,
+            receiverId: post.user.id,
+            title: "Đã bình luận bài viết của bạn",
+            content: JSON.stringify({
+              postId: post.id,
+              commentId: res.data.id,
+            }),
+          };
+          createNotification(notify);
+        }
+        setNewComment("");
         toast.success("Bình luận thành công", { autoClose: 1000 });
         // Không cần setComments vì realtime sẽ tự thêm
       } else {
@@ -145,6 +161,15 @@ export function PostModal({
       )
     );
   };
+
+  useEffect(() => {
+    if (highlightCommentId && comments.length > 0) {
+      const el = document.getElementById(`comment-${highlightCommentId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [highlightCommentId, comments]);
 
   return (
     <>
@@ -256,7 +281,17 @@ export function PostModal({
               {/* Comments */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="flex items-start space-x-3">
+                  <div
+                    key={comment.id}
+                    className={`flex items-start space-x-3 p-2 rounded-md transition
+      ${
+        comment.id === highlightCommentId
+          ? "bg-gradient-to-r from-pink-100 to-orange-100"
+          : ""
+      }
+    `}
+                    id={`comment-${comment.id}`}
+                  >
                     <Avatar className="h-8 w-8">
                       <AvatarImage
                         src={getUserImageSrc(comment?.user?.avatar)}
@@ -321,7 +356,7 @@ export function PostModal({
                     size="icon"
                     onClick={handleAddComment}
                     disabled={!newComment.trim()}
-                    className="text-blue-500 hover:text-blue-600 disabled:text-gray-300"
+                    className="text-gray-700 hover:text-black disabled:text-gray-300 cursor-pointer"
                   >
                     <Send className="h-4 w-4" />
                   </Button>

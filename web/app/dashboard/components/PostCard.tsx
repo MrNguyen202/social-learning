@@ -326,6 +326,7 @@ export function PostCard({ post, onDelete }: PostCardProps) {
         postId={post.id}
         post={post}
         userId={user?.id}
+        highlightCommentId={null}
       />
 
       <CreateOrUpdatePostModal

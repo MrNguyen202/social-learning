@@ -30,11 +30,12 @@ import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "react-toastify";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SearchPanel } from "./Search";
 import { useConversation } from "@/components/contexts/ConversationContext";
 import { NotificationsPanel } from "./Notifications";
 import { CreateOrUpdatePostModal } from "./CreateOrUpdatePost";
+import useAuth from "@/hooks/useAuth";
 
 // Remove the hardcoded `active` property from mainNavItems
 const mainNavItems = [
@@ -45,7 +46,7 @@ const mainNavItems = [
     icon: Heart,
     path: "/dashboard/notifications",
     label: "Thông báo",
-    badge: 5,
+    badge: 0,
   },
   { icon: PlusSquare, path: "/dashboard/create", label: "Tạo" },
   { icon: User, path: "/dashboard/profile", label: "Trang cá nhân" },
@@ -74,12 +75,49 @@ const learningNavItems = [
 ];
 
 export function LeftSidebar() {
+  const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname(); // Get the current path
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { selectedConversation, setSelectedConversation } = useConversation();
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  // Lắng nghe realtime Supabase
+  useEffect(() => {
+    if (!user) return;
+
+    let notificationChannel = supabase
+      .channel("notifications")
+      .on(
+        "postgres_changes",
+        {
+          event: "*", // cả INSERT và UPDATE
+          schema: "public",
+          table: "notifications",
+          filter: `receiverId=eq.${user.id}`,
+        },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            setNotificationCount((prev) => prev + 1);
+          }
+          if (payload.eventType === "UPDATE" && payload.new.is_read === true) {
+            setNotificationCount((prev) => Math.max(prev - 1, 0));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(notificationChannel);
+    };
+  }, [user]);
+
+  const openNotificationPanel = () => {
+    setIsNotificationOpen(true);
+    setNotificationCount(0); // reset badge
+  };
 
   const handleMenuClick = (path: string) => {
     // Handle menu item click
@@ -135,28 +173,35 @@ export function LeftSidebar() {
         {/* Main Navigation */}
         <div className="flex-1 py-4">
           <nav className="space-y-1 px-3">
-            {mainNavItems.map((item) => (
-              <Button
-                key={item.label}
-                variant="ghost"
-                className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${
-                  pathname === item.path
-                    ? "bg-gray-100 text-gray-900 font-medium"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-                onClick={() => handleMenuClick(item.path)}
-              >
-                <div className="relative">
-                  <item.icon className="h-6 w-6 mr-4" />
-                  {item.badge && (
-                    <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0">
-                      {item.badge}
-                    </Badge>
-                  )}
-                </div>
-                <span className="text-base">{item.label}</span>
-              </Button>
-            ))}
+            {mainNavItems.map((item) => {
+              const isNotification = item.path === "/dashboard/notifications";
+              return (
+                <Button
+                  key={item.label}
+                  variant="ghost"
+                  className={`w-full justify-start h-12 px-3 hover:cursor-pointer ${
+                    pathname === item.path
+                      ? "bg-gray-100 text-gray-900 font-medium"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                  onClick={() =>
+                    isNotification
+                      ? openNotificationPanel()
+                      : handleMenuClick(item.path)
+                  }
+                >
+                  <div className="relative">
+                    <item.icon className="h-6 w-6 mr-4" />
+                    {isNotification && notificationCount > 0 && (
+                      <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0">
+                        {notificationCount}
+                      </Badge>
+                    )}
+                  </div>
+                  <span className="text-base">{item.label}</span>
+                </Button>
+              );
+            })}
           </nav>
 
           <Separator className="my-4 mx-3" />

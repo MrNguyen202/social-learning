@@ -27,11 +27,12 @@ import {
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "react-toastify";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CreateOrUpdatePostModal } from "./CreateOrUpdatePost";
 import { SearchPanel } from "./Search";
 import { useConversation } from "@/components/contexts/ConversationContext";
 import { NotificationsPanel } from "./Notifications";
+import useAuth from "@/hooks/useAuth";
 
 const mainNavItems = [
   { icon: Home, path: "/dashboard", label: "Trang chủ", active: true },
@@ -70,11 +71,48 @@ const learningNavItems = [
 ];
 
 export function LeftSideBarHiddenLabel() {
+  const { user } = useAuth();
   const router = useRouter();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { selectedConversation, setSelectedConversation } = useConversation();
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  // Lắng nghe realtime Supabase
+  useEffect(() => {
+    if (!user) return;
+
+    let notificationChannel = supabase
+      .channel("notifications")
+      .on(
+        "postgres_changes",
+        {
+          event: "*", // cả INSERT và UPDATE
+          schema: "public",
+          table: "notifications",
+          filter: `receiverId=eq.${user.id}`,
+        },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            setNotificationCount((prev) => prev + 1);
+          }
+          if (payload.eventType === "UPDATE" && payload.new.is_read === true) {
+            setNotificationCount((prev) => Math.max(prev - 1, 0));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(notificationChannel);
+    };
+  }, [user]);
+
+  const openNotificationPanel = () => {
+    setIsNotificationOpen(true);
+    setNotificationCount(0); // reset badge
+  };
 
   const handleMenuClick = (path: string) => {
     // Handle menu item click
@@ -132,20 +170,39 @@ export function LeftSideBarHiddenLabel() {
         {/* Main Navigation */}
         <div>
           <nav className="space-y-1">
-            {mainNavItems.map((item) => (
-              <Button
-                key={item.label}
-                variant="ghost"
-                className={`w-full justify-center h-14 px-3 hover:cursor-pointer ${
-                  item.active
-                    ? "bg-gray-100 text-gray-900 font-medium"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-                onClick={() => handleMenuClick(item.path)}
-              >
-                <item.icon size={48} />
-              </Button>
-            ))}
+            {mainNavItems.map((item) => {
+              const isNotification = item.path === "/dashboard/notifications";
+              const badge =
+                isNotification && notificationCount > 0
+                  ? notificationCount
+                  : null;
+
+              return (
+                <Button
+                  key={item.label}
+                  variant="ghost"
+                  className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
+                    item.active
+                      ? "bg-gray-100 text-gray-900 font-medium"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                  onClick={() =>
+                    isNotification
+                      ? openNotificationPanel()
+                      : handleMenuClick(item.path)
+                  }
+                >
+                  <item.icon size={48} />
+
+                  {/* Badge hiển thị số thông báo */}
+                  {badge && (
+                    <span className="absolute top-2 right-2 flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-xs">
+                      {badge}
+                    </span>
+                  )}
+                </Button>
+              );
+            })}
           </nav>
         </div>
 
