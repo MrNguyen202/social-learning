@@ -11,6 +11,11 @@ import SearchTab from '../(tabs)/Search';
 import CreateTab from '../(tabs)/Create';
 import LearningTab from '../(tabs)/Learning';
 import ProfileTab from '../(tabs)/Profile';
+import Notification from '../screens/notification/Notification';
+import Message from '../screens/message/Message';
+import Options from '../screens/user/Options';
+import Rankings from '../screens/learning/Rankings';
+import Progress from '../screens/user/Progress';
 const Tab = createBottomTabNavigator();
 
 function BottomTabs() {
@@ -110,13 +115,43 @@ const AppNavigation = () => {
   return (
     <ScreenWrapper bg="white">
       <Stack.Navigator>
+        {/* Main */}
         <Stack.Screen
           name="Main"
           component={BottomTabs}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="Notification"
+          component={Notification}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Message"
+          component={Message}
+          options={{ headerShown: false }}
+        />
 
-        {/* <Stack.Screen name="ConferenceCall" component={ConferenceCall} /> */}
+        {/* Search */}
+        
+        {/* Learning */}
+        <Stack.Screen
+          name="Rankings"
+          component={Rankings}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Progress"
+          component={Progress}
+          options={{ headerShown: false }}
+        />
+
+        {/* Profile */}
+        <Stack.Screen
+          name="Options"
+          component={Options}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </ScreenWrapper>
   );
