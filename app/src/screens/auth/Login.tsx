@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,19 +11,71 @@ import { useNavigation } from '@react-navigation/native';
 import { BookOpen } from 'lucide-react-native';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Toast from 'react-native-toast-message';
+import { login } from '../../api/auth/route';
+import { supabase } from '../../../lib/supabase';
 
 const Login = () => {
   const navigation = useNavigation<any>();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     // Xử lý đăng nhập ở đây
-    navigation.navigate('Main');
-    
-    Toast.show({
-      type: 'success',
-      text1: 'Đăng nhập thành công!',
-      visibilityTime: 1000,
-    });
+    if (!email || !password) {
+      Toast.show({
+        type: 'info',
+        text1: 'Vui lòng nhập email và mật khẩu.',
+        visibilityTime: 2000,
+      });
+      return;
+    }
+
+    try {
+      const res = await login({ email, password });
+
+      if (!res.success || !res?.data?.session) {
+        Toast.show({
+          type: 'error',
+          text1: 'Đăng nhập thất bại',
+          visibilityTime: 1000,
+        });
+        return;
+      }
+
+      const { error: setError } = await supabase.auth.setSession(
+        res.data.session,
+      );
+
+      const { data: funcData, error: funcError } =
+        await supabase.functions.invoke('update-last-seen', {
+          body: { name: 'Functions' },
+        });
+
+      if (funcError) console.error('Error updating last_seen:', funcError);
+
+      if (setError) {
+        Toast.show({
+          type: 'error',
+          text1: 'Lỗi khi đặt phiên.',
+          visibilityTime: 1000,
+        });
+        console.error('Lỗi khi đặt phiên:', setError.message);
+        return;
+      }
+      Toast.show({
+        type: 'success',
+        text1: 'Đăng nhập thành công.',
+        visibilityTime: 2000,
+      });
+      navigation.navigate('Main');
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Đăng nhập thất bại.',
+        visibilityTime: 2000,
+      });
+    }
   };
 
   return (
@@ -68,6 +120,9 @@ const Login = () => {
                 placeholder="Nhập email"
                 placeholderTextColor="#A1A1AA"
                 keyboardType="email-address"
+                id="email"
+                value={email}
+                onChangeText={value => setEmail(value)}
               />
             </View>
             <View style={styles.inputContainer}>
@@ -77,6 +132,9 @@ const Login = () => {
                 placeholder="Nhập mật khẩu của bạn"
                 placeholderTextColor="#A1A1AA"
                 secureTextEntry
+                id="password"
+                value={password}
+                onChangeText={value => setPassword(value)}
               />
             </View>
             <View style={styles.forgotPassword}>
@@ -86,7 +144,7 @@ const Login = () => {
               colors={['#F97316', '#EC4899']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={{ borderRadius: 50}}
+              style={{ borderRadius: 50 }}
             >
               <TouchableOpacity onPress={handleLogin} style={styles.button}>
                 <Text style={styles.buttonText}>Đăng Nhập</Text>
