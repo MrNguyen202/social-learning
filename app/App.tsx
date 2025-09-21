@@ -16,6 +16,7 @@ import Welcome from './src/screens/Welcome';
 import Login from './src/screens/auth/Login';
 import Register from './src/screens/auth/Register';
 import Toast from 'react-native-toast-message';
+import { AuthProvider } from './components/contexts/AuthContext';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,29 +24,31 @@ function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Welcome">
-          <Stack.Screen
-            name="Welcome"
-            component={Welcome}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Login"
-            component={Login}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Register"
-            component={Register}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Main"
-            component={AppNavigation}
-            options={{ headerShown: false }}
-          />
-        </Stack.Navigator>
-        <Toast />
+        <AuthProvider>
+          <Stack.Navigator initialRouteName="Welcome">
+            <Stack.Screen
+              name="Welcome"
+              component={Welcome}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Login"
+              component={Login}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Register"
+              component={Register}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Main"
+              component={AppNavigation}
+              options={{ headerShown: false }}
+            />
+          </Stack.Navigator>
+          <Toast />
+        </AuthProvider>
       </NavigationContainer>
       <ChatBotAI />
     </SafeAreaProvider>
