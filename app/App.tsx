@@ -17,6 +17,9 @@ import Login from './src/screens/auth/Login';
 import Register from './src/screens/auth/Register';
 import Toast from 'react-native-toast-message';
 import { AuthProvider } from './components/contexts/AuthContext';
+import VerifyOtp from './src/screens/auth/forgotPassword/VerifyOtp';
+import NewPassword from './src/screens/auth/forgotPassword/NewPassword';
+import ForgotPassword from './src/screens/auth/forgotPassword/ForgotPassword';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,6 +42,21 @@ function App() {
             <Stack.Screen
               name="Register"
               component={Register}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="ForgotPassword"
+              component={ForgotPassword}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="VerifyOtp"
+              component={VerifyOtp}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="NewPassword"
+              component={NewPassword}
               options={{ headerShown: false }}
             />
             <Stack.Screen

@@ -138,7 +138,12 @@ const Login = () => {
               />
             </View>
             <View style={styles.forgotPassword}>
-              <Text style={styles.link}>Quên mật khẩu?</Text>
+              <Text
+                onPress={() => navigation.navigate('ForgotPassword')}
+                style={styles.link}
+              >
+                Quên mật khẩu?
+              </Text>
             </View>
             <LinearGradient
               colors={['#F97316', '#EC4899']}
@@ -251,7 +256,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   link: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#F97316',
     textDecorationLine: 'underline',
   },

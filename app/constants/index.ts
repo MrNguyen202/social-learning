@@ -1,3 +1,4 @@
 export const supabaseUrl='https://elddxlqldfdnalelyodv.supabase.co';
 export const supabaseAnonKey='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsZGR4bHFsZGZkbmFsZWx5b2R2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMTE5MjQsImV4cCI6MjA3MDU4NzkyNH0.1fxloxdCL44JxPrvWmYRBk9dJmtuViZ3gm0T71x5cQ4';
-export const base_url_api = 'http://192.168.1.3:5000';
+// export const base_url_api = 'http://192.168.1.3:5000'; // dùng khi test trên điện thoại thật
+export const base_url_api = 'http://10.0.2.2:5000'; // dùng khi test trên giả lập android
