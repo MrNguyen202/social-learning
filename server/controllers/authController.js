@@ -127,7 +127,6 @@ const authController = {
 
   async verifyResetOtp(req, res) {
     try {
-      console.log("req body", req.body);
       const { email, otp } = req.body;
 
       const { data, error } = await authService.verifyResetOtp(email, otp);
@@ -144,27 +143,6 @@ const authController = {
     }
   },
 
-  // async newPassword(req, res) {
-  //   try {
-  //     const { session, newPassword } = req.body;
-  //     console.log("Received session:", session); // ← Debug log
-  //     console.log("Session type:", typeof session); // ← Check type
-  //     const { data, error } = await authService.newPassword(
-  //       session,
-  //       newPassword
-  //     );
-
-  //     if (error) {
-  //       return res.status(400).json({ success: false, message: error.message });
-  //     }
-
-  //     return res
-  //       .status(200)
-  //       .json({ success: true, data, message: "Đặt lại mật khẩu thành công." });
-  //   } catch (error) {
-  //     return res.status(500).json({ success: false, message: error.message });
-  //   }
-  // },
   async newPassword(req, res) {
     try {
       const { session, newPassword } = req.body;
