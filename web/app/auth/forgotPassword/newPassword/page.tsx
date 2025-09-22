@@ -37,27 +37,36 @@ export default function NewPasswordPage() {
       toast.warning("Mật khẩu xác nhận không khớp.", { autoClose: 1000 });
       return;
     }
+
     setLoading(true);
     try {
-      const session = localStorage.getItem("resetSession");
-      if (!session) throw new Error("Thiếu session. Vui lòng nhập OTP lại.");
+      const sessionString = localStorage.getItem("resetSession");
+      if (!sessionString) {
+        throw new Error("Thiếu session. Vui lòng nhập OTP lại.");
+      }
 
-      const res = await forgotPassword({ session, password });
+      const session = JSON.parse(sessionString);
 
-      if (!res.success) throw new Error(res.message);
+      const res = await forgotPassword({
+        session,
+        newPassword: password,
+      });
+
+      if (!res.success) {
+        throw new Error(res.message);
+      }
 
       toast.success("Đổi mật khẩu thành công!", { autoClose: 1000 });
-      // Xoá session và email đã lưu
       localStorage.removeItem("resetSession");
       localStorage.removeItem("email");
       router.push("/auth/login");
     } catch (err: any) {
-      toast.error("Đổi mật khẩu thất bại", { autoClose: 1000 });
+      console.error("Frontend - Error:", err);
+      toast.error(err.message || "Đổi mật khẩu thất bại", { autoClose: 1000 });
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <>
       {/* Logo */}

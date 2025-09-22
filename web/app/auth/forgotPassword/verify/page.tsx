@@ -60,8 +60,8 @@ export default function VerifyPage() {
         });
         return;
       }
-      toast.success("Xác nhận thành công", { autoClose: 1000 });
       localStorage.setItem("resetSession", JSON.stringify(res.data.session));
+      toast.success("Xác nhận thành công", { autoClose: 1000 });
       router.push("/auth/forgotPassword/newPassword");
     } catch (err: any) {
       toast.error("Xác thực OTP thất bại.", { autoClose: 1000 });

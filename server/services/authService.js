@@ -59,20 +59,34 @@ const authService = {
     if (error) throw error;
 
     // data.session chứa access_token + refresh_token
-    
+
     return { data, error };
   },
 
   async newPassword(session, newPassword) {
-    // Thiết lập session trước khi update
-    await supabase.auth.setSession(session);
+    try {
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.setSession({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+        });
 
-    const { data, error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
+      if (sessionError) {
+        throw sessionError;
+      }
 
-    if (error) throw error;
-    return { data, error };
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      return { data, error: null };
+    } catch (error) {
+      throw error;
+    }
   },
 };
 
