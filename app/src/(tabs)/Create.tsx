@@ -8,7 +8,7 @@ import {
   Image,
   Pressable,
 } from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { hp, wp } from '../../helpers/common';
 import { theme } from '../../constants/theme';
 import Avatar from '../components/Avatar';
@@ -21,41 +21,47 @@ import {
   getSupabaseFileUrl,
   getUserImageSrc,
   requestGalleryPermission,
-  uploadFile,
 } from '../api/image/route';
 import Toast from 'react-native-toast-message';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { createPost, CreatePostData } from '../api/post/route';
+import {
+  convertFileToBase64,
+  createPost,
+  CreatePostData,
+} from '../api/post/route';
 import Video from 'react-native-video';
+
+interface FileData {
+  uri: string;
+  type: string;
+  name: string;
+  fileSize?: number;
+}
 
 const CreateTab = () => {
   const { user } = useAuth();
   const navigation = useNavigation();
   const bodyRef = useRef('');
-  const editorRef = useRef(null);
+  const editorRef = useRef<{
+    setText: (text: string) => void;
+    setContentHTML: (html: string) => void;
+  } | null>(null);
+
   const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState<any>(null);
+  const [file, setFile] = useState<FileData | null>(null);
 
-  //  useEffect(() => {
-  //   if (post && post.id) {
-  //     bodyRef.current = post.body;
-  //     setFile(post.file || null);
-  //     setTimeout(() => {
-  //       editorRef?.current?.setContentHTML(post.body);
-  //     }, 300);
-  //   }
-  // }, []);
-
-  const onPick = async () => {
+  const onPick = async (isImage: boolean) => {
     const hasPermission = await requestGalleryPermission();
     if (!hasPermission) {
       Toast.show({ type: 'error', text1: 'Quyền bị từ chối' });
       return;
     }
 
+    const mediaType = isImage ? 'photo' : 'video';
+
     try {
       const response = await launchImageLibrary({
-        mediaType: 'photo',
+        mediaType,
         quality: 0.8,
         selectionLimit: 1,
       });
@@ -64,89 +70,108 @@ const CreateTab = () => {
       if (response.errorCode) {
         Toast.show({
           type: 'error',
-          text1: 'Lỗi khi chọn ảnh',
+          text1: 'Lỗi khi chọn media',
           text2: response.errorMessage,
         });
         return;
       }
 
       const asset = response.assets?.[0];
+
       if (!asset?.uri) return;
 
-      setLoading(true);
-      const res = await uploadFile('profiles', asset.uri, 'image');
-      if (!res?.success) {
+      // Validate file size (max 30MB)
+      const maxFileSize = 30 * 1024 * 1024; // 30MB
+      if (asset.fileSize && asset.fileSize > maxFileSize) {
         Toast.show({
           type: 'error',
-          text1: 'Upload thất bại',
-          text2: res?.message,
+          text1: 'File quá lớn',
+          text2: 'Vui lòng chọn file nhỏ hơn 30MB.',
         });
         return;
       }
+
+      setFile({
+        uri: asset.uri,
+        type: asset.type || (isImage ? 'image/jpeg' : 'video/mp4'),
+        name: asset.fileName || `${isImage ? 'image' : 'video'}_${Date.now()}`,
+        fileSize: asset.fileSize,
+      });
     } catch (err) {
       Toast.show({
         type: 'error',
         text1: 'Lỗi',
-        text2: 'Không thể upload ảnh',
+        text2: 'Không thể chọn media',
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const isLocalFile = (file: any) => {
-    if (!file) return null;
-    if (typeof file == 'object') return true;
-    return false;
+  const isLocalFile = (file: FileData | null) => {
+    if (!file) return false;
+    return file.uri && file.uri.startsWith('file://');
   };
 
-  const getFileType = (file: any) => {
+  const getFileType = (file: FileData | null) => {
     if (!file) return null;
-    if (isLocalFile(file)) {
-      return file.type;
-    }
-
-    if (file.includes('postImages')) {
+    if (file.type.startsWith('image/')) {
       return 'image';
     }
-    return 'video';
+    if (file.type.startsWith('video/')) {
+      return 'video';
+    }
+    return 'file';
   };
-  const getFileUri = (file: any) => {
+
+  const getFileUri = (file: FileData | null) => {
     if (!file) return null;
     if (isLocalFile(file)) {
       return file.uri;
     }
-    return getSupabaseFileUrl(file?.uri);
+    return getSupabaseFileUrl(file.uri);
   };
 
   const onSubmit = async () => {
     if (!bodyRef.current && !file) {
-      Alert.alert('Post', 'Please add some content or media to post');
+      Alert.alert('Post', 'Vui lòng nhập nội dung hoặc chọn file');
       return;
     }
 
-    let data: CreatePostData = {
-      content: bodyRef.current,
-      userId: user?.id,
-      file,
-    };
-
-    // if (post && post.id) data.id = post.id;
-
-    // create post
     setLoading(true);
-    let res = await createPost(data);
-    setLoading(false);
 
-    console.log('Post response:', res);
+    try {
+      let fileData = null;
 
-    if (res.success) {
-      setFile(null);
-      bodyRef.current = '';
-      Toast.show({ type: 'success', text1: 'Đăng bài thành công' });
-      navigation.goBack();
-    } else {
-      Alert.alert('Post', res.msg);
+      if (file) {
+        const fileBase64 = await convertFileToBase64(file.uri);
+
+        fileData = {
+          fileBase64: fileBase64,
+          fileName: file.name,
+          mimeType: file.type,
+        };
+      }
+
+      const postData: CreatePostData = {
+        content: bodyRef.current,
+        userId: user?.id,
+        file: fileData,
+      };
+
+      const res = await createPost(postData);
+
+      if (res.success) {
+        setFile(null);
+        bodyRef.current = '';
+        editorRef.current?.setText('');
+        Toast.show({ type: 'success', text1: 'Đăng bài thành công' });
+        navigation.goBack();
+      } else {
+        Alert.alert('Post', res.message || 'Có lỗi xảy ra khi tạo bài viết');
+      }
+    } catch (error) {
+      Alert.alert('Post', 'Có lỗi xảy ra khi tạo bài viết');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -169,20 +194,24 @@ const CreateTab = () => {
           </View>
 
           <View style={styles.textEditor}>
-            <RichTextEditor onChange={val => (bodyRef.current = val)} />
+            <RichTextEditor
+              ref={editorRef}
+              onChange={val => (bodyRef.current = val)}
+            />
           </View>
 
           {file && (
             <View style={styles.file}>
-              {getFileType(file) == 'video' ? (
+              {getFileType(file) === 'video' ? (
                 <Video
                   style={{ flex: 1 }}
-                  source={{ uri: getFileUri(file) }}
+                  source={{ uri: getFileUri(file) || '' }}
                   resizeMode="cover"
+                  paused={true}
                 />
               ) : (
                 <Image
-                  source={{ uri: getFileUri(file) }}
+                  source={{ uri: getFileUri(file) || '' }}
                   resizeMode="cover"
                   style={{ flex: 1 }}
                 />
@@ -197,10 +226,10 @@ const CreateTab = () => {
           <View style={styles.media}>
             <Text style={styles.addImageText}>Thêm vào bài viết của bạn</Text>
             <View style={styles.mediaIcons}>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => onPick(true)}>
                 <FileImage size={30} color={theme.colors.dark} />
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => onPick(false)}>
                 <VideoIcon size={33} color={theme.colors.dark} />
               </TouchableOpacity>
             </View>
@@ -209,7 +238,6 @@ const CreateTab = () => {
 
         <Button
           buttonStyle={{ height: hp(6.2) }}
-          // title={post && post.id ? 'Update Post' : 'Post'}
           title={'Post'}
           loading={loading}
           hasShadow={false}
@@ -230,7 +258,6 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   title: {
-    // marginBottom: 10,
     fontSize: hp(2.5),
     fontWeight: theme.fonts.semibold,
     color: theme.colors.text,
@@ -284,9 +311,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   imageIcon: {
-    // backgroundColor: theme.colors.gray,
     borderRadius: theme.radius.md,
-    // padding: 6
   },
   file: {
     height: hp(30),
