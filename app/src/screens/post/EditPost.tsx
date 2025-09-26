@@ -8,28 +8,29 @@ import {
   Image,
   Pressable,
 } from 'react-native';
-import React, { useRef, useState } from 'react';
-import { hp, wp } from '../../helpers/common';
-import { theme } from '../../constants/theme';
-import Avatar from '../components/Avatar';
-import { Delete, FileImage, Trash, VideoIcon } from 'lucide-react-native';
-import Button from '../components/Button';
-import { useNavigation } from '@react-navigation/native';
-import RichTextEditor from '../components/RichTextEditor';
-import useAuth from '../../hooks/useAuth';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import useAuth from '../../../hooks/useAuth';
+import { hp, wp } from '../../../helpers/common';
+import { theme } from '../../../constants/theme';
+import Button from '../../components/Button';
+import { FileImage, Trash, VideoIcon } from 'lucide-react-native';
+import RichTextEditor from '../../components/RichTextEditor';
 import {
   getSupabaseFileUrl,
   getUserImageSrc,
   requestGalleryPermission,
-} from '../api/image/route';
+} from '../../api/image/route';
+import Avatar from '../../components/Avatar';
 import Toast from 'react-native-toast-message';
-import { launchImageLibrary } from 'react-native-image-picker';
 import {
   convertFileToBase64,
-  createPost,
   CreatePostData,
-} from '../api/post/route';
+  updatePost,
+} from '../../api/post/route';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { useEffect, useRef, useState } from 'react';
 import Video from 'react-native-video';
+import Header from '../../components/Header';
 
 interface FileData {
   uri: string;
@@ -38,10 +39,12 @@ interface FileData {
   fileSize?: number;
 }
 
-const CreateTab = () => {
+const EditPost = () => {
+  const navigation = useNavigation<any>();
   const { user } = useAuth();
-  const navigation = useNavigation();
-  const bodyRef = useRef('');
+  const route = useRoute();
+  const { post }: any = route.params; // log mẫu bạn đưa ở trên
+  const bodyRef = useRef(post?.content || '');
   const editorRef = useRef<{
     setText: (text: string) => void;
     setContentHTML: (html: string) => void;
@@ -49,6 +52,46 @@ const CreateTab = () => {
 
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<FileData | null>(null);
+
+  useEffect(() => {
+    if (post) {
+      // set content vào editor
+      setTimeout(() => {
+        editorRef.current?.setText(post.content || '');
+      }, 300);
+
+      // set file cũ (ở Supabase)
+      if (post.file) {
+        setFile({
+          uri: post.file, // giữ nguyên đường dẫn Supabase
+          type: post.file.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg',
+          name: post.original_name || `file_${Date.now()}`,
+        });
+      }
+    }
+  }, [post]);
+
+  // check local file
+  const isLocalFile = (file: FileData | null) => {
+    if (!file) return false;
+    return file.uri.startsWith('file://');
+  };
+
+  const getFileType = (file: FileData | null) => {
+    if (!file) return null;
+    if (file.type.startsWith('image/')) return 'image';
+    if (file.type.startsWith('video/')) return 'video';
+    return 'file';
+  };
+
+  const getFileUri = (file: FileData | null) => {
+    if (!file) return null;
+    if (isLocalFile(file)) {
+      return file.uri;
+    }
+    // file Supabase
+    return getSupabaseFileUrl(file.uri);
+  };
 
   const onPick = async (isImage: boolean) => {
     const hasPermission = await requestGalleryPermission();
@@ -58,76 +101,19 @@ const CreateTab = () => {
     }
 
     const mediaType = isImage ? 'photo' : 'video';
+    const response = await launchImageLibrary({ mediaType, quality: 0.8 });
 
-    try {
-      const response = await launchImageLibrary({
-        mediaType,
-        quality: 0.8,
-        selectionLimit: 1,
-      });
+    if (response.didCancel) return;
 
-      if (response.didCancel) return;
-      if (response.errorCode) {
-        Toast.show({
-          type: 'error',
-          text1: 'Lỗi khi chọn media',
-          text2: response.errorMessage,
-        });
-        return;
-      }
+    const asset = response.assets?.[0];
+    if (!asset?.uri) return;
 
-      const asset = response.assets?.[0];
-
-      if (!asset?.uri) return;
-
-      // Validate file size (max 30MB)
-      const maxFileSize = 30 * 1024 * 1024; // 30MB
-      if (asset.fileSize && asset.fileSize > maxFileSize) {
-        Toast.show({
-          type: 'error',
-          text1: 'File quá lớn',
-          text2: 'Vui lòng chọn file nhỏ hơn 30MB.',
-        });
-        return;
-      }
-
-      setFile({
-        uri: asset.uri,
-        type: asset.type || (isImage ? 'image/jpeg' : 'video/mp4'),
-        name: asset.fileName || `${isImage ? 'image' : 'video'}_${Date.now()}`,
-        fileSize: asset.fileSize,
-      });
-    } catch (err) {
-      Toast.show({
-        type: 'error',
-        text1: 'Lỗi',
-        text2: 'Không thể chọn media',
-      });
-    }
-  };
-
-  const isLocalFile = (file: FileData | null) => {
-    if (!file) return false;
-    return file.uri && file.uri.startsWith('file://');
-  };
-
-  const getFileType = (file: FileData | null) => {
-    if (!file) return null;
-    if (file.type.startsWith('image/')) {
-      return 'image';
-    }
-    if (file.type.startsWith('video/')) {
-      return 'video';
-    }
-    return 'file';
-  };
-
-  const getFileUri = (file: FileData | null) => {
-    if (!file) return null;
-    if (isLocalFile(file)) {
-      return file.uri;
-    }
-    return getSupabaseFileUrl(file.uri);
+    setFile({
+      uri: asset.uri,
+      type: asset.type || (isImage ? 'image/jpeg' : 'video/mp4'),
+      name: asset.fileName || `${isImage ? 'image' : 'video'}_${Date.now()}`,
+      fileSize: asset.fileSize,
+    });
   };
 
   const onSubmit = async () => {
@@ -137,39 +123,46 @@ const CreateTab = () => {
     }
 
     setLoading(true);
-
     try {
       let fileData = null;
 
-      if (file) {
+      if (file && isLocalFile(file)) {
+        // chỉ convert khi file mới được chọn
         const fileBase64 = await convertFileToBase64(file.uri);
-
         fileData = {
-          fileBase64: fileBase64,
+          fileBase64,
           fileName: file.name,
           mimeType: file.type,
         };
+      } else if (file && !isLocalFile(file)) {
+        // giữ lại file cũ
+        fileData = {
+          uri: file.uri,
+          mimeType: file.type,
+          fileName: file.name,
+        };
       }
 
-      const postData: CreatePostData = {
+      const postData: CreatePostData & { id: number } = {
+        id: post.id, // quan trọng, backend cần id
         content: bodyRef.current,
         userId: user?.id,
         file: fileData,
       };
 
-      const res = await createPost(postData);
+      const res = await updatePost(postData);
 
       if (res.success) {
-        setFile(null);
-        bodyRef.current = '';
-        editorRef.current?.setText('');
-        Toast.show({ type: 'success', text1: 'Đăng bài thành công' });
+        Toast.show({ type: 'success', text1: 'Cập nhật thành công' });
         navigation.goBack();
       } else {
-        Alert.alert('Post', res.message || 'Có lỗi xảy ra khi tạo bài viết');
+        Alert.alert(
+          'Post',
+          res.message || 'Có lỗi xảy ra khi cập nhật bài viết',
+        );
       }
-    } catch (error) {
-      Alert.alert('Post', 'Có lỗi xảy ra khi tạo bài viết');
+    } catch (err) {
+      Alert.alert('Post', 'Có lỗi xảy ra khi cập nhật bài viết');
     } finally {
       setLoading(false);
     }
@@ -178,7 +171,7 @@ const CreateTab = () => {
   return (
     <View style={{ flex: 1, backgroundColor: 'white' }}>
       <View style={styles.container}>
-        <Text style={styles.title}>Tạo bài viết</Text>
+        <Header title="Chỉnh sửa bài viết" />
         <ScrollView contentContainerStyle={{ gap: 20 }}>
           {/* avatar */}
           <View style={styles.header}>
@@ -216,7 +209,6 @@ const CreateTab = () => {
                   style={{ flex: 1 }}
                 />
               )}
-
               <Pressable style={styles.closeIcon} onPress={() => setFile(null)}>
                 <Trash size={20} color="white" />
               </Pressable>
@@ -238,7 +230,7 @@ const CreateTab = () => {
 
         <Button
           buttonStyle={{ height: hp(6.2) }}
-          title={'Đăng bài viết'}
+          title={'Cập nhật bài viết'}
           loading={loading}
           hasShadow={false}
           onPress={onSubmit}
@@ -248,7 +240,7 @@ const CreateTab = () => {
   );
 };
 
-export default CreateTab;
+export default EditPost;
 
 const styles = StyleSheet.create({
   container: {

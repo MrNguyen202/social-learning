@@ -9,38 +9,22 @@ import {
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import Avatar from '../../components/Avatar';
-import moment from 'moment';
-import RenderHTML from 'react-native-render-html';
 import Video from 'react-native-video';
 import { theme } from '../../../constants/theme';
 import { hp, stripHtmlTags, wp } from '../../../helpers/common';
 import {
-  Delete,
-  Edit,
+  Edit2,
   Forward,
   Heart,
   MessageCircle,
   MoreHorizontal,
+  Trash,
 } from 'lucide-react-native';
 import { getSupabaseFileUrl, getUserImageSrc } from '../../api/image/route';
 import Loading from '../../components/Loading';
 import { likePost, unlikePost } from '../../api/post/route';
+import { convertToDate, formatTime } from '../../../helpers/formatTime';
 
-const textStyle = {
-  color: theme.colors.dark,
-  fontSize: hp(1.75),
-};
-const tagsStyles = {
-  div: textStyle,
-  p: textStyle,
-  ol: textStyle,
-  h1: {
-    color: theme.colors.dark,
-  },
-  h4: {
-    color: theme.colors.dark,
-  },
-};
 const PostCard = ({
   item,
   currentUser,
@@ -50,6 +34,7 @@ const PostCard = ({
   showDelete = false,
   onDelete = () => {},
   onEdit = () => {},
+  commentCount,
 }: any) => {
   const style = {
     shadowOffset: {
@@ -71,7 +56,10 @@ const PostCard = ({
 
   const openPostDetails = () => {
     if (!showMoreIcon) return null;
-    navigation.navigate('PostDetails', { postId: item?.id });
+    navigation.navigate('PostDetail', {
+      postId: item?.id,
+      commentCount: item?.comments?.[0]?.count || 0,
+    });
   };
 
   const onLike = async () => {
@@ -80,7 +68,7 @@ const PostCard = ({
       let updatedLikes = likes.filter(like => like.userId != currentUser?.id);
       setLikes([...updatedLikes]);
       let res = await unlikePost(item?.id, currentUser?.id);
-      console.log('removed like', res);
+
       if (!res.success) {
         Alert.alert('Post', 'Something went wrong!');
       }
@@ -92,7 +80,7 @@ const PostCard = ({
       };
       setLikes([...likes, data]);
       let res = await likePost(data);
-      console.log('added like', res);
+
       if (!res.success) {
         Alert.alert('Post', 'Something went wrong!');
       }
@@ -100,7 +88,7 @@ const PostCard = ({
   };
 
   const onShare = async () => {
-    let content = { message: stripHtmlTags(item?.body) };
+    let content = { message: stripHtmlTags(item?.content) };
     if (item?.file) {
       // downdload file
       setLoading(true);
@@ -112,25 +100,26 @@ const PostCard = ({
   };
 
   const handlePostDelete = () => {
-    Alert.alert('Confirm', 'Are you sure you want to do this?', [
+    Alert.alert('Xác nhận', 'Bạn có chắc muốn xóa bài viết này?', [
       {
-        text: 'Cancel',
+        text: 'Hủy',
         onPress: () => console.log('modal cancelled'),
         style: 'cancel',
       },
       {
-        text: 'Delete',
+        text: 'Xóa',
         onPress: () => onDelete(item),
         style: 'destructive',
       },
     ]);
   };
 
+  const createAt =
+    convertToDate(item?.created_at) + ' ' + formatTime(item?.created_at);
 
-  const createAt = moment(item?.created_at).format('MMM D');
-  const liked = likes.some(
-    like => String(like.userId) === String(currentUser?.id),
-  );
+  const liked = likes.filter(like => like.userId == currentUser?.id)[0]
+    ? true
+    : false;
 
   const fileUrl = item.file ? getSupabaseFileUrl(item.file) : null;
   const ext = item.file?.split('.').pop()?.toLowerCase();
@@ -161,27 +150,25 @@ const PostCard = ({
           </TouchableOpacity>
         )}
 
-        {showDelete && currentUser.id == item?.userId && (
+        {showDelete && currentUser.id == item?.user.id && (
           <View style={styles.actions}>
             <TouchableOpacity onPress={() => onEdit(item)}>
-              <Edit size={hp(2.5)} color={theme.colors.text} />
+              <Edit2 size={hp(2.5)} color={theme.colors.text} />
             </TouchableOpacity>
             <TouchableOpacity onPress={handlePostDelete}>
-              <Delete size={hp(2.5)} color={theme.colors.rose} />
+              <Trash size={hp(2.5)} color={theme.colors.rose} />
             </TouchableOpacity>
           </View>
         )}
       </View>
 
-      {/* post body & media */}
+      {/* Content */}
       <View style={styles.content}>
         <View style={styles.postBody}>
-          {item?.body && (
-            <RenderHTML
-              contentWidth={wp(100)}
-              source={{ html: item?.body }}
-              tagsStyles={tagsStyles}
-            />
+          {item?.content && (
+            <Text style={{ fontSize: hp(1.8) }}>
+              {stripHtmlTags(item?.content)}
+            </Text>
           )}
         </View>
 
@@ -203,24 +190,10 @@ const PostCard = ({
             />
           </View>
         ) : (
-          <View
-            style={[
-              styles.postMedia,
-              {
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#f3f3f3',
-              },
-            ]}
-          >
-            <Text style={{ color: '#666' }}>{item.content}</Text>
+          <View>
+            <Text style={{ color: '#666' }}>{item.original_name}</Text>
           </View>
         )}
-      </View>
-
-      {/* Content */}
-      <View>
-        <Text style={{ paddingVertical: 5 }}>{item.content}</Text>
       </View>
 
       {/* like, comment & share */}
@@ -232,13 +205,15 @@ const PostCard = ({
               fill={liked ? theme.colors.rose : theme.colors.textLight}
             />
           </TouchableOpacity>
-          <Text style={styles.count}>{item?.comments?.[0]?.count ?? 0}</Text>
+          <Text style={styles.count}>{likes?.length}</Text>
         </View>
         <View style={styles.footerButton}>
           <TouchableOpacity onPress={openPostDetails}>
             <MessageCircle size={24} color={theme.colors.textLight} />
           </TouchableOpacity>
-          <Text style={styles.count}>{item?.comments[0]?.count}</Text>
+          <Text style={styles.count}>
+            {item?.comments?.[0]?.count || commentCount || 0}
+          </Text>
         </View>
         <View style={styles.footerButton}>
           {loading ? (

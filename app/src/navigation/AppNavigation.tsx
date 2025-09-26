@@ -27,6 +27,8 @@ import ForgotPassword from '../screens/auth/forgotPassword/ForgotPassword';
 import VerifyOTP from '../screens/auth/forgotPassword/VerifyOtp';
 import NewPassword from '../screens/auth/forgotPassword/NewPassword';
 import Main from '../(tabs)/Main';
+import PostDetail from '../screens/post/PostDetail';
+import EditPost from '../screens/post/EditPost';
 
 const Tab = createBottomTabNavigator();
 
@@ -157,6 +159,18 @@ const AppNavigation = () => {
         />
 
         {/* Search */}
+
+        {/* Post */}
+        <Stack.Screen
+          name="PostDetail"
+          component={PostDetail}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="EditPost"
+          component={EditPost}
+          options={{ headerShown: false }}
+        />
 
         {/* Learning */}
         <Stack.Screen

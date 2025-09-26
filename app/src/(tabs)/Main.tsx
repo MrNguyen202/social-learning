@@ -4,18 +4,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Pressable,
   FlatList,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import {
-  Contact,
-  FileImage,
-  Heart,
-  MessageCircleMore,
-  Timer,
-  Video,
-} from 'lucide-react-native';
+import { Heart, MessageCircleMore } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import useAuth from '../../hooks/useAuth';
 import { getUserData } from '../api/user/route';
@@ -23,7 +15,6 @@ import { supabase } from '../../lib/supabase';
 import { fetchPosts } from '../api/post/route';
 import { hp, wp } from '../../helpers/common';
 import { theme } from '../../constants/theme';
-import Avatar from '../components/Avatar';
 import PostCard from '../screens/post/PostCard';
 import Loading from '../components/Loading';
 
@@ -148,6 +139,11 @@ const Main = () => {
             onPress={() => navigation.navigate('Notification')}
           >
             <Heart size={34} />
+            {notificationCount > 0 && (
+              <View style={styles.pill}>
+                <Text style={styles.pillText}>{notificationCount}</Text>
+              </View>
+            )}
           </TouchableOpacity>
           <TouchableOpacity
             className="mx-4"
@@ -235,5 +231,21 @@ const styles = StyleSheet.create({
     fontSize: hp(2),
     textAlign: 'center',
     color: theme.colors.text,
+  },
+  pill: {
+    // position: 'absolute',
+    // right: -10,
+    // top: -4,
+    height: hp(2.2),
+    width: hp(2.2),
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+    borderStartColor: 'red',
+  },
+  pillText: {
+    color: 'white',
+    fontSize: hp(1.2),
+    fontWeight: theme.fonts.bold,
   },
 });

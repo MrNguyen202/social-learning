@@ -5,7 +5,9 @@ import moment from 'moment';
 import { TouchableOpacity } from 'react-native';
 import { theme } from '../../../../constants/theme';
 import { hp } from '../../../../helpers/common';
-import { Delete } from 'lucide-react-native';
+import { Delete, Trash } from 'lucide-react-native';
+import { convertToDate, formatTime } from '../../../../helpers/formatTime';
+import { getUserImageSrc } from '../../../api/image/route';
 
 const CommentItem = ({
   item,
@@ -13,7 +15,8 @@ const CommentItem = ({
   onDelete = () => {},
   highlight = false,
 }: any) => {
-  const createdAt = moment(item?.created_at).format('MMM D');
+  const createdAt =
+    convertToDate(item?.created_at) + ' ' + formatTime(item?.created_at);
 
   const handleDelete = () => {
     Alert.alert('Xác nhận', 'Bạn có chắc muốn xóa bình luận này?', [
@@ -32,7 +35,10 @@ const CommentItem = ({
 
   return (
     <View style={styles.container}>
-      <Avatar uri={item?.user?.avatar} />
+      <Avatar
+        uri={getUserImageSrc(item?.user?.avatar)}
+        rounded={theme.radius.xxl * 100}
+      />
       <View style={[styles.content, highlight && styles.highlight]}>
         <View
           style={{
@@ -50,7 +56,7 @@ const CommentItem = ({
           </View>
           {canDelete && (
             <TouchableOpacity onPress={handleDelete}>
-              <Delete size={20} color={theme.colors.rose} />
+              <Trash size={20} color={theme.colors.rose} />
             </TouchableOpacity>
           )}
         </View>
@@ -69,6 +75,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     gap: 7,
+    alignItems: 'center',
   },
   content: {
     backgroundColor: 'rgba(0,0,0,0.06)',

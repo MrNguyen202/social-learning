@@ -1,14 +1,70 @@
-import { View, Text } from 'react-native';
-import React from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import useAuth from '../../../hooks/useAuth';
+import { useNavigation } from '@react-navigation/native';
+import { fetchNotifications } from '../../api/notification/route';
+import { hp, wp } from '../../../helpers/common';
+import { theme } from '../../../constants/theme';
 import Header from '../../components/Header';
+import NotificationItem from './components/NotificationItem';
 
 const Notification = () => {
+  const [notifications, setNotifications] = useState<any>([]);
+  const { user } = useAuth();
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    getNotifications();
+  }, []);
+
+  const getNotifications = async () => {
+    // fetch notifications
+    let res = await fetchNotifications(user.id);
+    if (res.success) {
+      setNotifications(res.data);
+    }
+  };
+
   return (
-    <View>
+    <View style={styles.container}>
       <Header title="Thông báo" />
-      <Text>Notification</Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listStyle}
+      >
+        {notifications.map((item: any) => {
+          return (
+            <NotificationItem
+              item={item}
+              key={item?.id}
+              navigation={navigation}
+            />
+          );
+        })}
+        {notifications.length == 0 && (
+          <Text style={styles.noData}>Chưa có thông báo</Text>
+        )}
+      </ScrollView>
     </View>
   );
 };
 
 export default Notification;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+    paddingHorizontal: wp(4),
+  },
+  listStyle: {
+    paddingVertical: 20,
+    gap: 10,
+  },
+  noData: {
+    fontSize: hp(1.8),
+    fontWeight: theme.fonts.medium,
+    color: theme.colors.text,
+    textAlign: 'center',
+  },
+});

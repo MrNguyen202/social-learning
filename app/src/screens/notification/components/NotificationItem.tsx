@@ -5,16 +5,25 @@ import Avatar from '../../../components/Avatar';
 import moment from 'moment';
 import { theme } from '../../../../constants/theme';
 import { hp } from '../../../../helpers/common';
+import { getUserImageSrc } from '../../../api/image/route';
+import { convertToDate } from '../../../../helpers/formatTime';
 
-const NotificationItem = ({ item, router }: any) => {
+const NotificationItem = ({ item, navigation }: any) => {
   const handleClick = () => {
-    let { postId, commentId } = JSON.parse(item?.data);
-    router.push({ pathname: 'postDetails', params: { postId, commentId } });
+    let { postId, commentId } = JSON.parse(item.content);
+    navigation.navigate('PostDetail', {
+      postId: postId,
+      commentId: commentId,
+    });
   };
-  const createdAt = moment(item?.created_at).format('MMM d');
+  const createdAt = convertToDate(item?.created_at);
   return (
     <TouchableOpacity style={styles.container} onPress={handleClick}>
-      <Avatar uri={item?.sender?.avatar} size={hp(5)} />
+      <Avatar
+        uri={getUserImageSrc(item?.sender?.avatar)}
+        size={hp(5)}
+        rounded={theme.radius.xxl * 100}
+      />
       <View style={styles.nameTitle}>
         <Text style={styles.text}>{item?.sender?.name}</Text>
         <Text style={[styles.text, { color: theme.colors.textDark }]}>
@@ -38,9 +47,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    backgroundColor: 'white',
     borderWidth: 0.5,
-    borderColor: theme.colors.darkLight,
+    borderColor: theme.colors.dark,
     padding: 15,
     borderRadius: theme.radius.xxl,
     borderCurve: 'continuous',
