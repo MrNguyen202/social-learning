@@ -31,7 +31,7 @@ interface User {
 export default function PhotoGridFollower({
   userSearch,
 }: {
-  userSearch: User;
+  userSearch: User | any;
 }) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loadingPost, setLoadingPost] = useState(false);
