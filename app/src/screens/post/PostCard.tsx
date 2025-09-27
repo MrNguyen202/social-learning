@@ -124,16 +124,26 @@ const PostCard = ({
   const fileUrl = item.file ? getSupabaseFileUrl(item.file) : null;
   const ext = item.file?.split('.').pop()?.toLowerCase();
 
+  const handleClickUser = () => {
+    if (item?.user?.id != currentUser.id) {
+      navigation.navigate('UserFollow', { userSearch: item?.user });
+    } else {
+      navigation.navigate('Profile');
+    }
+  };
+
   return (
     <View style={[styles.container, hasShadow && style]}>
       <View style={styles.header}>
         {/* user info and post time */}
         <View style={styles.userInfo}>
-          <Avatar
-            size={hp(4.5)}
-            uri={getUserImageSrc(item?.user?.avatar)}
-            rounded={theme.radius.xxl * 100}
-          />
+          <TouchableOpacity onPress={() => handleClickUser()}>
+            <Avatar
+              size={hp(4.5)}
+              uri={getUserImageSrc(item?.user?.avatar)}
+              rounded={theme.radius.xxl * 100}
+            />
+          </TouchableOpacity>
           <View style={{ gap: 2 }}>
             <Text style={styles.username}>{item?.user?.name}</Text>
             <Text style={styles.postTime}>{createAt}</Text>

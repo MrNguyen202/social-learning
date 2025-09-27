@@ -29,6 +29,8 @@ import NewPassword from '../screens/auth/forgotPassword/NewPassword';
 import Main from '../(tabs)/Main';
 import PostDetail from '../screens/post/PostDetail';
 import EditPost from '../screens/post/EditPost';
+import UserFollowScreen from '../screens/follow/UserFollow';
+import RecommendFriend from '../screens/recommend/friends/RecommendFriend';
 
 const Tab = createBottomTabNavigator();
 
@@ -159,7 +161,11 @@ const AppNavigation = () => {
         />
 
         {/* Search */}
-
+        <Stack.Screen
+          name="RecommendFriend"
+          component={RecommendFriend}
+          options={{ headerShown: false }}
+        />
         {/* Post */}
         <Stack.Screen
           name="PostDetail"
@@ -193,6 +199,11 @@ const AppNavigation = () => {
         <Stack.Screen
           name="Follow"
           component={Follow}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="UserFollow"
+          component={UserFollowScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

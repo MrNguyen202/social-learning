@@ -1,4 +1,3 @@
-// screens/FollowScreen.tsx
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -9,7 +8,7 @@ import {
   ActivityIndicator,
   TextInput,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import useAuth from '../../../../hooks/useAuth';
 import {
   checkIsFollowing,
@@ -28,7 +27,6 @@ export default function Follow() {
   const route = useRoute<any>();
   const { type, userId } = route.params;
   const { user } = useAuth();
-  const navigation = useNavigation<any>();
 
   const [data, setData] = useState<any[]>([]);
   const [keyword, setKeyword] = useState('');
@@ -146,9 +144,6 @@ export default function Follow() {
               <View style={styles.row}>
                 <TouchableOpacity
                   style={{ flexDirection: 'row', alignItems: 'center' }}
-                  onPress={() =>
-                    navigation.navigate('UserFollow', { userSearch: item })
-                  }
                 >
                   <Avatar
                     uri={getUserImageSrc(item?.avatar)}

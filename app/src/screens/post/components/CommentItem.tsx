@@ -1,13 +1,13 @@
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import React from 'react';
 import Avatar from '../../../components/Avatar';
-import moment from 'moment';
 import { TouchableOpacity } from 'react-native';
 import { theme } from '../../../../constants/theme';
 import { hp } from '../../../../helpers/common';
-import { Delete, Trash } from 'lucide-react-native';
+import { Trash } from 'lucide-react-native';
 import { convertToDate, formatTime } from '../../../../helpers/formatTime';
 import { getUserImageSrc } from '../../../api/image/route';
+import { useNavigation } from '@react-navigation/native';
 
 const CommentItem = ({
   item,
@@ -15,6 +15,7 @@ const CommentItem = ({
   onDelete = () => {},
   highlight = false,
 }: any) => {
+  const navigation = useNavigation<any>();
   const createdAt =
     convertToDate(item?.created_at) + ' ' + formatTime(item?.created_at);
 
@@ -35,10 +36,16 @@ const CommentItem = ({
 
   return (
     <View style={styles.container}>
-      <Avatar
-        uri={getUserImageSrc(item?.user?.avatar)}
-        rounded={theme.radius.xxl * 100}
-      />
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate('UserFollow', { userSearch: item?.user })
+        }
+      >
+        <Avatar
+          uri={getUserImageSrc(item?.user?.avatar)}
+          rounded={theme.radius.xxl * 100}
+        />
+      </TouchableOpacity>
       <View style={[styles.content, highlight && styles.highlight]}>
         <View
           style={{
