@@ -104,8 +104,11 @@ const PostDetail = () => {
         let notify = {
           senderId: user.id,
           receiverId: post.user.id,
-          title: commentRef.current,
-          data: JSON.stringify({ postId: post.id, commentId: res?.data?.id }),
+          title: "Đã bình luận bài viết của bạn",
+          content: JSON.stringify({
+            postId: post.id,
+            commentId: res?.data?.id,
+          }),
         };
         createNotification(notify);
       }

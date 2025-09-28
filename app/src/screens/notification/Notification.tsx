@@ -7,6 +7,7 @@ import { hp, wp } from '../../../helpers/common';
 import { theme } from '../../../constants/theme';
 import Header from '../../components/Header';
 import NotificationItem from './components/NotificationItem';
+import { supabase } from '../../../lib/supabase';
 
 const Notification = () => {
   const [notifications, setNotifications] = useState<any>([]);
@@ -15,6 +16,7 @@ const Notification = () => {
 
   useEffect(() => {
     getNotifications();
+    cleanUp();
   }, []);
 
   const getNotifications = async () => {
@@ -23,6 +25,18 @@ const Notification = () => {
     if (res.success) {
       setNotifications(res.data);
     }
+  };
+
+  const cleanUp = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.access_token) return;
+
+    await supabase.functions.invoke('delete-old-notifications', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
   };
 
   return (
@@ -38,6 +52,13 @@ const Notification = () => {
               item={item}
               key={item?.id}
               navigation={navigation}
+              onRead={(id: string) => {
+                setNotifications((prev: any[]) =>
+                  prev.map((n: any) =>
+                    n.id === id ? { ...n, is_read: true } : n,
+                  ),
+                );
+              }}
             />
           );
         })}

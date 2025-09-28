@@ -7,10 +7,17 @@ import { theme } from '../../../../constants/theme';
 import { hp } from '../../../../helpers/common';
 import { getUserImageSrc } from '../../../api/image/route';
 import { convertToDate } from '../../../../helpers/formatTime';
+import { markNotificationAsRead } from '../../../api/notification/route';
 
-const NotificationItem = ({ item, navigation }: any) => {
-  const handleClick = () => {
+const NotificationItem = ({ item, navigation, onRead }: any) => {
+  const handleClick = async () => {
     let { postId, commentId } = JSON.parse(item.content);
+
+    if (!item.is_read) {
+      await markNotificationAsRead(item.id);
+      onRead?.(item.id);
+    }
+
     navigation.navigate('PostDetail', {
       postId: postId,
       commentId: commentId,
@@ -18,7 +25,10 @@ const NotificationItem = ({ item, navigation }: any) => {
   };
   const createdAt = convertToDate(item?.created_at);
   return (
-    <TouchableOpacity style={styles.container} onPress={handleClick}>
+    <TouchableOpacity
+      style={[styles.container, item.is_read && { opacity: 0.6 }]}
+      onPress={handleClick}
+    >
       <Avatar
         uri={getUserImageSrc(item?.sender?.avatar)}
         size={hp(5)}

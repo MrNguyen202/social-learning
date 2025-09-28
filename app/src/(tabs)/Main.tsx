@@ -136,7 +136,12 @@ const Main = () => {
         <View className="flex flex-row space-x-4">
           <TouchableOpacity
             className="mx-4"
-            onPress={() => navigation.navigate('Notification')}
+            onPress={() => 
+            {
+              setNotificationCount(0);
+              navigation.navigate('Notification')
+            }
+            }
           >
             <Heart size={34} />
             {notificationCount > 0 && (
@@ -233,16 +238,17 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   pill: {
-    // position: 'absolute',
-    // right: -10,
-    // top: -4,
+    position: 'absolute',
+    right: -10,
+    top: -4,
     height: hp(2.2),
     width: hp(2.2),
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 20,
-    borderStartColor: 'red',
+    borderRadius: 200,
+    backgroundColor: 'red',
   },
+
   pillText: {
     color: 'white',
     fontSize: hp(1.2),
