@@ -7,7 +7,7 @@ type Variant = "dot" | "count" | "text";
 interface BadgeProps {
     variant?: Variant;
     size?: Size;
-    color?: string; // tailwind color class base (e.g. "red", "green", "blue", "amber")
+    color?: "red" | "green" | "blue" | "amber"; // chỉ cho phép màu có trong mapping
     text?: string | number;
     max?: number; // khi variant === "count", hiển thị max+
     rounded?: boolean;
@@ -16,14 +16,30 @@ interface BadgeProps {
     textStyle?: TextStyle;
 }
 
-/**
- * Badge component (NativeWind friendly).
- * - color: base color name (without -500). E.g. "red", "green", "blue", "amber".
- * - variant:
- *    - "dot": nhỏ, chỉ dấu chấm
- *    - "count": số lượng (sẽ hiển thị max+ nếu vượt)
- *    - "text": nhãn text nhỏ
- */
+// mapping màu -> tailwind classes
+const colorMap = {
+    red: {
+        bg: "bg-red-600",
+        border: "border-red-500",
+        text: "text-red-600",
+    },
+    green: {
+        bg: "bg-green-600",
+        border: "border-green-500",
+        text: "text-green-600",
+    },
+    blue: {
+        bg: "bg-blue-600",
+        border: "border-blue-500",
+        text: "text-blue-600",
+    },
+    amber: {
+        bg: "bg-amber-600",
+        border: "border-amber-500",
+        text: "text-amber-600",
+    },
+} as const;
+
 export default function Badge({
     variant = "count",
     size = "md",
@@ -43,22 +59,23 @@ export default function Badge({
             dot: "w-2 h-2",
         },
         md: {
-            container: "px-2 py-0.5 min-w-[22] h-5",
+            container: "px-2 py-0.5 min-w-[22] h-6",
             text: "text-xs",
             dot: "w-2.5 h-2.5",
         },
         lg: {
-            container: "px-2.5 py-0.5 min-w-[26] h-6",
+            container: "px-2.5 py-0.5 min-w-[26] h-7",
             text: "text-sm",
             dot: "w-3 h-3",
         },
     } as const;
 
     const s = sizeMap[size];
+    const { bg, border, text: textColor } = colorMap[color] ?? colorMap.red;
 
-    const bgClass = outline ? `border-${color}-500` : `bg-${color}-600`;
-    const textColorClass = outline ? `text-${color}-600` : "text-white";
-    const borderClass = outline ? `border` : "";
+    const bgClass = outline ? border : bg;
+    const textColorClass = outline ? textColor : "text-white";
+    const borderClass = outline ? "border" : "";
     const radiusClass = rounded ? "rounded-full" : "rounded";
 
     // render variants

@@ -15,7 +15,7 @@ export default function App() {
           <AppNavigation />
           <Toast />
         </NavigationContainer>
-        <ChatBotAI />
+        {/* <ChatBotAI /> */}
       </AuthProvider>
     </SafeAreaProvider>
   );

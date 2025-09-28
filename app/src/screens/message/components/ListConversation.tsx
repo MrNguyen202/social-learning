@@ -54,7 +54,7 @@ export default function ListConversation() {
 
     return (
         <>
-            <Text className="px-4 py-2 font-semibold text-lg">Tin nhắn</Text>
+            <Text className="font-semibold text-lg">Tin nhắn</Text>
             <FlatList
                 data={conversations}
                 keyExtractor={(item) => item.id}
