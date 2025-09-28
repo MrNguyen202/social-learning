@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  ScrollView,
+  StyleSheet,
 } from 'react-native';
 import Header from '../../components/Header';
 import useAuth from '../../../hooks/useAuth';
@@ -19,6 +21,14 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 import { updateUserData } from '../../api/user/route';
 import Toast from 'react-native-toast-message';
+import {
+  Camera,
+  User,
+  Phone,
+  MapPin,
+  FileText,
+  Users,
+} from 'lucide-react-native';
 
 export default function EditProfileScreen() {
   const { user, setUser } = useAuth();
@@ -167,131 +177,306 @@ export default function EditProfileScreen() {
   };
 
   return (
-    <View style={{ flex: 1, padding: 16, backgroundColor: 'white' }}>
-      <Header title="Chỉnh sửa trang cá nhân" />
-
-      {/* Avatar */}
-      <View style={{ alignItems: 'center', marginBottom: 20 }}>
-        <TouchableOpacity onPress={pickImage}>
-          <Image
-            source={{
-              uri: formData.avatar
-                ? getUserImageSrc(formData.avatar)
-                : null,
-            }}
-            style={{ width: 100, height: 100, borderRadius: 50 }}
-          />
-        </TouchableOpacity>
-        <Text style={{ marginTop: 8, color: 'blue' }}>Đổi ảnh</Text>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Header title="Chỉnh sửa trang cá nhân" />
       </View>
 
-      {/* Nickname */}
-      <Text>Biệt danh</Text>
-      <TextInput
-        style={{
-          borderWidth: 1,
-          padding: 10,
-          borderRadius: 8,
-          marginBottom: 12,
-        }}
-        value={formData.nickName}
-        onChangeText={v => handleChange('nickName', v)}
-      />
-
-      {/* Phone */}
-      <Text>Số điện thoại</Text>
-      <TextInput
-        keyboardType="phone-pad"
-        style={{
-          borderWidth: 1,
-          padding: 10,
-          borderRadius: 8,
-          marginBottom: 12,
-        }}
-        value={formData.phone}
-        onChangeText={v => handleChange('phone', v)}
-      />
-
-      {/* Address */}
-      <Text>Địa chỉ</Text>
-      <TextInput
-        style={{
-          borderWidth: 1,
-          padding: 10,
-          borderRadius: 8,
-          marginBottom: 12,
-        }}
-        value={formData.address}
-        onChangeText={v => handleChange('address', v)}
-      />
-
-      {/* Bio */}
-      <Text>Tiểu sử</Text>
-      <TextInput
-        multiline
-        numberOfLines={4}
-        style={{
-          borderWidth: 1,
-          padding: 10,
-          borderRadius: 8,
-          marginBottom: 12,
-          textAlignVertical: 'top',
-        }}
-        value={formData.bio}
-        onChangeText={v => handleChange('bio', v)}
-      />
-
-      {/* Gender */}
-      <Text>Giới tính</Text>
-      <View style={{ flexDirection: 'row', marginBottom: 12 }}>
-        {['Nam', 'Nữ', 'Khác'].map(g => (
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Avatar Section */}
+        <View style={styles.avatarSection}>
           <TouchableOpacity
-            key={g}
-            onPress={() =>
-              handleChange(
-                'gender',
-                g === 'Nam' ? true : g === 'Nữ' ? false : null,
-              )
-            }
-            style={{
-              flex: 1,
-              padding: 10,
-              borderWidth: 1,
-              marginRight: 5,
-              borderRadius: 8,
-              backgroundColor:
-                (g === 'Nam' && formData.gender === true) ||
-                (g === 'Nữ' && formData.gender === false) ||
-                (g === 'Khác' && formData.gender === null)
-                  ? '#f59e0b'
-                  : 'white',
-            }}
+            style={styles.avatarContainer}
+            onPress={pickImage}
+            activeOpacity={0.8}
           >
-            <Text style={{ textAlign: 'center' }}>{g}</Text>
+            <Image
+              source={{
+                uri: formData.avatar
+                  ? getUserImageSrc(formData.avatar)
+                  : undefined,
+              }}
+              style={styles.avatar}
+            />
+            <View style={styles.cameraOverlay}>
+              <Camera size={20} color="#fff" />
+            </View>
           </TouchableOpacity>
-        ))}
-      </View>
+          <Text style={styles.changePhotoText}>Thay đổi ảnh đại diện</Text>
+        </View>
 
-      {/* Submit */}
-      <TouchableOpacity
-        onPress={handleSubmit}
-        disabled={isLoading}
-        style={{
-          backgroundColor: '#f97316',
-          padding: 14,
-          borderRadius: 8,
-          alignItems: 'center',
-          marginTop: 10,
-        }}
-      >
-        {isLoading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text style={{ color: 'white', fontWeight: 'bold' }}>
-            Lưu thay đổi
-          </Text>
-        )}
-      </TouchableOpacity>
+        {/* Form Fields */}
+        <View style={styles.formSection}>
+          {/* Nickname */}
+          <View style={styles.inputGroup}>
+            <View style={styles.inputLabel}>
+              <User size={20} color="#667eea" />
+              <Text style={styles.labelText}>Biệt danh</Text>
+            </View>
+            <TextInput
+              style={styles.textInput}
+              value={formData.nickName}
+              onChangeText={v => handleChange('nickName', v)}
+              placeholder="Nhập biệt danh của bạn"
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
+
+          {/* Phone */}
+          <View style={styles.inputGroup}>
+            <View style={styles.inputLabel}>
+              <Phone size={20} color="#667eea" />
+              <Text style={styles.labelText}>Số điện thoại</Text>
+            </View>
+            <TextInput
+              keyboardType="phone-pad"
+              style={styles.textInput}
+              value={formData.phone}
+              onChangeText={v => handleChange('phone', v)}
+              placeholder="Nhập số điện thoại"
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
+
+          {/* Address */}
+          <View style={styles.inputGroup}>
+            <View style={styles.inputLabel}>
+              <MapPin size={20} color="#667eea" />
+              <Text style={styles.labelText}>Địa chỉ</Text>
+            </View>
+            <TextInput
+              style={styles.textInput}
+              value={formData.address}
+              onChangeText={v => handleChange('address', v)}
+              placeholder="Nhập địa chỉ của bạn"
+              placeholderTextColor="#9ca3af"
+            />
+          </View>
+
+          {/* Bio */}
+          <View style={styles.inputGroup}>
+            <View style={styles.inputLabel}>
+              <FileText size={20} color="#667eea" />
+              <Text style={styles.labelText}>Tiểu sử</Text>
+            </View>
+            <TextInput
+              multiline
+              numberOfLines={4}
+              style={[styles.textInput, styles.textArea]}
+              value={formData.bio}
+              onChangeText={v => handleChange('bio', v)}
+              placeholder="Viết vài dòng về bản thân..."
+              placeholderTextColor="#9ca3af"
+              textAlignVertical="top"
+            />
+            <Text style={styles.charCount}>
+              {formData.bio.length}/300 ký tự
+            </Text>
+          </View>
+
+          {/* Gender */}
+          <View style={styles.inputGroup}>
+            <View style={styles.inputLabel}>
+              <Users size={20} color="#667eea" />
+              <Text style={styles.labelText}>Giới tính</Text>
+            </View>
+            <View style={styles.genderContainer}>
+              {[
+                { label: 'Nam', value: true },
+                { label: 'Nữ', value: false },
+                { label: 'Khác', value: null },
+              ].map(option => (
+                <TouchableOpacity
+                  key={option.label}
+                  onPress={() => handleChange('gender', option.value)}
+                  style={[
+                    styles.genderOption,
+                    formData.gender === option.value &&
+                      styles.genderOptionActive,
+                  ]}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      styles.genderOptionText,
+                      formData.gender === option.value &&
+                        styles.genderOptionTextActive,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        {/* Submit Button */}
+        <TouchableOpacity
+          onPress={handleSubmit}
+          disabled={isLoading}
+          style={[
+            styles.submitButton,
+            isLoading && styles.submitButtonDisabled,
+          ]}
+          activeOpacity={0.8}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="white" size="small" />
+          ) : (
+            <Text style={styles.submitButtonText}>Lưu thay đổi</Text>
+          )}
+        </TouchableOpacity>
+
+        <View style={styles.bottomSpacing} />
+      </ScrollView>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  header: {
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  content: {
+    flex: 1,
+  },
+  avatarSection: {
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    paddingVertical: 32,
+    marginBottom: 16,
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: 12,
+  },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#f3f4f6',
+  },
+  cameraOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#667eea',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#ffffff',
+  },
+  changePhotoText: {
+    fontSize: 14,
+    color: '#667eea',
+    fontWeight: '600',
+  },
+  formSection: {
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+  },
+  inputGroup: {
+    marginBottom: 24,
+  },
+  inputLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  labelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginLeft: 8,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#374151',
+    backgroundColor: '#f9fafb',
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  charCount: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'right',
+    marginTop: 4,
+  },
+  genderContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  genderOption: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#f9fafb',
+    alignItems: 'center',
+  },
+  genderOptionActive: {
+    backgroundColor: '#667eea',
+    borderColor: '#667eea',
+  },
+  genderOptionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  genderOptionTextActive: {
+    color: '#ffffff',
+  },
+  submitButton: {
+    backgroundColor: '#667eea',
+    marginHorizontal: 20,
+    marginTop: 16,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#667eea',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#9ca3af',
+    elevation: 0,
+    shadowOpacity: 0,
+  },
+  submitButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  bottomSpacing: {
+    height: 32,
+  },
+});

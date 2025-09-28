@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import { Plus } from 'lucide-react-native';
 
 export default function StoryHighlights() {
   return (
@@ -14,24 +15,26 @@ export default function StoryHighlights() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 8 }}
+        contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.item}>
-          <Image
-            source={require('../../../../assets/images/default-avatar-profile-icon.jpg')}
-            style={styles.highlightAvatar}
-          />
-          <Text style={styles.label}>🌿</Text>
+        <View style={styles.highlightItem}>
+          <View style={styles.highlightCircle}>
+            <Image
+              source={require('../../../../assets/images/default-avatar-profile-icon.jpg')}
+              style={styles.highlightImage}
+            />
+          </View>
+          <Text style={styles.highlightLabel}>🌿 Thiên nhiên</Text>
         </View>
 
-        <View style={styles.item}>
-          <TouchableOpacity style={styles.addCircle}>
-            <Text style={{ fontSize: 20 }}>+</Text>
-          </TouchableOpacity>
-          <Text style={[styles.label, { color: '#888' }]}>Mới</Text>
-        </View>
+        <TouchableOpacity style={styles.highlightItem} activeOpacity={0.7}>
+          <View style={styles.addCircle}>
+            <Plus size={24} color="#9ca3af" />
+          </View>
+          <Text style={styles.addLabel}>Mới</Text>
+        </TouchableOpacity>
 
-        {/* map thêm item nếu cần */}
+        {/* Có thể thêm nhiều highlight khác */}
       </ScrollView>
     </View>
   );
@@ -39,27 +42,54 @@ export default function StoryHighlights() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 8,
+    backgroundColor: '#ffffff',
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e6e6e6',
+    borderBottomColor: '#f3f4f6',
   },
-  item: { width: 68, alignItems: 'center', marginRight: 10 },
-  highlightAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 2,
-    borderColor: '#ccc',
+  scrollContent: {
+    paddingHorizontal: 16,
+  },
+  highlightItem: {
+    width: 80,
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  highlightCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    padding: 3,
+    backgroundColor: '#f3f4f6',
+    marginBottom: 8,
+  },
+  highlightImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 29,
+  },
+  highlightLabel: {
+    fontSize: 12,
+    color: '#374151',
+    textAlign: 'center',
+    fontWeight: '500',
   },
   addCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
     borderStyle: 'dashed',
-    borderWidth: 1.5,
-    borderColor: '#bbb',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#f9fafb',
+    marginBottom: 8,
   },
-  label: { fontSize: 12, marginTop: 6, textAlign: 'center' },
+  addLabel: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
 });

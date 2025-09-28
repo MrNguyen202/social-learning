@@ -1,4 +1,3 @@
-// screens/FollowScreen.tsx
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -23,6 +22,7 @@ import { theme } from '../../../../constants/theme';
 import Header from '../../../components/Header';
 import Toast from 'react-native-toast-message';
 import { getUserImageSrc } from '../../../api/image/route';
+import { Search, Users } from 'lucide-react-native';
 
 export default function Follow() {
   const route = useRoute<any>();
@@ -118,46 +118,55 @@ export default function Follow() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: 'white' }}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Header
           title={type === 'followers' ? 'Người theo dõi' : 'Đang theo dõi'}
         />
       </View>
 
-      <View style={{ padding: 12 }}>
-        <TextInput
-          placeholder="Tìm kiếm"
-          value={keyword}
-          onChangeText={setKeyword}
-          style={styles.search}
-        />
+      <View style={styles.searchContainer}>
+        <View style={styles.searchInputContainer}>
+          <Search size={20} color="#9ca3af" />
+          <TextInput
+            placeholder="Tìm kiếm người dùng..."
+            value={keyword}
+            onChangeText={setKeyword}
+            style={styles.searchInput}
+            placeholderTextColor="#9ca3af"
+          />
+        </View>
       </View>
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 24 }} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#667eea" />
+          <Text style={styles.loadingText}>Đang tải...</Text>
+        </View>
       ) : (
         <FlatList
           data={filtered}
           keyExtractor={i => i.id}
+          showsVerticalScrollIndicator={false}
           renderItem={({ item }) => {
             const isF = followStatus[item.id] ?? false;
             return (
-              <View style={styles.row}>
+              <View style={styles.userRow}>
                 <TouchableOpacity
-                  style={{ flexDirection: 'row', alignItems: 'center' }}
+                  style={styles.userInfo}
                   onPress={() =>
                     navigation.navigate('UserFollow', { userSearch: item })
                   }
+                  activeOpacity={0.7}
                 >
                   <Avatar
                     uri={getUserImageSrc(item?.avatar)}
                     size={48}
                     rounded={theme.radius.xxl * 100}
                   />
-                  <View style={{ marginLeft: 10 }}>
-                    <Text style={{ fontWeight: '600' }}>{item.name}</Text>
-                    <Text style={{ color: '#888' }}>{item.nick_name}</Text>
+                  <View style={styles.userDetails}>
+                    <Text style={styles.userName}>{item.name}</Text>
+                    <Text style={styles.userNickname}>{item.nick_name}</Text>
                   </View>
                 </TouchableOpacity>
 
@@ -167,11 +176,15 @@ export default function Follow() {
                       isF ? handleUnfollow(item.id) : handleFollow(item.id)
                     }
                     style={[
-                      styles.followBtn,
-                      isF ? styles.unfollowBtn : styles.followBtnPrimary,
+                      styles.followButton,
+                      isF ? styles.unfollowButton : styles.followButtonPrimary,
                     ]}
+                    activeOpacity={0.8}
                   >
-                    <Text style={{ color: isF ? '#000' : '#fff' }}>
+                    <Text style={[
+                      styles.followButtonText,
+                      { color: isF ? '#374151' : '#fff' }
+                    ]}>
                       {isF
                         ? type === 'following'
                           ? 'Hủy theo dõi'
@@ -184,10 +197,14 @@ export default function Follow() {
             );
           }}
           ListEmptyComponent={
-            <Text style={{ textAlign: 'center', marginTop: 24, color: '#888' }}>
-              Không tìm thấy người dùng
-            </Text>
+            <View style={styles.emptyContainer}>
+              <Users size={48} color="#9ca3af" />
+              <Text style={styles.emptyText}>
+                {keyword ? 'Không tìm thấy người dùng' : 'Chưa có người dùng nào'}
+              </Text>
+            </View>
           }
+          contentContainerStyle={styles.listContainer}
         />
       )}
     </View>
@@ -195,22 +212,118 @@ export default function Follow() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
   },
-  title: { fontSize: 18, fontWeight: '700' },
-  search: { backgroundColor: '#f3f3f3', padding: 10, borderRadius: 8 },
-  row: {
-    padding: 12,
+  header: {
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  searchContainer: {
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 16,
+    color: '#374151',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  listContainer: {
+    flexGrow: 1,
+  },
+  userRow: {
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: 1,
-    borderBottomColor: '#f2f2f2',
+    borderBottomColor: '#f9fafb',
   },
-  followBtn: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },
-  followBtnPrimary: { backgroundColor: '#1677ff' },
-  unfollowBtn: { backgroundColor: '#eee' },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  userDetails: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 2,
+  },
+  userNickname: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  followButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  followButtonPrimary: {
+    backgroundColor: '#667eea',
+  },
+  unfollowButton: {
+    backgroundColor: '#f3f4f6',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  followButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+    marginTop: 60,
+  },
+  emptyText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+  },
 });

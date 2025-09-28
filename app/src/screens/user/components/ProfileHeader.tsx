@@ -7,6 +7,7 @@ import { getUserImageSrc } from '../../../api/image/route';
 import Avatar from '../../../components/Avatar';
 import { hp } from '../../../../helpers/common';
 import { theme } from '../../../../constants/theme';
+import { Edit3, Archive } from 'lucide-react-native';
 
 export default function ProfileHeader() {
   const navigation = useNavigation<any>();
@@ -33,19 +34,21 @@ export default function ProfileHeader() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.row}>
-        <Avatar
-          uri={getUserImageSrc(user?.avatar)}
-          size={hp(12)}
-          rounded={theme.radius.xxl * 100}
-        />
+      <View style={styles.profileSection}>
+        <View style={styles.avatarContainer}>
+          <Avatar
+            uri={getUserImageSrc(user?.avatar)}
+            size={hp(12)}
+            rounded={theme.radius.xxl * 100}
+          />
+        </View>
 
-        <View style={styles.info}>
-          <Text style={styles.nick}>{user?.nick_name}</Text>
+        <View style={styles.infoSection}>
+          <Text style={styles.nickname}>{user?.nick_name}</Text>
 
-          <View style={styles.statsRow}>
-            <View style={styles.stat}>
-              <Text style={styles.statNum}>0</Text>
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>0</Text>
               <Text style={styles.statLabel}>bài viết</Text>
             </View>
 
@@ -56,9 +59,10 @@ export default function ProfileHeader() {
                   userId: user.id,
                 })
               }
-              style={styles.stat}
+              style={styles.statItem}
+              activeOpacity={0.7}
             >
-              <Text style={styles.statNum}>{followers.length}</Text>
+              <Text style={styles.statNumber}>{followers.length}</Text>
               <Text style={styles.statLabel}>người theo dõi</Text>
             </TouchableOpacity>
 
@@ -72,72 +76,132 @@ export default function ProfileHeader() {
                   } as never,
                 )
               }
-              style={styles.stat}
+              style={styles.statItem}
+              activeOpacity={0.7}
             >
-              <Text style={styles.statNum}>{following.length}</Text>
+              <Text style={styles.statNumber}>{following.length}</Text>
               <Text style={styles.statLabel}>đang theo dõi</Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
-      <View style={styles.actions}>
+      <View style={styles.actionsContainer}>
         <TouchableOpacity
-          style={styles.button}
+          style={styles.primaryButton}
           onPress={() => navigation.navigate('EditProfile' as never)}
+          activeOpacity={0.8}
         >
-          <Text style={styles.buttonText}>Chỉnh sửa trang cá nhân</Text>
+          <Edit3 size={18} color="#667eea" />
+          <Text style={styles.primaryButtonText}>Chỉnh sửa trang cá nhân</Text>
         </TouchableOpacity>
+        
         <TouchableOpacity
-          style={styles.button}
-          //   onPress={() => navigation.navigate('Storage')}
+          style={styles.secondaryButton}
+          activeOpacity={0.8}
         >
-          <Text style={styles.buttonText}>Kho lưu trữ</Text>
+          <Archive size={18} color="#6b7280" />
+          <Text style={styles.secondaryButtonText}>Kho lưu trữ</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.bio}>
-        <Text>{user?.bio}</Text>
-      </View>
+      {user?.bio && (
+        <View style={styles.bioContainer}>
+          <Text style={styles.bioText}>{user.bio}</Text>
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e6e6e6',
+    padding: 20,
+    backgroundColor: '#ffffff',
   },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  avatar: { width: 92, height: 92, borderRadius: 92, backgroundColor: '#ddd' },
-  info: { flex: 1 },
-  nick: { fontSize: 24, marginLeft: 25 },
-  statsRow: { flexDirection: 'row', marginTop: 20 },
-  stat: { flex: 1, alignItems: 'center' },
-  statNum: { fontWeight: '700' },
-  statLabel: { fontSize: 12, color: '#888' },
-  actions: { flexDirection: 'row', marginTop: 12, gap: 8 },
-  button: {
+  profileSection: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+  },
+  avatarContainer: {
+    marginRight: 20,
+  },
+  infoSection: {
     flex: 1,
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: '#f2f2f2',
+  },
+  nickname: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 16,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  statItem: {
     alignItems: 'center',
+    flex: 1,
   },
-  buttonText: { color: '#111' },
-  bio: { marginTop: 12 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
-  modalContent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#fff',
-    padding: 12,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+  statNumber: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 4,
   },
-  modalBtn: { paddingVertical: 14, alignItems: 'center' },
-  modalBtnText: { fontSize: 16 },
+  statLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  primaryButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#f0f4ff',
+    borderWidth: 1,
+    borderColor: '#e0e7ff',
+  },
+  primaryButtonText: {
+    color: '#667eea',
+    fontWeight: '600',
+    marginLeft: 8,
+    fontSize: 14,
+  },
+  secondaryButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  secondaryButtonText: {
+    color: '#6b7280',
+    fontWeight: '600',
+    marginLeft: 8,
+    fontSize: 14,
+  },
+  bioContainer: {
+    marginTop: 8,
+  },
+  bioText: {
+    fontSize: 14,
+    color: '#374151',
+    lineHeight: 20,
+  },
 });
