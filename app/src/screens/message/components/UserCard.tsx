@@ -70,7 +70,7 @@ export default function UserCard({ conversation, onClick }: CardUserProps) {
         <>
             <TouchableOpacity
                 onPress={onClick}
-                className="flex flex-row items-center px-4 py-2 gap-3 w-full"
+                className="flex flex-row items-center w-full gap-3 my-2"
             >
                 <Avatar
                     size={hp(5.6)}
@@ -79,21 +79,21 @@ export default function UserCard({ conversation, onClick }: CardUserProps) {
                 />
                 <View className="flex-1 gap-2">
                     <View className="flex-row justify-between items-center">
-                        <Text className="text-xl flex-1" numberOfLines={1}>
+                        <Text className={`text-xl flex-1 ${unreadCount > 0 ? 'font-bold text-black' : ''}`} numberOfLines={1}>
                             {conversation.members.filter(member => member.id !== user?.id)[0]?.name}
                         </Text>
                         {unreadCount > 0 && (
-                            <Badge variant="count" text={unreadCount > 99 ? "99+" : unreadCount} />
+                            <Badge size="md" color="red" variant="count" text={unreadCount} />
                         )}
                     </View>
                     <View className="flex-row justify-between">
-                        <Text className="flex-1" numberOfLines={1}>
+                        <Text className={`flex-1 ${unreadCount > 0 ? 'font-bold text-black' : ''}`} numberOfLines={1}>
                             {conversation.lastMessage?.senderId === user?.id ? "Bạn: " : ""}
                             {typeof conversation.lastMessage?.content === "string"
                                 ? conversation.lastMessage?.content
                                 : conversation.lastMessage?.content?.text || "[Nội dung không hỗ trợ]"}
                         </Text>
-                        <Text className="text-gray-400 text-xs ml-2">
+                        <Text className={`text-gray-400 text-xs ml-2 ${unreadCount > 0 ? 'font-bold text-black' : ''}`}>
                             {convertToTime(conversation.lastMessage?.createdAt)}
                         </Text>
                     </View>

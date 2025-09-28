@@ -43,7 +43,7 @@ export default function MessageSender({ message }: MessageSenderProps) {
     return (
         <div className="flex flex-col justify-start items-end">
             <div className="bg-blue-100 text-blue-800 p-3 rounded-lg shadow-md max-w-2/3 flex justify-end">
-                <p>{message?.content.text}</p>
+                <p className="text-base wrap-break-word w-full">{message?.content.text}</p>
             </div>
         </div>
     );
