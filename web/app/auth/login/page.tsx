@@ -97,9 +97,7 @@ export default function LoginPage() {
         <span className="text-3xl ml-2 mt-1 font-bold text-gray-900 hover:text-orange-600 transition-colors duration-300">
           <Link href="/">SocialLearning</Link>
         </span>
-        {/* <div className="ml-auto">
-          <LanguageSwitcher />
-        </div> */}
+
       </div>
 
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center p-4 relative overflow-hidden">
