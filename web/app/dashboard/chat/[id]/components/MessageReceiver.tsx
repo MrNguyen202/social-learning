@@ -45,7 +45,7 @@ export default function MessageReceiver({ message }: MessageReceiverProps) {
                     <AvatarFallback className="bg-gray-300">{message?.sender?.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="bg-gray-100 text-gray-800 p-3 rounded-lg shadow-md w-full">
-                    <p className="text-base">{message.content.text}</p>
+                    <p className="text-base wrap-break-word">{message.content.text}</p>
                     <p className="text-gray-500 text-sm text-right">{formatTime(message.createdAt)}</p>
                 </div>
             </div>

@@ -17,6 +17,7 @@ interface ExerciseDetail {
     content_vi: string;
     content_en: string;
     number_sentence: number;
+    sentence_completed: number[];
 }
 
 export default function PageExerciseDetail() {
@@ -28,13 +29,6 @@ export default function PageExerciseDetail() {
     const [completedCount, setCompletedCount] = useState<number>(0);
     const [feedback, setFeedback] = useState<any>(null);
     const [progress, setProgress] = useState<any>(null);
-
-    console.log("Exercise Detail:", exerciseDetail);
-    console.log("Input Value:", user);
-    console.log("User Progress:", progress);
-    console.log("Completed Count:", completedCount);
-    console.log("Feedback:", feedback);
-
 
     const sentences = exerciseDetail?.content_vi.match(/[^.!?]+[.!?]?/g) || [];
     const parts = feedback?.highlighted.split(/(\(.*?\)|\[.*?\])/g);

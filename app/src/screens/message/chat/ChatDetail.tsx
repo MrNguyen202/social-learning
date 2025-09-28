@@ -4,11 +4,8 @@ import { getSocket } from "../../../../socket/socketClient";
 import { fetchMessages, markMessagesAsRead, sendMessage } from "../../../api/chat/message/route";
 import MessageSender from "./components/MessageSender";
 import MessageReceiver from "./components/MessageReceiver";
-import Avatar from "../../../components/Avatar";
-import { getUserImageSrc } from "../../../api/image/route";
 import { hp } from "../../../../helpers/common";
-import AvatarGroup from "../../../components/AvatarGroup";
-import { ArrowLeft, Info, Paperclip, Smile } from "lucide-react-native";
+import { ArrowLeft, Info, Paperclip, Phone, Smile, Video } from "lucide-react-native";
 import { Text, TextInput, View, TouchableOpacity, ScrollView, FlatList } from "react-native";
 import { useRoute, useNavigation } from '@react-navigation/native';
 
@@ -100,22 +97,17 @@ const ChatDetail = () => {
                 <View className="flex flex-row items-center justify-between w-full">
                     <View className="flex-row items-center gap-3">
                         <ArrowLeft size={28} className="text-gray-600" onPress={() => navigation.goBack()} />
-                        {conversation?.type === "private" ? (
-                            <Avatar size={hp(3.5)} uri={getUserImageSrc(conversation?.members.filter((member: { id: string }) => member.id !== user?.id)[0]?.avatarUrl)} />
-                        ) : (
-                            conversation?.avatar ? (
-                                <Avatar size={hp(4.5)} uri={getUserImageSrc(conversation?.avatar)} />
-                            ) : (
-                                <AvatarGroup size={hp(4.5)} members={conversation?.members || []} />
-                            )
-                        )}
                         <Text className="text-lg font-semibold text-gray-800">
                             {conversation?.type === "private"
                                 ? conversation?.members.filter((member: { id: string }) => member.id !== user?.id)[0]?.name
                                 : conversation?.name || `Bạn, ${conversation?.members.filter((m: { id: string }) => m.id !== user?.id).map((m: { name: string }) => m.name).join(", ")}`}
                         </Text>
                     </View>
-                    <Info size={28} className="text-gray-500" />
+                    <View className="flex flex-row items-center gap-6">
+                        {conversation?.type === "private" && <Phone size={24} className="text-gray-500" />}
+                        <Video size={28} className="text-gray-500" />
+                        <Info size={28} className="text-gray-500" />
+                    </View>
                 </View>
             </View>
 
@@ -124,7 +116,7 @@ const ChatDetail = () => {
                 data={messages}
                 keyExtractor={(item) => item?._id}
                 renderItem={({ item }) => (
-                    <View key={item?._id} className="mb-3">
+                    <View key={item?._id} className="mb-2">
                         {item?.senderId === user?.id ? (
                             <MessageSender message={item} />
                         ) : (

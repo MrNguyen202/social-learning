@@ -39,10 +39,10 @@ interface MessageReceiverProps {
 
 export default function MessageReceiver({ message }: MessageReceiverProps) {
     return (
-        <View className="flex justify-start">
-            <View className="flex flex-row items-center gap-2">
+        <View className="flex justify-start max-w-[80%]">
+            <View className="flex flex-row items-end gap-2">
                 <Avatar size={hp(2.5)} uri={getUserImageSrc(message?.sender?.avatar)} />
-                <View className="bg-gray-100 text-gray-800 p-3 rounded-lg shadow-md">
+                <View className="bg-gray-100 text-gray-800 p-3 rounded-lg shadow-md max-w-[90%]">
                     <Text className="text-base">{message.content.text}</Text>
                 </View>
             </View>
