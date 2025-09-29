@@ -130,9 +130,10 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     backgroundColor: '#ffffff',
-    marginTop: -12,
+    marginTop: -15,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+     overflow: 'hidden', 
   },
   tabContent: {
     flex: 1,

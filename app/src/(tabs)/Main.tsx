@@ -5,9 +5,10 @@ import {
   StyleSheet,
   ScrollView,
   FlatList,
+  SafeAreaView,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { Heart, MessageCircleMore } from 'lucide-react-native';
+import { Heart, MessageCircleMore, Sparkles } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import useAuth from '../../hooks/useAuth';
 import { getUserData } from '../api/user/route';
@@ -17,6 +18,7 @@ import { hp, wp } from '../../helpers/common';
 import { theme } from '../../constants/theme';
 import PostCard from '../screens/post/PostCard';
 import Loading from '../components/Loading';
+import LinearGradient from 'react-native-linear-gradient';
 
 var limit = 0;
 const Main = () => {
@@ -78,8 +80,6 @@ const Main = () => {
       )
       .subscribe();
 
-    // getPosts();
-
     let notificationChannel = supabase
       .channel('notifications')
       .on(
@@ -115,10 +115,9 @@ const Main = () => {
 
     if (res.success) {
       if (res.data.length < limit) {
-        setHasMore(false); // Không còn dữ liệu để tải thêm
+        setHasMore(false);
       }
       setPosts(prevPosts => {
-        // Loại bỏ các bài post trùng lặp dựa trên id
         const newPosts = res.data.filter(
           (newPost: any) => !prevPosts.some(post => post.id === newPost.id),
         );
@@ -128,72 +127,104 @@ const Main = () => {
       console.log('Error fetching posts:', res.msg);
     }
   };
-  return (
-    <View className="bg-white px-4">
-      {/* Header */}
-      <View className="flex justify-between items-center flex-row py-4">
-        <Text className="text-3xl font-semibold">Social Learning</Text>
-        <View className="flex flex-row space-x-4">
-          <TouchableOpacity
-            className="mx-4"
-            onPress={() => 
-            {
-              setNotificationCount(0);
-              navigation.navigate('Notification')
-            }
-            }
-          >
-            <Heart size={34} />
-            {notificationCount > 0 && (
-              <View style={styles.pill}>
-                <Text style={styles.pillText}>{notificationCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="mx-4"
-            onPress={() => navigation.navigate('Message')}
-          >
-            <MessageCircleMore size={34} />
-          </TouchableOpacity>
-        </View>
-      </View>
-      <ScrollView>
-        <View style={styles.grayLine}></View>
 
-        {/* Post */}
-        <View style={styles.container}>
-          <FlatList
-            scrollEnabled={false}
-            data={posts}
-            showsVerticalScrollIndicator={false}
-            keyExtractor={item => item.id.toString()}
-            renderItem={({ item }) => (
-              <PostCard
-                item={item}
-                currentUser={user}
-                navigation={navigation}
-              />
-            )}
-            onEndReached={() => {
-              getPosts();
-            }}
-            onEndReachedThreshold={0}
-            ListFooterComponent={
-              hasMore ? (
-                <View style={{ marginVertical: posts.length == 0 ? 200 : 30 }}>
-                  <Loading />
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* Header với gradient */}
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <View style={styles.headerContent}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerTitle}>Social Learning</Text>
+          </View>
+
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => {
+                setNotificationCount(0);
+                navigation.navigate('Notification');
+              }}
+              activeOpacity={0.8}
+            >
+              <Heart size={20} color="#fff" />
+              {notificationCount > 0 && (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationText}>
+                    {notificationCount}
+                  </Text>
                 </View>
-              ) : (
-                <View style={{ marginBottom: 60 }}>
-                  <Text style={styles.noPosts}>Không còn bài viết nào nữa</Text>
-                </View>
-              )
-            }
-          />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => navigation.navigate('Message')}
+              activeOpacity={0.8}
+            >
+              <MessageCircleMore size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
-      </ScrollView>
-    </View>
+      </LinearGradient>
+
+      {/* Content */}
+      <View style={styles.content}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Posts */}
+          <View style={styles.postsContainer}>
+            <FlatList
+              scrollEnabled={false}
+              data={posts}
+              showsVerticalScrollIndicator={false}
+              keyExtractor={item => item.id.toString()}
+              renderItem={({ item }) => (
+                <PostCard
+                  item={item}
+                  currentUser={user}
+                  navigation={navigation}
+                />
+              )}
+              onEndReached={() => {
+                getPosts();
+              }}
+              onEndReachedThreshold={0}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <View style={styles.emptyIconContainer}>
+                    <Sparkles size={48} color="#9ca3af" />
+                  </View>
+                  <Text style={styles.emptyTitle}>Chưa có bài viết nào</Text>
+                  <Text style={styles.emptyDescription}>
+                    Hãy bắt đầu chia sẻ những khoảnh khắc học tập của bạn!
+                  </Text>
+                </View>
+              }
+              ListFooterComponent={
+                hasMore ? (
+                  <View style={styles.loadingContainer}>
+                    <Loading />
+                  </View>
+                ) : posts.length > 0 ? (
+                  <View style={styles.endContainer}>
+                    <Text style={styles.endText}>
+                      Không còn bài viết nào nữa
+                    </Text>
+                  </View>
+                ) : null
+              }
+            />
+          </View>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -201,57 +232,122 @@ export default Main;
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: hp(2),
+    flex: 1,
+    backgroundColor: '#f9fafb',
   },
-  textInput: {
-    fontSize: 16,
-    width: '60%',
-    color: '#FFF',
+  headerGradient: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 20,
   },
-  pressableNewPost: {
-    marginHorizontal: wp(3),
-    paddingVertical: hp(1.5),
-    marginRight: wp(35),
-    width: wp(80),
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  buttonNewPost: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.grayLight,
+    flex: 1,
+  },
+  socialIconContainer: {
+    width: 40,
+    height: 40,
     borderRadius: 20,
-    width: wp(22),
-    height: hp(4),
-  },
-  textButtonNewPost: {
-    color: 'black',
-    fontSize: 12,
-    marginLeft: wp(2),
-  },
-  grayLine: {
-    height: 5,
-    backgroundColor: theme.colors.gray,
-  },
-  noPosts: {
-    fontSize: hp(2),
-    textAlign: 'center',
-    color: theme.colors.text,
-  },
-  pill: {
-    position: 'absolute',
-    right: -10,
-    top: -4,
-    height: hp(2.2),
-    width: hp(2.2),
-    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
-    borderRadius: 200,
-    backgroundColor: 'red',
+    justifyContent: 'center',
+    marginRight: 12,
   },
-
-  pillText: {
-    color: 'white',
-    fontSize: hp(1.2),
-    fontWeight: theme.fonts.bold,
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  actionButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#ef4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  notificationText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  content: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    marginTop: -12,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  postsContainer: {
+    paddingTop: 16,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+    marginTop: 60,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 8,
+  },
+  emptyDescription: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  loadingContainer: {
+    marginVertical: 30,
+    alignItems: 'center',
+  },
+  endContainer: {
+    marginBottom: 60,
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  endText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
   },
 });

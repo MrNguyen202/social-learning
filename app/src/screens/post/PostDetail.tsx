@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  SafeAreaView,
 } from 'react-native';
 import useAuth from '../../../hooks/useAuth';
 import { hp, wp } from '../../../helpers/common';
@@ -22,9 +23,8 @@ import {
 } from '../../api/post/route';
 import { createNotification } from '../../api/notification/route';
 import Loading from '../../components/Loading';
-import BackButton from '../../components/BackButton';
 import PostCard from './PostCard';
-import { Send } from 'lucide-react-native';
+import { Send, MessageSquare } from 'lucide-react-native';
 import CommentItem from './components/CommentItem';
 import Header from '../../components/Header';
 import Toast from 'react-native-toast-message';
@@ -80,7 +80,6 @@ const PostDetail = () => {
   }, []);
 
   const getPostDetails = async () => {
-    // fetch post details
     let res = await getPostById(postId);
     if (res.success) {
       setPost(res.data);
@@ -95,7 +94,6 @@ const PostDetail = () => {
       postId: post?.id,
       content: commentRef.current,
     };
-    // create comment
     setLoading(true);
     let res = await addComment(data);
     setLoading(false);
@@ -104,7 +102,7 @@ const PostDetail = () => {
         let notify = {
           senderId: user.id,
           receiverId: post.user.id,
-          title: "Đã bình luận bài viết của bạn",
+          title: 'Đã bình luận bài viết của bạn',
           content: JSON.stringify({
             postId: post.id,
             commentId: res?.data?.id,
@@ -140,7 +138,6 @@ const PostDetail = () => {
   };
 
   const onDeletePost = async (item: any) => {
-    // delete post
     if (!post) return;
     let res = await deletePost(post?.id);
     if (res.success) {
@@ -162,37 +159,42 @@ const PostDetail = () => {
 
   if (startLoading) {
     return (
-      <View style={styles.center}>
-        <Loading />
-      </View>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Loading />
+          <Text style={styles.loadingText}>Đang tải bài viết...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (!post) {
     return (
-      <View style={{ flex: 1 }}>
-        <View style={{ padding: wp(4), paddingTop: wp(8) }}>
-          <BackButton navigation={navigation} />
+      <SafeAreaView style={styles.container}>
+        <Header title="Bài viết" />
+        <View style={styles.notFoundContainer}>
+          <View style={styles.notFoundIconContainer}>
+            <MessageSquare size={48} color="#9ca3af" />
+          </View>
+          <Text style={styles.notFoundTitle}>Không tìm thấy bài đăng</Text>
+          <Text style={styles.notFoundDescription}>
+            Bài viết có thể đã bị xóa hoặc không tồn tại
+          </Text>
         </View>
-        <View
-          style={[
-            styles.center,
-            { justifyContent: 'flex-start', marginTop: 100 },
-          ]}
-        >
-          <Text style={styles.notFound}>Không tìm thấy bài đăng</Text>
-        </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Header title="Bài viết" />
+
       <ScrollView
+        style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={styles.scrollContent}
       >
+        {/* Post Card */}
         <PostCard
           item={{ ...post }}
           currentUser={user}
@@ -205,12 +207,44 @@ const PostDetail = () => {
           commentCount={commentCount}
         />
 
-        {/* comment input */}
+        {/* Comments Section */}
+        <View style={styles.commentsSection}>
+          <Text style={styles.commentsTitle}>
+            Bình luận ({post?.comments?.length || 0})
+          </Text>
+
+          {post?.comments?.length === 0 ? (
+            <View style={styles.noCommentsContainer}>
+              <MessageSquare size={32} color="#9ca3af" />
+              <Text style={styles.noCommentsText}>
+                Hãy là người đầu tiên bình luận
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.commentsList}>
+              {post?.comments?.map((comment: any) => (
+                <CommentItem
+                  key={comment?.id}
+                  item={comment}
+                  onDelete={onDeleteComment}
+                  highlight={comment.id == commentId}
+                  canDelete={
+                    user.id == comment.user.id || user.id == post.user.id
+                  }
+                />
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Comment Input */}
+      <View style={styles.inputSection}>
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.textInput}
             placeholder="Viết bình luận..."
-            placeholderTextColor={theme.colors.textLight}
+            placeholderTextColor="#9ca3af"
             multiline
             value={input}
             onChangeText={text => {
@@ -218,39 +252,30 @@ const PostDetail = () => {
               commentRef.current = text;
             }}
             editable={!loading}
+            maxLength={500}
           />
 
-          {loading ? (
-            <View style={styles.loading}>
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              (!input.trim() || loading) && styles.sendButtonDisabled,
+            ]}
+            onPress={onNewComment}
+            disabled={!input.trim() || loading}
+            activeOpacity={0.8}
+          >
+            {loading ? (
               <Loading size="small" />
-            </View>
-          ) : (
-            <TouchableOpacity style={styles.sendIcon} onPress={onNewComment}>
-              <Send color={theme.colors.dark} />
-            </TouchableOpacity>
-          )}
+            ) : (
+              <Send
+                size={18}
+                color={!input.trim() || loading ? '#9ca3af' : '#667eea'}
+              />
+            )}
+          </TouchableOpacity>
         </View>
-
-        {/* comment list */}
-        <View style={{ marginVertical: 15, gap: 17 }}>
-          {post?.comments?.map((comment: any) => (
-            <CommentItem
-              key={comment?.id}
-              item={comment}
-              onDelete={onDeleteComment}
-              highlight={comment.id == commentId}
-              canDelete={user.id == comment.user.id || user.id == post.user.id}
-            />
-          ))}
-
-          {post?.comments?.length == 0 && (
-            <Text style={{ color: theme.colors.text, marginLeft: 5 }}>
-              Hãy là người đầu tiên bình luận
-            </Text>
-          )}
-        </View>
-      </ScrollView>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -259,55 +284,125 @@ export default PostDetail;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#f9fafb',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  notFoundContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+  },
+  notFoundIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  notFoundTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 8,
+  },
+  notFoundDescription: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 100,
+  },
+  commentsSection: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 16,
+    marginTop: 8,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+  },
+  commentsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 16,
+  },
+  noCommentsContainer: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  noCommentsText: {
+    fontSize: 14,
+    color: '#9ca3af',
+    marginTop: 8,
+  },
+  commentsList: {
+    gap: 16,
+  },
+  inputSection: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
   inputContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  list: {
-    paddingHorizontal: wp(2.5),
+    alignItems: 'flex-end',
+    gap: 12,
   },
   textInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: theme.colors.grayLight,
-    borderRadius: theme.radius.lg,
-    borderCurve: 'continuous',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    fontSize: hp(1.8),
-    color: theme.colors.textDark,
-    maxHeight: hp(15),
-    backgroundColor: '#F5F5F5',
+    borderColor: '#e5e7eb',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#374151',
+    maxHeight: 100,
+    backgroundColor: '#f9fafb',
     textAlignVertical: 'top',
   },
-  sendIcon: {
+  sendButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#f0f4ff',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 0.8,
-    borderColor: theme.colors.dark,
-    borderRadius: theme.radius.lg,
-    borderCurve: 'continuous',
-    height: hp(5),
-    width: hp(5.3),
+    borderWidth: 1,
+    borderColor: '#e0e7ff',
   },
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notFound: {
-    fontSize: hp(2.5),
-    color: theme.colors.text,
-    fontWeight: theme.fonts.medium,
-  },
-  loading: {
-    height: hp(5.8),
-    width: hp(5.8),
-    justifyContent: 'center',
-    alignItems: 'center',
-    transform: [{ scale: 1.3 }],
+  sendButtonDisabled: {
+    backgroundColor: '#f9fafb',
+    borderColor: '#f3f4f6',
   },
 });
