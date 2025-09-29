@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import type React from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { getSupabaseFileUrl, getUserImageSrc } from "@/app/api/image/route";
 import { convertToDate, formatTime } from "@/utils/formatTime";
 import { CreateOrUpdatePostModal } from "./CreateOrUpdatePost";
 import { createNotification } from "@/app/api/notification/route";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 interface PostModalProps {
   isOpen: boolean;
@@ -32,6 +34,7 @@ export function PostModal({
   userId,
   highlightCommentId,
 }: PostModalProps) {
+  const { t } = useLanguage();
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [newComment, setNewComment] = useState("");
@@ -94,7 +97,7 @@ export function PostModal({
   // thêm comment
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
-    let data = {
+    const data = {
       userId: userId,
       postId: postId,
       content: newComment,
@@ -104,10 +107,10 @@ export function PostModal({
       if (res.success) {
         if (userId !== post.user.id) {
           // Gửi thông báo cho chủ bài viết nếu người bình luận không phải là họ
-          let notify = {
+          const notify = {
             senderId: userId,
             receiverId: post.user.id,
-            title: "Đã bình luận bài viết của bạn",
+            title: t("dashboard.commentedOnYourPost"),
             content: JSON.stringify({
               postId: post.id,
               commentId: res.data.id,
@@ -116,13 +119,13 @@ export function PostModal({
           createNotification(notify);
         }
         setNewComment("");
-        toast.success("Bình luận thành công", { autoClose: 1000 });
+        toast.success(t("dashboard.commentSuccess"), { autoClose: 1000 });
         // Không cần setComments vì realtime sẽ tự thêm
       } else {
-        toast.error("Bình luận thất bại", { autoClose: 1000 });
+        toast.error(t("dashboard.commentFailed"), { autoClose: 1000 });
       }
     } catch (err) {
-      toast.error("Có lỗi xảy ra khi bình luận", { autoClose: 1000 });
+      toast.error(t("dashboard.commentError"), { autoClose: 1000 });
     }
   };
 
@@ -131,15 +134,15 @@ export function PostModal({
     try {
       const res = await deleteComment(commentId);
       if (res.success) {
-        toast.success("Xóa bình luận thành công", { autoClose: 1000 });
+        toast.success(t("dashboard.deleteCommentSuccess"), { autoClose: 1000 });
         setComments((prevComments) =>
           prevComments.filter((comment) => comment.id !== commentId)
         );
       } else {
-        toast.error("Xóa bình luận thất bại", { autoClose: 1000 });
+        toast.error(t("dashboard.deleteCommentFailed"), { autoClose: 1000 });
       }
     } catch (err) {
-      toast.error("Có lỗi xảy ra khi xóa bình luận", { autoClose: 1000 });
+      toast.error(t("dashboard.deleteCommentError"), { autoClose: 1000 });
     }
   };
 
@@ -176,7 +179,9 @@ export function PostModal({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="xl:max-w-6xl xl:h-[80vh] lg:max-w-5xl lg:h-[70vh] md:max-w-4xl md:h-[60vh] sm:max-w-2xl sm:h-[60vh] max-w-xl h-[60vh] p-0 overflow-hidden">
           <DialogHeader className="hidden">
-            <DialogTitle className="hidden">Chi tiết</DialogTitle>
+            <DialogTitle className="hidden">
+              {t("dashboard.detail")}
+            </DialogTitle>
           </DialogHeader>
           <div className="flex h-full">
             {/* Post content */}
@@ -202,7 +207,7 @@ export function PostModal({
                     return (
                       <video controls className="w-full max-h-160">
                         <source src={fileUrl} type={`video/${ext}`} />
-                        Trình duyệt không hỗ trợ video.
+                        {t("dashboard.videoNotSupported")}
                       </video>
                     );
                   }
@@ -251,7 +256,7 @@ export function PostModal({
                       }}
                       className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white hover:text-white rounded-full p-4 text-[14px] cursor-pointer"
                     >
-                      Chỉnh sửa
+                      {t("dashboard.edit")}
                     </Button>
                   </div>
                 </div>
@@ -334,7 +339,7 @@ export function PostModal({
                         className="h-6 w-6 text-red-500 mt-2 cursor-pointer"
                         onClick={() => handleDeleteComment(comment.id)}
                       >
-                        <span className="text-sm">Xóa</span>
+                        <span className="text-sm">{t("dashboard.delete")}</span>
                       </Button>
                     )}
                   </div>
@@ -345,7 +350,7 @@ export function PostModal({
               <div className="p-4 border-t">
                 <div className="flex items-center space-x-3">
                   <Input
-                    placeholder="Thêm bình luận..."
+                    placeholder={t("dashboard.addComment")}
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     onKeyPress={handleKeyPress}

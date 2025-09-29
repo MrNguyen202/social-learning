@@ -16,6 +16,7 @@ import { convertToDate, formatTime } from "@/utils/formatTime";
 import { supabase } from "@/lib/supabase";
 import { getPostById } from "@/app/api/post/route";
 import { PostModal } from "./PostModal";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 interface NotificationsPanelProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export function NotificationsPanel({
   isOpen,
   onClose,
 }: NotificationsPanelProps) {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
@@ -45,7 +47,7 @@ export function NotificationsPanel({
   const getNotifications = async () => {
     try {
       setLoading(true);
-      let res = await fetchNotifications(user.id);
+      const res = await fetchNotifications(user.id);
       if (res.success) {
         setNotifications(res.data);
       }
@@ -86,7 +88,7 @@ export function NotificationsPanel({
       if (!data.postId) return;
 
       // fetch post từ backend
-      let res = await getPostById(data.postId);
+      const res = await getPostById(data.postId);
 
       setSelectedPostId(data.postId);
       setSelectedCommentId(data.commentId);
@@ -124,7 +126,9 @@ export function NotificationsPanel({
             >
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b">
-                <h2 className="font-semibold text-lg">Thông báo</h2>
+                <h2 className="font-semibold text-lg">
+                  {t("dashboard.notifications")}
+                </h2>
                 <button onClick={onClose}>
                   <X className="h-5 w-5" />
                 </button>
@@ -138,7 +142,7 @@ export function NotificationsPanel({
                   </div>
                 ) : notifications.length === 0 ? (
                   <p className="p-4 text-sm text-gray-500">
-                    Chưa có thông báo nào
+                    {t("dashboard.noNotifications")}
                   </p>
                 ) : (
                   <ul className="divide-y">

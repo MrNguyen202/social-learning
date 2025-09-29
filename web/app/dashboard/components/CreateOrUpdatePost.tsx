@@ -1,3 +1,5 @@
+"use client";
+
 import type React from "react";
 import { useEffect, useState } from "react";
 import {
@@ -16,11 +18,12 @@ import useAuth from "@/hooks/useAuth";
 import { getSupabaseFileUrl, getUserImageSrc } from "@/app/api/image/route";
 import {
   convertFileToBase64,
-  CreatePostData,
+  type CreatePostData,
   updatePost,
   createPost,
 } from "@/app/api/post/route";
 import { toast } from "react-toastify";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -35,6 +38,7 @@ export function CreateOrUpdatePostModal({
   post,
   isEdit,
 }: CreatePostModalProps) {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // Chỉ lưu một file
@@ -52,10 +56,9 @@ export function CreateOrUpdatePostModal({
     // Validate file size (max 30MB)
     const maxFileSize = 30 * 1024 * 1024; // 30MB
     if (file.size > maxFileSize) {
-      toast.error(
-        `File "${file.name}" quá lớn. Vui lòng chọn file nhỏ hơn 30MB.`,
-        { autoClose: 1000 }
-      );
+      toast.error(`${t("dashboard.fileTooLarge")}`, {
+        autoClose: 1000,
+      });
       return;
     }
 
@@ -79,7 +82,9 @@ export function CreateOrUpdatePostModal({
 
   const handleShare = async () => {
     if (!content.trim() && !selectedFile) {
-      toast.error("Vui lòng nhập nội dung hoặc chọn file");
+      toast.error(`${t("dashboard.pleaseEnterContentOrFile")}`, {
+        autoClose: 1000,
+      });
       return;
     }
 
@@ -100,13 +105,17 @@ export function CreateOrUpdatePostModal({
       const result = await createPost(postData);
 
       if (result.success) {
-        toast.success("Đã tạo bài viết thành công!", { autoClose: 1000 });
+        toast.success(`${t("dashboard.postCreatedSuccess")}`, {
+          autoClose: 1000,
+        });
         handleClose();
       } else {
-        toast.error("Có lỗi xảy ra khi tạo bài viết", { autoClose: 1000 });
+        toast.error(`${t("dashboard.postCreationFailed")}`, {
+          autoClose: 1000,
+        });
       }
     } catch (error: any) {
-      toast.error("Có lỗi xảy ra khi tạo bài viết", { autoClose: 1000 });
+      toast.error(`${t("dashboard.postCreationFailed")}`, { autoClose: 1000 });
     } finally {
       setIsLoading(false);
     }
@@ -114,7 +123,9 @@ export function CreateOrUpdatePostModal({
 
   const handleUpdate = async () => {
     if (!content.trim() && !selectedFile) {
-      toast.error("Vui lòng nhập nội dung hoặc chọn file", { autoClose: 1000 });
+      toast.error(`${t("dashboard.pleaseEnterContentOrFile")}`, {
+        autoClose: 1000,
+      });
       return;
     }
 
@@ -140,17 +151,23 @@ export function CreateOrUpdatePostModal({
         userId: user?.id,
         file: { fileData, originalName },
       };
-      
+
       const res = await updatePost(postData);
 
       if (res.success) {
-        toast.success("Đã cập nhật bài viết thành công!", { autoClose: 1000 });
+        toast.success(`${t("dashboard.postUpdateSuccess")}`, {
+          autoClose: 1000,
+        });
         handleClose();
       } else {
-        toast.error("Có lỗi xảy ra khi cập nhật bài viết", { autoClose: 1000 });
+        toast.error(`${t("dashboard.postUpdateFailed")}`, {
+          autoClose: 1000,
+        });
       }
     } catch (error: any) {
-      toast.error("Có lỗi xảy ra khi cập nhật bài viết", { autoClose: 1000 });
+      toast.error(`${t("dashboard.postUpdateFailed")}`, {
+        autoClose: 1000,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -217,8 +234,8 @@ export function CreateOrUpdatePostModal({
             )}
             <DialogTitle className="text-lg font-semibold">
               {step === 1 && !isEdit
-                ? "Tạo bài viết mới"
-                : "Chỉnh sửa bài viết"}
+                ? t("dashboard.createNewPost")
+                : t("dashboard.editPost")}
             </DialogTitle>
           </div>
           <div className="flex items-center space-x-2">
@@ -230,7 +247,9 @@ export function CreateOrUpdatePostModal({
                     disabled={isLoading}
                     className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white hover:text-white rounded-full px-6 mr-[30px] text-[14px] cursor-pointer"
                   >
-                    {isLoading ? "Đang cập nhật..." : "Cập nhật"}
+                    {isLoading
+                      ? t("dashboard.updating")
+                      : t("dashboard.update")}
                   </Button>
                 ) : (
                   <Button
@@ -238,7 +257,7 @@ export function CreateOrUpdatePostModal({
                     disabled={isLoading}
                     className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white hover:text-white rounded-full px-6 mr-[30px] text-[14px] cursor-pointer"
                   >
-                    {isLoading ? "Đang đăng..." : "Chia sẻ"}
+                    {isLoading ? t("dashboard.posting") : t("dashboard.share")}
                   </Button>
                 )}
               </>
@@ -253,14 +272,16 @@ export function CreateOrUpdatePostModal({
                 <div className="w-24 h-24 mx-auto bg-gray-100 rounded-full flex items-center justify-center">
                   <Upload className="h-12 w-12 text-gray-400" />
                 </div>
-                <h3 className="text-xl font-medium">Chọn file để đăng</h3>
+                <h3 className="text-xl font-medium">
+                  {t("dashboard.selectFileToPost")}
+                </h3>
                 <p className="text-gray-500">
-                  Ảnh, video, tài liệu Word, PDF, Excel hoặc chỉ viết văn bản
+                  {t("dashboard.fileDescription")}
                 </p>
 
                 <div className="space-y-3 mt-6">
                   <label className="py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium text-center p-8 rounded-xl cursor-pointer block">
-                    Tải file lên
+                    {t("dashboard.uploadFile")}
                     <Input
                       id="file-upload"
                       type="file"
@@ -269,19 +290,21 @@ export function CreateOrUpdatePostModal({
                       onChange={handleFileSelect}
                     />
                   </label>
-                  <div className="text-sm text-gray-500 mt-8 mb-4">hoặc</div>
+                  <div className="text-sm text-gray-500 mt-8 mb-4">
+                    {t("or")}
+                  </div>
                   <Button
                     variant="outline"
                     onClick={proceedToNextStep}
                     className="border-gray-300 bg-transparent rounded-xl cursor-pointer"
                   >
-                    Tạo bài viết chỉ có văn bản
+                    {t("dashboard.createTextOnlyPost")}
                   </Button>
                 </div>
 
                 {selectedFile && (
                   <div className="mt-6 space-y-3">
-                    <h4 className="font-medium">File đã chọn:</h4>
+                    <h4 className="font-medium">{t("selectedFile")}</h4>
                     <div className="space-y-2 max-h-60 overflow-y-auto">
                       <div className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
                         {getFileIcon(selectedFile)}
@@ -305,7 +328,7 @@ export function CreateOrUpdatePostModal({
                       onClick={proceedToNextStep}
                       className="bg-blue-500 hover:bg-blue-600 text-white w-full rounded-xl cursor-pointer"
                     >
-                      Tiếp theo
+                      {t("dashboard.next")}
                     </Button>
                   </div>
                 )}
@@ -372,7 +395,9 @@ export function CreateOrUpdatePostModal({
                 ) : (
                   <div className="text-center space-y-4">
                     <FileText className="h-16 w-16 mx-auto text-gray-400" />
-                    <p className="text-lg text-gray-600">Bài viết văn bản</p>
+                    <p className="text-lg text-gray-600">
+                      {t("dashboard.textPost")}
+                    </p>
                   </div>
                 )}
               </div>
@@ -387,7 +412,7 @@ export function CreateOrUpdatePostModal({
 
                 <div className="flex-1 p-4">
                   <Textarea
-                    placeholder="Viết nội dung..."
+                    placeholder={t("dashboard.writeContent")}
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     className="border-none resize-none focus:ring-0 p-0 text-sm"
@@ -398,7 +423,7 @@ export function CreateOrUpdatePostModal({
                   {selectedFile && (
                     <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                       <p className="text-xs text-gray-600 mb-2">
-                        1 file đính kèm:
+                        1 {t("dashboard.attachedFile")}
                       </p>
                       <div className="text-xs text-gray-500 flex items-center space-x-1">
                         <div className="w-4 h-4 flex-shrink-0 mr-6">

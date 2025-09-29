@@ -5,6 +5,7 @@ import { PostCard } from "./PostCard";
 import { useEffect, useState, useRef } from "react";
 import { fetchPosts } from "@/app/api/post/route";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 interface Post {
   id: number;
@@ -21,6 +22,7 @@ interface Post {
 }
 
 export function MainFeed() {
+  const { t } = useLanguage();
   const { user, loading } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loadingPost, setLoadingPost] = useState(false);
@@ -113,9 +115,9 @@ export function MainFeed() {
           onDelete={handleRemovePostFromList}
         />
       ))}
-      {loadingPost && <p className="text-center text-gray-500">Đang tải...</p>}
+      {loadingPost && <p className="text-center text-gray-500">{t("dashboard.loading")}</p>}
       {posts.length === 0 && !loadingPost && (
-        <p className="text-center text-gray-500">Chưa có bài viết nào</p>
+        <p className="text-center text-gray-500">{t("dashboard.noPosts")}</p>
       )}
       {posts.length > 0 && !loadingPost && hasMorePosts && (
         <div className="text-center mt-4">
@@ -124,12 +126,12 @@ export function MainFeed() {
             className="px-4 py-2 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white hover:text-white rounded-full p-6 text-[16px] cursor-pointer"
             disabled={loadingPost}
           >
-            Tải thêm
+            {t("dashboard.loadMore")}
           </button>
         </div>
       )}
       {posts.length > 0 && !loadingPost && !hasMorePosts && (
-        <div className="text-center mt-4 text-gray-500">Không còn bài viết</div>
+        <div className="text-center mt-4 text-gray-500">{t("dashboard.noMorePosts")}</div>
       )}
     </div>
   );

@@ -148,7 +148,7 @@ export function LeftSideBarHiddenLabel() {
     // Xử lý sau khi đăng xuất
     localStorage.removeItem("selectedConversation");
     setSelectedConversation(null);
-    toast.success(t("sidebar.logoutSuccess"), { autoClose: 1000 });
+    toast.success(t("dashboard.logoutSuccess"), { autoClose: 1000 });
     router.push("/");
   };
 
@@ -236,26 +236,26 @@ export function LeftSideBarHiddenLabel() {
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end">
-              <DropdownMenuLabel>{t("sidebar.myAccount")}</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("dashboard.myAccount")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={() => handleMenuClick("/dashboard/profile")}
               >
-                {t("sidebar.profile")}
+                {t("dashboard.profile")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={() => handleMenuClick("/dashboard/settings")}
               >
-                {t("sidebar.settings")}
+                {t("dashboard.settings")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={handleLogout}
               >
-                {t("sidebar.logout")}
+                {t("dashboard.logout")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

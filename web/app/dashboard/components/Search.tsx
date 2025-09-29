@@ -4,10 +4,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { searchUsers } from "@/app/api/user/route";
 import { getUserImageSrc } from "@/app/api/image/route";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 interface SearchPanelProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface SearchPanelProps {
 }
 
 export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
+  const { t } = useLanguage();
   const [keyword, setKeyword] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,7 +68,7 @@ export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="font-semibold text-lg">Tìm kiếm</h2>
+              <h2 className="font-semibold text-lg">{t("dashboard.search")}</h2>
               <button onClick={onClose}>
                 <X className="h-5 w-5" />
               </button>
@@ -75,7 +77,7 @@ export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
             {/* Input */}
             <div className="p-4">
               <Input
-                placeholder="Tìm kiếm theo tên hoặc biệt danh"
+                placeholder={t("dashboard.searchByNameOrNickname")}
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
               />
@@ -84,10 +86,14 @@ export function SearchPanel({ isOpen, onClose }: SearchPanelProps) {
             {/* Results */}
             <div className="flex-1 overflow-y-auto p-2">
               {loading && (
-                <p className="text-sm text-gray-500 px-2">Đang tìm...</p>
+                <p className="text-sm text-gray-500 px-2">
+                  {t("dashboard.searching")}
+                </p>
               )}
               {!loading && results.length === 0 && keyword && (
-                <p className="text-sm text-gray-500 px-2">Không tìm thấy</p>
+                <p className="text-sm text-gray-500 px-2">
+                  {t("dashboard.noResults")}
+                </p>
               )}
               <ul className="space-y-3">
                 {results.map((user) => (
