@@ -5,8 +5,10 @@ import { useChat } from "@ai-sdk/react";
 import { Loader2, MessageCircle, MessageCircleX, Send, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 function ChatBotAI() {
+  const { t } = useLanguage();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const chatIconRef = useRef<HTMLButtonElement>(null);
 
@@ -64,13 +66,13 @@ function ChatBotAI() {
             <div className="rounded-xl bg-white shadow-xl">
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200">
-                <h2 className="text-lg font-semibold">Chat với AI</h2>
+                <h2 className="text-lg font-semibold">{t("chatbot.title")}</h2>
                 <button
                   onClick={toggleChat}
                   className="text-gray-500 hover:text-gray-700 p-2 cursor-pointer"
                 >
                   <X className="size-5" />
-                  <span className="sr-only">Đóng chat</span>
+                  <span className="sr-only">{t("chatbot.closeChat")}</span>
                 </button>
               </div>
 
@@ -79,7 +81,7 @@ function ChatBotAI() {
                 <div className="overflow-y-auto h-[300px] pr-2">
                   {messages?.length === 0 && (
                     <div className="mt-32 text-gray-500 flex items-center justify-center gap-3">
-                      Chưa có câu hỏi.
+                      {t("chatbot.noMessages")}
                     </div>
                   )}
                   {messages?.map((message, index) => (
@@ -172,7 +174,7 @@ function ChatBotAI() {
                     value={input}
                     onChange={handleInputChange}
                     className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-black-500"
-                    placeholder="Nhập câu hỏi của bạn..."
+                    placeholder={t("chatbot.inputPlaceholder")}
                   />
                   <button
                     type="submit"

@@ -5,9 +5,15 @@ import { createContext, useContext, useEffect, useState } from "react";
 // Import từng module
 import enLayout from "@/translate/en/layout.json";
 import enAuth from "@/translate/en/auth.json";
+import enSideBar from "@/translate/en/sidebar.json";
+import enLevels from "@/translate/en/levels.json";
+import enChatbot from "@/translate/en/chatbot.json";
 
 import viLayout from "@/translate/vi/layout.json";
 import viAuth from "@/translate/vi/auth.json";
+import viSideBar from "@/translate/vi/sidebar.json";
+import viLevels from "@/translate/vi/levels.json";
+import viChatbot from "@/translate/vi/chatbot.json";
 
 type Language = "en" | "vi";
 
@@ -15,10 +21,16 @@ const resources = {
   en: {
     layout: enLayout,
     auth: enAuth,
+    chatbot: enChatbot,
+    sidebar: enSideBar,
+    levels: enLevels,
   },
   vi: {
     layout: viLayout,
     auth: viAuth,
+    chatbot: viChatbot,
+    sidebar: viSideBar,
+    levels: viLevels,
   },
 };
 
