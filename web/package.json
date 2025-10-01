@@ -36,6 +36,7 @@
     "next": "15.3.4",
     "next-intl": "^4.3.9",
     "react": "^19.0.0",
+    "react-confetti": "^6.4.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
     "react-speech-recognition": "^4.0.1",

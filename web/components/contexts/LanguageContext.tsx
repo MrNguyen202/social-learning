@@ -7,11 +7,13 @@ import enLayout from "@/translate/en/layout.json";
 import enAuth from "@/translate/en/auth.json";
 import enChatbot from "@/translate/en/chatbot.json";
 import enDashboard from "@/translate/en/dashboard.json";
+import enLearning from "@/translate/en/learning.json";
 
 import viLayout from "@/translate/vi/layout.json";
 import viAuth from "@/translate/vi/auth.json";
 import viChatbot from "@/translate/vi/chatbot.json";
 import viDashboard from "@/translate/vi/dashboard.json";
+import viLearning from "@/translate/vi/learning.json";
 
 type Language = "en" | "vi";
 
@@ -21,12 +23,14 @@ const resources = {
     auth: enAuth,
     chatbot: enChatbot,
     dashboard: enDashboard,
+    learning: enLearning,
   },
   vi: {
     layout: viLayout,
     auth: viAuth,
     chatbot: viChatbot,
     dashboard: viDashboard,
+    learning: viLearning,
   },
 };
 

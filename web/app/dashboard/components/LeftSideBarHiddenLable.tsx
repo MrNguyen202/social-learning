@@ -72,7 +72,7 @@ const learningNavItems = [
 ];
 
 export function LeftSideBarHiddenLabel() {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const { user } = useAuth();
   const router = useRouter();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -154,6 +154,10 @@ export function LeftSideBarHiddenLabel() {
 
   const handleClickLogo = () => {
     router.push("/");
+  };
+
+  const toggleLanguage = () => {
+    setLanguage(language === "vi" ? "en" : "vi");
   };
 
   return (
@@ -246,9 +250,9 @@ export function LeftSideBarHiddenLabel() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
-                onClick={() => handleMenuClick("/dashboard/settings")}
+                onClick={() => toggleLanguage()}
               >
-                {t("dashboard.settings")}
+                {language === "vi" ? "Tiếng Anh" : "Vietnamese"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

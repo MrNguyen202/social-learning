@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +19,8 @@ import {
 } from "@/app/api/follow/route";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 interface User {
   id: string;
@@ -43,12 +45,12 @@ export default function FollowModal({
   data,
 }: UserListModalProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [keyword, setKeyword] = useState("");
   const [followStatus, setFollowStatus] = useState<Record<string, boolean>>({});
   const [isLoadingAll, setIsLoadingAll] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-  // Khi mở modal -> check trạng thái follow
   useEffect(() => {
     if (isOpen && data.length > 0 && currentUserId) {
       const fetchStatus = async () => {
@@ -107,13 +109,18 @@ export default function FollowModal({
             <DialogTitle className="text-center text-lg font-semibold">
               {title}
             </DialogTitle>
-            <div className="border-t pt-3 px-4">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="border-t pt-3 px-4"
+            >
               <Input
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                placeholder="Tìm kiếm"
+                placeholder={t("dashboard.search")}
               />
-            </div>
+            </motion.div>
           </DialogHeader>
 
           <ScrollArea className="h-[50vh]">
@@ -123,71 +130,84 @@ export default function FollowModal({
               </div>
             ) : (
               <div className="divide-y">
-                {filteredData.length > 0 ? (
-                  filteredData.map((u) => {
-                    const isFollowing = followStatus[u.id] ?? false;
+                <AnimatePresence>
+                  {filteredData.length > 0 ? (
+                    filteredData.map((u, index) => {
+                      const isFollowing = followStatus[u.id] ?? false;
 
-                    return (
-                      <div
-                        key={u.id}
-                        className="flex items-center justify-between p-3 hover:bg-gray-50"
-                      >
-                        <div
-                          className="flex items-center gap-3 cursor-pointer"
-                          onClick={() =>
-                            router.push(`/dashboard/profile/${u.nick_name}`)
-                          }
+                      return (
+                        <motion.div
+                          key={u.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 20 }}
+                          transition={{ delay: index * 0.05 }}
+                          className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors"
                         >
-                          <Avatar className="w-12 h-12">
-                            <AvatarImage
-                              src={getUserImageSrc(u.avatar)}
-                              alt={u.name}
-                            />
-                          </Avatar>
-                          <div className="flex flex-col">
-                            <span className="font-medium text-sm">
-                              {u.name}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {u.nick_name}
-                            </span>
+                          <div
+                            className="flex items-center gap-3 cursor-pointer"
+                            onClick={() =>
+                              router.push(`/dashboard/profile/${u.nick_name}`)
+                            }
+                          >
+                            <Avatar className="w-12 h-12">
+                              <AvatarImage
+                                src={
+                                  getUserImageSrc(u.avatar) ||
+                                  "/placeholder.svg"
+                                }
+                                alt={u.name}
+                              />
+                            </Avatar>
+                            <div className="flex flex-col">
+                              <span className="font-medium text-sm">
+                                {u.name}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {u.nick_name}
+                              </span>
+                            </div>
                           </div>
-                        </div>
 
-                        {isFollowing ? (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => setSelectedUserId(u.id)}
-                            className="bg-gray-200 hover:bg-gray-300 text-black cursor-pointer"
-                          >
-                            Xóa
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleFollowBack(u.id)}
-                            className="bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
-                          >
-                            Theo dõi lại
-                          </Button>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  <p className="text-center text-muted-foreground py-6">
-                    Không tìm thấy người dùng
-                  </p>
-                )}
+                          {isFollowing ? (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => setSelectedUserId(u.id)}
+                              className="bg-gray-200 hover:bg-gray-300 text-black cursor-pointer"
+                            >
+                              {t("dashboard.remove")}
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleFollowBack(u.id)}
+                              className="bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
+                            >
+                              {t("dashboard.follow")}
+                            </Button>
+                          )}
+                        </motion.div>
+                      );
+                    })
+                  ) : (
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-center text-muted-foreground py-6"
+                    >
+                      {t("dashboard.noUsersFound")}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
             )}
           </ScrollArea>
         </DialogContent>
       </Dialog>
 
-      {/* Modal xác nhận hủy theo dõi */}
+      {/* Unfollow confirmation modal */}
       <Dialog
         open={!!selectedUserId}
         onOpenChange={() => setSelectedUserId(null)}
@@ -195,24 +215,24 @@ export default function FollowModal({
         <DialogContent className="sm:max-w-md rounded-2xl p-0">
           <DialogHeader className="p-4 pb-2">
             <DialogTitle className="text-center text-lg">
-              Xác nhận hủy theo dõi
+              {t("dashboard.confirmUnfollow")}
             </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col divide-y">
             <button
-              className="py-3 text-red-600 border-t font-medium hover:bg-gray-50 text-center cursor-pointer"
+              className="py-3 text-red-600 border-t font-medium hover:bg-gray-50 text-center cursor-pointer transition-colors"
               onClick={() => {
                 if (selectedUserId) handleUnfollow(selectedUserId);
                 setSelectedUserId(null);
               }}
             >
-              Hủy theo dõi
+              {t("dashboard.unfollow")}
             </button>
             <button
-              className="py-3 font-medium cursor-pointer"
+              className="py-3 font-medium cursor-pointer hover:bg-gray-50 transition-colors"
               onClick={() => setSelectedUserId(null)}
             >
-              Đóng
+              {t("dashboard.close")}
             </button>
           </div>
         </DialogContent>

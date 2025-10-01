@@ -40,7 +40,7 @@ import { toast } from "react-toastify";
 
 export function LeftSidebar() {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const router = useRouter();
   const pathname = usePathname(); // Get the current path
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -178,6 +178,10 @@ export function LeftSidebar() {
     router.push("/");
   };
 
+  const toggleLanguage = () => {
+    setLanguage(language === "vi" ? "en" : "vi");
+  };
+
   return (
     <>
       <div
@@ -309,9 +313,9 @@ export function LeftSidebar() {
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50 transition-all duration-200"
-              onClick={() => handleMenuClick("/dashboard/settings")}
+              onClick={() => toggleLanguage()}
             >
-              {t("dashboard.settings")}
+              {language === "vi" ? "Tiếng Anh" : "Vietnamese"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

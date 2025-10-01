@@ -187,7 +187,9 @@ const PostDetail = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="Bài viết" />
+      <View style={{ marginHorizontal: wp(3) }}>
+        <Header title="Bài viết" />
+      </View>
 
       <ScrollView
         style={styles.scrollView}

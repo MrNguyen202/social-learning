@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -17,7 +17,6 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -28,6 +27,7 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { convertToDateTime } from "@/utils/formatTime";
 import { getUserImageSrc, uploadFile } from "@/app/api/image/route";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 const getGenderDisplay = (gender: boolean | null | undefined): string => {
   if (gender === true) return "Nam";
@@ -42,6 +42,7 @@ const getGenderValue = (value: string): boolean | null => {
 };
 
 export default function ProfileEditPage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const { user, setUser } = useAuth();
 
@@ -116,7 +117,7 @@ export default function ProfileEditPage() {
         const res = await uploadFile("profiles", file, "image");
 
         if (res?.success === false) {
-          toast.error(res.msg || "Upload thất bại", { autoClose: 1500 });
+          toast.error(res.msg || "Upload Failed", { autoClose: 1500 });
           return;
         }
 
@@ -127,7 +128,7 @@ export default function ProfileEditPage() {
 
         setOpen(false);
       } catch (err) {
-        toast.error("Đã xảy ra lỗi khi upload ảnh.", { autoClose: 1500 });
+        toast.error("Upload Failed", { autoClose: 1500 });
       } finally {
         setIsLoading(false);
       }
@@ -151,15 +152,13 @@ export default function ProfileEditPage() {
 
       // Validate phone
       if (formData.phone && !/^[0-9]{10}$/.test(formData.phone)) {
-        toast.error("Số điện thoại không hợp lệ.", { autoClose: 1500 });
+        toast.error(t("dashboard.invalidPhoneNumber"), { autoClose: 1500 });
         return;
       }
 
       // Validate bio
       if (formData.bio && formData.bio.length > 300) {
-        toast.error("Tiểu sử không được vượt quá 300 ký tự.", {
-          autoClose: 1500,
-        });
+        toast.error(t("dashboard.invalidBio"), { autoClose: 1500 });
         return;
       }
 
@@ -167,7 +166,7 @@ export default function ProfileEditPage() {
       if (formData.dob) {
         const dobDate = new Date(formData.dob);
         if (isNaN(dobDate.getTime())) {
-          toast.error("Ngày sinh không hợp lệ.", { autoClose: 1500 });
+          toast.error(t("dashboard.invalidDateOfBirth"), { autoClose: 1500 });
           return;
         }
       }
@@ -190,7 +189,7 @@ export default function ProfileEditPage() {
         updatedUser.avatar = formData.avatar;
 
       if (Object.keys(updatedUser).length === 0) {
-        toast.info("Không có thay đổi nào để cập nhật.", { autoClose: 1500 });
+        toast.info(t("dashboard.noChanges"), { autoClose: 1500 });
         router.push("/dashboard/profile");
         return;
       }
@@ -199,16 +198,16 @@ export default function ProfileEditPage() {
 
       try {
         const res = await updateUserData(user?.id, updatedUser);
-        toast.success("Cập nhật thành công!", { autoClose: 1500 });
+        toast.success(t("dashboard.updateSuccess"), { autoClose: 1500 });
         setUser({ ...user, ...updatedUser });
         router.push("/dashboard/profile");
       } catch (err: any) {
         if (err.message === "Đã tồn tại nickname") {
-          toast.warn("Biệt danh đã tồn tại", {
+          toast.warn(t("dashboard.nicknameExists"), {
             autoClose: 1500,
           });
         } else {
-          toast.error("Đã xảy ra lỗi.", { autoClose: 1500 });
+          toast.error(t("dashboard.updateFailed"), { autoClose: 1500 });
         }
       } finally {
         setIsLoading(false);
@@ -246,7 +245,9 @@ export default function ProfileEditPage() {
 
   return (
     <div className="mx-auto w-full max-w-md pt-6 sm:max-w-2xl lg:max-w-3xl max-xl:ml-10 max-lg:mx-auto max-md:ml-5 max-sm:ml-5 px-4">
-      <h1 className="text-xl font-bold mb-6">Chỉnh sửa trang cá nhân</h1>
+      <h1 className="text-xl font-bold mb-6">
+        {t("dashboard.editProfileTitle")}
+      </h1>
 
       {/* Avatar */}
       <div className="bg-gray-200 rounded-3xl">
@@ -268,13 +269,13 @@ export default function ProfileEditPage() {
             <DialogContent className="sm:max-w-md rounded-2xl p-0">
               <DialogHeader className="p-4 pb-2">
                 <DialogTitle className="text-center text-lg">
-                  Thay đổi ảnh đại diện
+                  {t("dashboard.changePhoto")}
                 </DialogTitle>
               </DialogHeader>
 
               <div className="flex flex-col divide-y">
                 <label className="py-3 text-blue-600 border-t font-medium hover:bg-gray-50 text-center cursor-pointer">
-                  Tải ảnh lên
+                  {t("dashboard.selectPhoto")}
                   <input
                     type="file"
                     accept="image/*"
@@ -286,11 +287,11 @@ export default function ProfileEditPage() {
                   className="py-3 text-red-600 font-medium hover:bg-gray-50 cursor-pointer"
                   onClick={handleRemove}
                 >
-                  Gỡ ảnh hiện tại
+                  {t("dashboard.removeCurrentPhoto")}
                 </button>
                 <DialogClose asChild>
                   <button className="py-3 font-medium cursor-pointer">
-                    Hủy
+                    {t("dashboard.cancel")}
                   </button>
                 </DialogClose>
               </div>
@@ -304,7 +305,7 @@ export default function ProfileEditPage() {
               onClick={() => setOpen(true)}
               className="mt-2 cursor-pointer bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600"
             >
-              Đổi ảnh
+              {t("dashboard.changePhoto")}
             </Button>
           </div>
         </div>
@@ -315,26 +316,26 @@ export default function ProfileEditPage() {
         {/* Nickname */}
         <div>
           <Label htmlFor="nick_name" className="mb-2">
-            Biệt danh
+            {t("dashboard.nickname")}
           </Label>
           <Input
             id="nick_name"
             value={formData.nickName}
             onChange={handleInputChange("nickName")}
-            placeholder="Nhập biệt danh"
+            placeholder={t("dashboard.nicknamePlaceholder")}
           />
         </div>
 
         {/* Phone */}
         <div>
           <Label htmlFor="phone" className="mb-2">
-            Số điện thoại
+            {t("dashboard.phoneNumber")}
           </Label>
           <Input
             id="phone"
             value={formData.phone}
             onChange={handleInputChange("phone")}
-            placeholder="Nhập số điện thoại"
+            placeholder={t("dashboard.phonePlaceholder")}
             type="tel"
           />
         </div>
@@ -342,26 +343,26 @@ export default function ProfileEditPage() {
         {/* Address */}
         <div>
           <Label htmlFor="address" className="mb-2">
-            Địa chỉ
+            {t("dashboard.address")}
           </Label>
           <Input
             id="address"
             value={formData.address}
             onChange={handleInputChange("address")}
-            placeholder="Nhập địa chỉ"
+            placeholder={t("dashboard.addressPlaceholder")}
           />
         </div>
 
         {/* Bio */}
         <div>
           <Label htmlFor="bio" className="mb-2">
-            Tiểu sử
+            {t("dashboard.bio")}
           </Label>
           <Textarea
             id="bio"
             value={formData.bio}
             onChange={handleInputChange("bio")}
-            placeholder="Giới thiệu về bạn..."
+            placeholder={t("dashboard.bioPlaceholder")}
             className="resize-none"
           />
         </div>
@@ -369,16 +370,16 @@ export default function ProfileEditPage() {
         {/* Gender */}
         <div>
           <Label htmlFor="gender" className="mb-2">
-            Giới tính
+            {t("dashboard.gender")}
           </Label>
           <Select value={genderDisplayValue} onValueChange={handleGenderChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Chọn giới tính" />
+              <SelectValue placeholder={t("dashboard.genderPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Nam">Nam</SelectItem>
-              <SelectItem value="Nữ">Nữ</SelectItem>
-              <SelectItem value="null">Không muốn tiết lộ</SelectItem>
+              <SelectItem value="Nam">{t("dashboard.male")}</SelectItem>
+              <SelectItem value="Nữ">{t("dashboard.female")}</SelectItem>
+              <SelectItem value="null">{t("dashboard.other")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -386,7 +387,7 @@ export default function ProfileEditPage() {
         {/* Date of birth */}
         <div>
           <Label htmlFor="dob" className="mb-2">
-            Ngày sinh
+            {t("dashboard.dateOfBirth")}
           </Label>
           <Input
             id="dob"
@@ -403,7 +404,7 @@ export default function ProfileEditPage() {
             disabled={isLoading}
             className="cursor-pointer bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 disabled:opacity-50"
           >
-            {isLoading ? "Đang lưu..." : "Lưu thay đổi"}
+            {isLoading ? t("dashboard.saving") : t("dashboard.saveChanges")}
           </Button>
         </div>
       </form>
