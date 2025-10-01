@@ -173,5 +173,15 @@
   "followBack": "Theo dõi lại",
   "unfollowSuccess": "Đã bỏ theo dõi",
   "followFailed": "Theo dõi thất bại",
-  "unfollowFailed": "Bỏ theo dõi thất bại"
+  "unfollowFailed": "Bỏ theo dõi thất bại",
+  "noUsers": "Không có người dùng nào",
+
+  "title": "Gợi ý bạn bè",
+  "loginRequired": "Vui lòng đăng nhập để xem gợi ý bạn bè",
+  "loadError": "Không thể tải gợi ý bạn bè",
+  "slowConnection": "Kết nối quá chậm, vui lòng thử lại",
+  "retry": "Thử lại",
+  "noSuggestionsHint": "Hãy thử follow một số người để có thêm gợi ý bạn chung, hoặc nâng cấp level của bạn.",
+  "matchingCriteria": "tiêu chí phù hợp",
+  "addFriend": "Kết bạn"
 }

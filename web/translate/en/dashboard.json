@@ -170,8 +170,17 @@
   "nicknameExists": "Nickname already exists",
 
   "followSuccess": "Followed",
-  "followBack": "Follow back",
   "unfollowSuccess": "Unfollowed",
   "followFailed": "Failed to follow",
-  "unfollowFailed": "Failed to unfollow"
+  "unfollowFailed": "Failed to unfollow",
+  "noUsers": "No users",
+
+  "title": "Friend Recommendations",
+  "loginRequired": "Please login to see friend recommendations",
+  "loadError": "Unable to load friend recommendations",
+  "slowConnection": "Connection too slow, please try again",
+  "retry": "Retry",
+  "noSuggestionsHint": "Try following some people to get mutual friend suggestions, or upgrade your level.",
+  "matchingCriteria": "matching criteria",
+  "addFriend": "Add Friend"
 }

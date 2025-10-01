@@ -1,12 +1,10 @@
 "use client";
 
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { Ellipsis, LoaderIcon, Settings } from "lucide-react";
+import { Ellipsis, LoaderIcon } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 import { getUserImageSrc } from "@/app/api/image/route";
-import { getUserByNickName } from "@/app/api/user/route";
 import {
   checkIsFollowing,
   followUser,
@@ -15,6 +13,8 @@ import {
   unfollowUser,
 } from "@/app/api/follow/route";
 import UserFollowModal from "./UserFollowModal";
+import { motion } from "framer-motion";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 interface User {
   id: string;
@@ -37,6 +37,7 @@ export default function ProfileFollowerHeader({
   userSearch: User | undefined;
 }) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [openFollowing, setOpenFollowing] = useState(false);
   const [following, setFollowing] = useState<Follower[]>([]);
   const [openFollower, setOpenFollower] = useState(false);
@@ -62,7 +63,7 @@ export default function ProfileFollowerHeader({
     };
 
     fetchUser();
-  }, [user?.id]);
+  }, [user?.id, userSearch]);
 
   useEffect(() => {
     if (userSearch?.id) {
@@ -76,7 +77,7 @@ export default function ProfileFollowerHeader({
       return;
     }
     setLoading(true);
-    let res = await getFollowing(userSearch?.id);
+    const res = await getFollowing(userSearch?.id);
     if (res.success) {
       setFollowing(res.data);
     }
@@ -88,7 +89,7 @@ export default function ProfileFollowerHeader({
       return;
     }
     setLoading(true);
-    let res = await getFollowers(userSearch?.id);
+    const res = await getFollowers(userSearch?.id);
     if (res.success) {
       setFollower(res.data);
     }
@@ -113,23 +114,33 @@ export default function ProfileFollowerHeader({
     }
   };
 
-  if (loading) return <p className="p-6">Đang tải...</p>;
+  if (loading) return <p className="p-6">{t("dashboard.loading")}</p>;
 
   return (
     <>
-      <div className="py-4 mt-4 border-b border-border md:mx-5 max-lg:pl-2">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="py-4 mt-4 border-b border-border md:mx-5 max-lg:pl-2"
+      >
         <div className="flex flex-col md:flex-row md:items-start md:gap-8 mb-4">
           {/* Avatar */}
-          <Avatar className="w-20 h-20 cursor-pointer mx-auto md:mx-0 sm:w-28 sm:h-28">
-            <AvatarImage
-              src={
-                userSearch?.avatar
-                  ? getUserImageSrc(userSearch.avatar)
-                  : "/default-avatar-profile-icon.jpg"
-              }
-              alt="Profile"
-            />
-          </Avatar>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <Avatar className="w-20 h-20 cursor-pointer mx-auto md:mx-0 sm:w-28 sm:h-28">
+              <AvatarImage
+                src={
+                  userSearch?.avatar
+                    ? getUserImageSrc(userSearch.avatar)
+                    : "/default-avatar-profile-icon.jpg"
+                }
+                alt="Profile"
+              />
+            </Avatar>
+          </motion.div>
 
           {/* Info */}
           <div className="flex-1 text-center md:text-left mt-2 md:mt-0">
@@ -138,63 +149,72 @@ export default function ProfileFollowerHeader({
                 <h1 className="text-lg font-semibold sm:text-xl">
                   {userSearch?.name}
                 </h1>
-                {/* nick name */}
                 <p className="text-sm text-muted-foreground">
                   {userSearch?.nick_name}
                 </p>
               </div>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleFollowToggle}
                 disabled={followLoading}
-                className={`md:w-45 w-full h-8 px-4 py-1.5 rounded-lg font-medium cursor-pointer  ${
+                className={`md:w-45 w-full h-8 px-4 py-1.5 rounded-lg font-medium cursor-pointer ${
                   isFollowing
                     ? "bg-gray-200 text-black hover:bg-gray-300"
                     : "bg-blue-500 text-white hover:bg-blue-600"
                 }`}
               >
                 {followLoading ? (
-                  <LoaderIcon className="h-4 w-4 m-auto" />
+                  <LoaderIcon className="h-4 w-4 m-auto animate-spin" />
                 ) : isFollowing ? (
-                  "Bỏ theo dõi"
+                  t("dashboard.unfollow")
                 ) : (
-                  "Theo dõi"
+                  t("dashboard.follow")
                 )}
-              </button>
+              </motion.button>
 
-              <button
-                className={
-                  "md:w-45 w-full h-8 px-4 py-1.5 rounded-lg font-medium cursor-pointer bg-gray-200 text-black hover:bg-gray-300"
-                }
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="md:w-45 w-full h-8 px-4 py-1.5 rounded-lg font-medium cursor-pointer bg-gray-200 text-black hover:bg-gray-300"
               >
-                Nhắn tin
-              </button>
+                {t("dashboard.message")}
+              </motion.button>
               <div className="mt-2 cursor-pointer sm:ml-2 max-lg:hidden">
                 <Ellipsis className="w-5 h-5" />
               </div>
             </div>
 
-            {/* Info */}
+            {/* Stats */}
             <div className="flex-1 text-center sm:text-left mt-2 sm:mt-0">
               <div className="grid grid-cols-3 text-xs sm:text-sm mt-2">
                 <div>
                   <div className="font-semibold">0</div>
-                  <div className="text-muted-foreground">bài viết</div>
+                  <div className="text-muted-foreground">
+                    {t("dashboard.posts")}
+                  </div>
                 </div>
-                <div
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
                   className="cursor-pointer"
                   onClick={() => setOpenFollower(true)}
                 >
                   <div className="font-semibold">{follower.length}</div>
-                  <div className="text-muted-foreground">người theo dõi</div>
-                </div>
-                <div
+                  <div className="text-muted-foreground">
+                    {t("dashboard.followers")}
+                  </div>
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
                   className="cursor-pointer"
                   onClick={() => setOpenFollowing(true)}
                 >
                   <div className="font-semibold">{following.length}</div>
-                  <div className="text-muted-foreground">đang theo dõi</div>
-                </div>
+                  <div className="text-muted-foreground">
+                    {t("dashboard.following")}
+                  </div>
+                </motion.div>
               </div>
             </div>
           </div>
@@ -204,19 +224,20 @@ export default function ProfileFollowerHeader({
         <div className="text-sm text-center md:text-left">
           <p>{userSearch?.bio}</p>
         </div>
-      </div>
-      {/* Follow Modal */}
+      </motion.div>
+
+      {/* Follow Modals */}
       <UserFollowModal
         isOpen={openFollowing}
         onClose={() => setOpenFollowing(false)}
-        title="Đang theo dõi"
+        title={t("dashboard.following")}
         data={following}
       />
 
       <UserFollowModal
         isOpen={openFollower}
         onClose={() => setOpenFollower(false)}
-        title="Người theo dõi"
+        title={t("dashboard.followers")}
         data={follower}
       />
     </>

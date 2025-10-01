@@ -18,6 +18,8 @@ import useAuth from "@/hooks/useAuth";
 import { getUserImageSrc } from "@/app/api/image/route";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 interface User {
   id: string;
@@ -41,6 +43,7 @@ export default function UserFollowModal({
 }: UserFollowModalProps) {
   const { user } = useAuth();
   const router = useRouter();
+  const { t } = useLanguage();
   const [followStates, setFollowStates] = useState<Record<string, boolean>>({});
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>(
     {}
@@ -85,6 +88,14 @@ export default function UserFollowModal({
     }
   };
 
+  const handleClick = (item: User) => () => {
+    if (item.id !== user?.id) {
+      router.push(`/dashboard/profile/${item.nick_name}`);
+    } else {
+      router.push("/dashboard/profile");
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="lg:max-w-xl sm:max-w-[450px] max-w-xs w-full p-0 overflow-hidden rounded-2xl">
@@ -101,58 +112,67 @@ export default function UserFollowModal({
             </div>
           ) : data.length > 0 ? (
             <div className="divide-y">
-              {data.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between p-3 hover:bg-muted/50"
-                >
-                  <div>
-                    <div
-                      className="flex items-center gap-3 cursor-pointer"
-                      onClick={() =>
-                        router.push(`/dashboard/profile/${item.nick_name}`)
-                      } 
-                    >
-                      <Avatar className="w-12 h-12">
-                        <AvatarImage
-                          src={getUserImageSrc(item.avatar)}
-                          alt={item.name}
-                        />
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-semibold">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {item.nick_name}
-                        </p>
-                      </div>
+              <AnimatePresence>
+                {data.map((item, index) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="flex items-center justify-between p-3 hover:bg-muted/50"
+                  >
+                    <div>
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        className="flex items-center gap-3 cursor-pointer"
+                        onClick={handleClick(item)}
+                      >
+                        <Avatar className="w-12 h-12">
+                          <AvatarImage
+                            src={
+                              getUserImageSrc(item.avatar) || "/placeholder.svg"
+                            }
+                            alt={item.name}
+                          />
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-semibold">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.nick_name}
+                          </p>
+                        </div>
+                      </motion.div>
                     </div>
-                  </div>
 
-                  {item.id !== user?.id && (
-                    <button
-                      onClick={() => handleToggleFollow(item.id)}
-                      disabled={loadingStates[item.id]}
-                      className={`px-3 py-1 text-sm rounded-md font-medium ${
-                        followStates[item.id]
-                          ? "bg-gray-200 text-black hover:bg-gray-300"
-                          : "bg-blue-500 text-white hover:bg-blue-600"
-                      }`}
-                    >
-                      {loadingStates[item.id] ? (
-                        <LoaderIcon className="w-4 h-4 animate-spin" />
-                      ) : followStates[item.id] ? (
-                        "Bỏ theo dõi"
-                      ) : (
-                        "Theo dõi"
-                      )}
-                    </button>
-                  )}
-                </div>
-              ))}
+                    {item.id !== user?.id && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleToggleFollow(item.id)}
+                        disabled={loadingStates[item.id]}
+                        className={`px-3 py-1 text-sm rounded-md font-medium ${
+                          followStates[item.id]
+                            ? "bg-gray-200 text-black hover:bg-gray-300"
+                            : "bg-blue-500 text-white hover:bg-blue-600"
+                        }`}
+                      >
+                        {loadingStates[item.id] ? (
+                          <LoaderIcon className="w-4 h-4 animate-spin" />
+                        ) : followStates[item.id] ? (
+                          t("dashboard.unfollow")
+                        ) : (
+                          t("dashboard.follow")
+                        )}
+                      </motion.button>
+                    )}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           ) : (
             <p className="text-center text-muted-foreground py-6">
-              Không có người dùng nào
+              {t("dashboard.noUsers")}
             </p>
           )}
         </ScrollArea>

@@ -185,7 +185,7 @@ export default function FollowModal({
                               onClick={() => handleFollowBack(u.id)}
                               className="bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
                             >
-                              {t("dashboard.followBack")}
+                              {t("dashboard.follow")}
                             </Button>
                           )}
                         </motion.div>
