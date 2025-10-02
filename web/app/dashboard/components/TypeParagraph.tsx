@@ -56,7 +56,7 @@ export function TypeParagraph({
 
   return (
     <div className="flex-1">
-      <h2 className="text-xl font-semibold">Chọn loại văn bản</h2>
+      <h2 className="text-xl font-semibold">{t("learning.selectTypeParagraphTitle")}</h2>
       <div className="grid grid-cols-4 gap-4 mt-4 min-h-44">
         {typeParagraphs.map((typeParagraph) => {
           return (

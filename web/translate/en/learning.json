@@ -47,5 +47,6 @@
   "buttonStart": "Start practicing",
   "titlePracticeTypeParagraph": "Practice writing paragraphs",
   "titlePracticeTypeSentence": "Practice writing sentences",
-  "descriptionPracticeType": "Continuously improve your writing skills to communicate more effectively"
+  "descriptionPracticeType": "Continuously improve your writing skills to communicate more effectively",
+  "selectTypeParagraphTitle": "Select type of paragraph"
 }
