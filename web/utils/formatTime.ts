@@ -1,3 +1,6 @@
+"use client";
+
+import { useLanguage } from "@/components/contexts/LanguageContext";
 import moment from "moment";
 
 export const convertToDate = (dob: any) => {
@@ -16,26 +19,27 @@ export const convertDateToDateObj = (date: any) => {
 };
 
 export const convertToTime = (date: any) => {
+  const { t } = useLanguage();
   const now = moment();
   const then = moment(date);
 
   const secondsDiff = now.diff(then, "seconds");
 
   if (secondsDiff <= 0) {
-    return "Vừa gửi";
+    return ` ${t("dashboard.justNow")}`;
   }
 
   if (secondsDiff < 60) {
-    return secondsDiff + " giây trước";
+    return secondsDiff + ` ${t("dashboard.secondsAgo")}`;
   } else if (secondsDiff < 3600) {
     const minutesDiff = now.diff(then, "minutes");
-    return minutesDiff + " phút trước";
+    return minutesDiff + ` ${t("dashboard.minutesAgo")}`;
   } else if (secondsDiff < 86400) {
     const hoursDiff = now.diff(then, "hours");
-    return hoursDiff + " giờ trước";
+    return hoursDiff + ` ${t("dashboard.hoursAgo")}`;
   } else {
     const daysDiff = now.diff(then, "days");
-    return daysDiff + " ngày trước";
+    return daysDiff + ` ${t("dashboard.daysAgo")}`;
   }
 };
 

@@ -184,5 +184,22 @@
   "retry": "Thử lại",
   "noSuggestionsHint": "Hãy thử follow một số người để có thêm gợi ý bạn chung, hoặc nâng cấp level của bạn.",
   "matchingCriteria": "tiêu chí phù hợp",
-  "addFriend": "Kết bạn"
+  "addFriend": "Kết bạn",
+
+  "daysAgo": "ngày trước",
+  "minutesAgo": "phút trước",
+  "secondsAgo": "giây trước",
+  "hoursAgo": "giờ trước",
+  "justNow": "Vừa gửi",
+  "chat": "Trò chuyện",
+  "startChat": "Hãy bắt đầu một cuộc trò chuyện",
+  "sendMessage": "Gửi tin nhắn",
+  "displaySearch": "Hiển thị kết quả tìm kiếm...",
+  "typeYourMessage": "Nhập tin nhắn...",
+  "newMessage": "Tin nhắn mới",
+  "to": "Đến:",
+  "recipient": "Nhập tên người nhận...",
+  "recommendations": "Gợi ý",
+  "you": "Bạn",
+  "unsupportedContent": "Nội dung không được hỗ trợ"
 }

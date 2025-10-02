@@ -10,8 +10,10 @@ import { fetchConversations } from "@/app/api/chat/conversation/route";
 import { ConversationSkeleton } from "./ConversationSkeleton";
 import { getSocket } from "@/socket/socketClient";
 import { useConversation } from "@/components/contexts/ConversationContext";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 export default function ListConversation() {
+    const {t} = useLanguage();
     const router = useRouter();
     const { user, loading } = useAuth();
     const [isSearchMode, setIsSearchMode] = useState(false);
@@ -76,7 +78,7 @@ export default function ListConversation() {
             <div className="p-4 border-b border-gray-200">
                 <input
                     type="text"
-                    placeholder="Search..."
+                    placeholder={t("dashboard.search")}
                     onFocus={() => setIsSearchMode(true)}
                     onBlur={() => setIsSearchMode(false)}
                     className="w-full p-2 border border-gray-300 rounded-md"
@@ -85,7 +87,7 @@ export default function ListConversation() {
 
             {!isSearchMode && (
                 <>
-                    <h3 className="px-4 py-2 font-semibold">Tin nhắn</h3>
+                    <h3 className="px-4 py-2 font-semibold">{t("dashboard.messages")}</h3>
                     <div className="flex-1 overflow-y-auto pb-18">
                         {conversations.map((conversation) =>
                             conversation.type === "private" ? (
@@ -109,7 +111,7 @@ export default function ListConversation() {
             {isSearchMode && (
                 <div className="flex-1 overflow-y-auto">
                     {/* User search results */}
-                    <p className="px-4 py-2 text-gray-500">Hiển thị kết quả tìm kiếm...</p>
+                    <p className="px-4 py-2 text-gray-500">{t("dashboard.displaySearch")}</p>
                 </div>
             )}
         </div>
