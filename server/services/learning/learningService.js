@@ -219,13 +219,15 @@ const learningService = {
             .from("levels")
             .select(`
             id,
-            name,
-            description,
+            name_vi,
+            description_vi,
+            name_en,
+            description_en,
             slug,
             icon: icon_id (name, color)
         `)
             .eq("slug", slug)
-            .single();
+            .maybeSingle();
 
         if (error) {
             console.error("Error fetching level by slug:", error);
@@ -248,7 +250,7 @@ const learningService = {
             icon: icon_id (name, color)
         `)
             .eq("slug", slug)
-            .single();
+            .maybeSingle();
 
         if (error) {
             console.error("Error fetching topic by slug:", error);
@@ -300,7 +302,7 @@ const learningService = {
             throw error;
         }
         return data;
-    }
+    },
 };
 
 module.exports = learningService;

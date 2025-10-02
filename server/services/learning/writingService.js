@@ -142,6 +142,42 @@ const writingService = {
 
         return updatedData;
     },
+
+    // Get all history submit writingParagraph with feedback information by user_id and paragraph_id
+    async getAllHistorySubmitWritingParagraph(user_id, paragraph_id) {
+        const { data: history, error } = await supabase
+            .from("submitExParagraph")
+            .select(`
+            id,
+            user_id,
+            exParagraph_id,
+            content_submit,
+            submit_date,
+            feedback:feedbackParagraphAI (
+                id,
+                comment,
+                score,
+                accuracy,
+                strengths,
+                errors: errorFeedback (
+                    id,
+                    original,
+                    error_type,
+                    highlight,
+                    suggestion: suggestions
+                )
+            )
+        `)
+            .eq("user_id", user_id)
+            .eq("exParagraph_id", paragraph_id)
+            .order("submit_date", { ascending: false });
+
+        if (error) {
+            console.error("Error fetching writing history:", error);
+            throw error;
+        }
+        return history;
+    }
 };
 
 module.exports = writingService;

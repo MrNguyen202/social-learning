@@ -14,4 +14,7 @@ router.post('/writing-paragraphs/submit', writingController.submitWritingParagra
 // Get progress writing-paragraph by user_id and paragraph_id
 router.get('/get-progress/:user_id/:paragraph_id', writingController.getProgressWritingParagraph);
 
+// Get history submit writingParagraph exercise by user_id and paragraph_id with feedback information
+router.get('/history-submit/:user_id/:paragraph_id', writingController.getHistorySubmitWritingParagraphByUserAndParagraph);
+
 module.exports = router;

@@ -69,6 +69,42 @@ const learningController = {
             res.status(500).json({ error: "Internal Server Error" });
         }
     },
+
+    // Get leve by slug
+    getLevelBySlug: async (req, res) => {
+        const { slug } = req.params;
+        try {
+            const data = await learningService.getLevelBySlug(slug);
+            res.json(data);
+        } catch (error) {
+            console.error("Error fetching level by slug:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    },
+
+    // Get topic by slug
+    getTopicBySlug: async (req, res) => {
+        const { slug } = req.params;
+        try {
+            const data = await learningService.getTopicBySlug(slug);
+            res.json(data);
+        } catch (error) {
+            console.error("Error fetching topic by slug:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    },
+
+    // Get type paragraph by slug
+    getTypeParagraphBySlug: async (req, res) => {
+        const { slug } = req.params;
+        try {
+            const data = await learningService.getTypeParagraphBySlug(slug);
+            res.json(data);
+        } catch (error) {
+            console.error("Error fetching type paragraph by slug:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    },
 };
 
 module.exports = learningController;

@@ -54,5 +54,13 @@
   "titlePracticeTypeSentence": "Practice writing sentences",
   "descriptionPracticeType": "Continuously improve your writing skills to communicate more effectively",
   "selectTypeParagraphTitle": "Select type of paragraph",
-  "exerciseList": "Exercise List"
+  "exerciseList": "Exercise List",
+  "breadcrumbHome": "Home",
+  "breadcrumbWriting": "Writing",
+  "filterByTopic": "Filter by Topic",
+  "optionAll": "All",
+  "errorGetSuggestions": "You don't have enough snowflakes to redeem a hint!",
+  "snowflake": "Snowflake",
+  "points": "Points",
+  "inputPlaceholder": "Enter the exercise content here..."
 }

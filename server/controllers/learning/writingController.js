@@ -80,7 +80,8 @@ const writingController = {
                 user_id,
                 exParagraph_id: paragraph_id,
                 content_submit,
-                feedback_id: savedFeedback[0].id
+                feedback_id: savedFeedback[0].id,
+                submit_date: new Date().toISOString()
             };
 
             const savedSubmit = await writingService.submitWritingParagraphExercise(submitData);
@@ -128,6 +129,18 @@ const writingController = {
             res.status(500).json({ error: "Internal Server Error" });
         }
     },
+
+    // Get history submit writingParagraph exercise by user_id and paragraph_id with feedback information
+    getHistorySubmitWritingParagraphByUserAndParagraph: async (req, res) => {
+        const { user_id, paragraph_id } = req.params;
+        try {
+            const data = await writingService.getAllHistorySubmitWritingParagraph(user_id, paragraph_id);
+            res.json(data);
+        } catch (error) {
+            console.error("Error fetching history submit writing paragraph:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    }
 };
 
 module.exports = writingController;
