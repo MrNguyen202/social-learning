@@ -183,5 +183,22 @@
   "retry": "Retry",
   "noSuggestionsHint": "Try following some people to get mutual friend suggestions, or upgrade your level.",
   "matchingCriteria": "matching criteria",
-  "addFriend": "Add Friend"
+  "addFriend": "Add Friend",
+
+  "daysAgo": "days ago",
+  "minutesAgo": "minutes ago",
+  "secondsAgo": "seconds ago",
+  "hoursAgo": "hours ago",
+  "justNow": "Just now",
+  "chat": "Chat",
+  "startChat": "Let's start a conversation",
+  "sendMessage": "Send a message",
+  "displaySearch": "Show search results...",
+  "typeYourMessage": "Type your message here...",
+  "newMessage": "New Message",
+  "to": "To",
+  "recipient": "Enter recipient name...",
+  "recommendations": "Recommendations",
+  "you": "You",
+  "unsupportedContent": "Unsupported content"
 }
