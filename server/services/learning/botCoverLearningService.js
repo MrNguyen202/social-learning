@@ -30,20 +30,38 @@ const botCoverLearningService = {
     // Lưu feedback bài tập viết
     async saveWritingFeedback(data) {
         const { data: insertedData, error } = await supabase
-            .from("feedbackAI")
+            .from("feedbackParagraphAI")
             .insert([
                 {
-                    accuracy: data.accuracy,
-                    highlighted: data.highlighted,
-                    suggestions: data.suggestions,
-                    comment: data.comment,
                     score: data.score,
+                    accuracy: data.accuracy,
+                    strengths: data.strengths,
+                    comment: data.comment,
                 }
             ])
             .select();
 
+        // Lưu errors vào bảng feedbackErrors
+        if (data.errors && data.errors.length > 0) {
+            const feedback_id = insertedData[0].id;
+            const errorRecords = data.errors.map(err => ({
+                original: err.original,
+                error_type: err.error_type,
+                highlight: err.highlight,
+                suggestions: err.suggestion,
+                feedback_id: feedback_id,
+            }));
+            const { error: errorInsert } = await supabase
+                .from("errorFeedback")
+                .insert(errorRecords);
+            if (errorInsert) {
+                console.error("Error inserting feedback errors:", errorInsert);
+                throw new Error("Error saving feedback errors");
+            }
+        }
+
         if (error) {
-            console.error("Error inserting data:", error);
+            console.error("Error inserting feedback:", error);
             throw new Error("Error saving writing feedback");
         }
 

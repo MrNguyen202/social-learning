@@ -30,5 +30,22 @@
   "completedAllSentences": "Bạn đã hoàn thành tất cả các câu!",
   "tryAnother": "Thử chủ đề khác",
   "ipaTitle": "Bảng phiên âm IPA",
-  "ipaDescription": "Học cách phát âm các âm tiếng Anh chuẩn với bảng phiên âm quốc tế"
+  "ipaDescription": "Học cách phát âm các âm tiếng Anh chuẩn với bảng phiên âm quốc tế",
+  "progressTitle": "Tiến độ",
+  "numberOfSubmissions": "Số lần nộp bài",
+  "highestScore": "Điểm cao nhất",
+  "highestAccuracy": "Độ chính xác cao nhất",
+  "feedbackAITitle": "Phản hồi từ AI",
+  "feedbackAIDescription": "Nộp bài hoặc chọn tùy chọn gợi ý để nhận phản hồi về bài viết của bạn từ hệ thống AI của chúng tôi.",
+  "buttonSubmit": "Nộp bài",
+  "buttonSuggestion": "Gợi ý",
+  "buttonDictionary": "Từ điển",
+  "buttonExit": "Thoát",
+  "buttonHistorySubmissions": "Lịch sử",
+  "titleParagraphExercise": "Cải thiện kỹ năng viết tiếng Anh",
+  "descriptionParagraphExercise": "Chọn phương pháp luyện tập phù hợp với mục tiêu của bạn",
+  "buttonStart": "Bắt đầu luyện tập",
+  "titlePracticeTypeParagraph": "Luyện viết đoạn văn",
+  "titlePracticeTypeSentence": "Luyện viết câu",
+  "descriptionPracticeType": "Không ngừng cải thiện kỹ năng viết của bạn để giao tiếp hiệu quả hơn"
 }

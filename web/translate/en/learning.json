@@ -30,5 +30,22 @@
   "completedAllSentences": "You've completed all sentences!",
   "tryAnother": "Try Another Topic",
   "ipaTitle": "IPA Pronunciation Guide",
-  "ipaDescription": "Learn how to pronounce English sounds correctly with the International Phonetic Alphabet"
+  "ipaDescription": "Learn how to pronounce English sounds correctly with the International Phonetic Alphabet",
+  "progressTitle": "Progress",
+  "numberOfSubmissions": "Number of Submissions",
+  "highestScore": "Highest Score",
+  "highestAccuracy": "Highest Accuracy",
+  "feedbackAITitle": "AI Feedback",
+  "feedbackAIDescription": "Submit or select suggestion option to receive feedback on your writing from our AI system.",
+  "buttonSubmit": "Submit",
+  "buttonSuggestion": "Suggestion",
+  "buttonDictionary": "Dictionary",
+  "buttonExit": "Exit",
+  "buttonHistorySubmissions": "History",
+  "titleParagraphExercise": "Improve English writing skills",
+  "descriptionParagraphExercise": "Choose the right exercise method for your goals",
+  "buttonStart": "Start practicing",
+  "titlePracticeTypeParagraph": "Practice writing paragraphs",
+  "titlePracticeTypeSentence": "Practice writing sentences",
+  "descriptionPracticeType": "Continuously improve your writing skills to communicate more effectively"
 }

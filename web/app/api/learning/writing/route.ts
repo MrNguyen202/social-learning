@@ -54,15 +54,13 @@ export const generateWritingParagraphByAI = async (
 export const submitWritingParagraphExercise = async (
     user_id: number,
     paragraph_id: number,
-    originalVietnamese: string,
-    originalEnglish: string
+    content_submit: string,
 ) => {
     try {
         const response = await api.post(`/api/learning/writing/writing-paragraphs/submit`, {
             user_id,
             paragraph_id,
-            originalVietnamese,
-            originalEnglish
+            content_submit
         });
         return response.data;
     } catch (error) {
@@ -78,6 +76,29 @@ export const getProgressWritingParagraph = async (user_id: string, paragraph_id:
         return response.data;
     } catch (error) {
         console.error("Error fetching progress writing paragraph:", error);
+        throw error;
+    }
+};
+
+// Feedback writing-paragraph exercise
+export const feedbackWritingParagraphExercise = async (
+    user_id: number,
+    paragraph_id: number,
+    content_submit: string
+) => {
+    try {
+        const response = await api.post(
+            `/api/bot-cover-learning/feedback-writing-paragraph-exercise`,
+            {
+                user_id,
+                paragraph_id,
+                content_submit
+            }
+        );
+        console.log("Feedback response data:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching feedback writing paragraph:", error);
         throw error;
     }
 };

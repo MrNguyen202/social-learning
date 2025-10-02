@@ -8,9 +8,12 @@ const learningService = {
             .select(`
       id,
       slug,
-      title,
-      description,
-      features,
+      title_vi,
+      title_en,
+      description_vi,
+      description_en,
+      features_vi,
+      features_en,
       icon:icon_id (name, color)
     `) // join với bảng icon
             .eq("slug", slug)
@@ -57,10 +60,12 @@ const learningService = {
             .from("levels")
             .select(`
             id,
-            name,
-            description,
+            name_vi,
+            description_vi,
             slug,
-            icon: icon_id (name, color)
+            icon: icon_id (name, color),
+            name_en,
+            description_en
         `)
             .in("id", levelIds);
 
@@ -109,8 +114,10 @@ const learningService = {
             .from("topics")
             .select(`
             id,
-            name,
-            description,
+            name_vi,
+            description_vi,
+            name_en,
+            description_en,
             slug,
             icon: icon_id (name, color)
         `)
@@ -130,10 +137,12 @@ const learningService = {
             .from("levels")
             .select(`
             id,
-            name,
-            description,
+            name_vi,
+            description_vi,
             slug,
-            icon: icon_id (name, color)
+            icon: icon_id (name, color),
+            name_en,
+            description_en
         `);
 
         if (error) {
@@ -150,8 +159,10 @@ const learningService = {
             .from("typeParagraphs")
             .select(`
             id,
-            name,
-            description,
+            name_vi,
+            description_vi,
+            name_en,
+            description_en,
             slug,
             icon: icon_id (name, color)
         `);
@@ -168,8 +179,10 @@ const learningService = {
             .from("topics")
             .select(`
             id,
-            name,
-            description,
+            name_vi,
+            description_vi,
+            name_en,
+            description_en,
             slug,
             icon: icon_id (name, color)
         `);
@@ -227,8 +240,10 @@ const learningService = {
             .from("topics")
             .select(`
             id,
-            name,
-            description,
+            name_vi,
+            description_vi,
+            name_en,
+            description_en,
             slug,
             icon: icon_id (name, color)
         `)
@@ -248,8 +263,10 @@ const learningService = {
             .from("typeParagraphs")
             .select(`
             id,
-            name,
-            description,
+            name_vi,
+            description_vi,
+            name_en,
+            description_en,
             slug,
             icon: icon_id (name, color)
         `)
@@ -269,8 +286,10 @@ const learningService = {
             .from("typeParagraphs")
             .select(`
             id,
-            name,
-            description,
+            name_vi,
+            description_vi,
+            name_en,
+            description_en,
             slug,
             icon: icon_id (name, color)
         `)

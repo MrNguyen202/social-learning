@@ -13,9 +13,11 @@ type Topic = {
     name: string;
     color: string;
   };
-  name: string;
+  name_vi: string;
+  name_en: string;
   slug: string;
-  description: string;
+  description_vi: string;
+  description_en: string;
 };
 
 type TopicProps = {
@@ -30,7 +32,7 @@ type TopicProps = {
 };
 
 export function Topic({ selectedTopic, setSelectedTopic }: TopicProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [topics, setTopics] = useState<Topic[]>([]);
 
   const floatingElements = Array.from({ length: 6 }, (_, i) => (
@@ -69,7 +71,7 @@ export function Topic({ selectedTopic, setSelectedTopic }: TopicProps) {
       }
     };
     fetchTopics();
-  }, []);
+  }, [language]);
 
   return (
     <div className="flex-1 relative overflow-hidden">
@@ -112,7 +114,7 @@ export function Topic({ selectedTopic, setSelectedTopic }: TopicProps) {
                   setSelectedTopic({
                     id: topic.id,
                     slug: topic.slug,
-                    name: topic.name,
+                    name: topic[`name_${language}`],
                   })
                 }
                 className={`
@@ -138,10 +140,10 @@ export function Topic({ selectedTopic, setSelectedTopic }: TopicProps) {
                 </motion.div>
                 <div className="flex flex-col items-center gap-2">
                   <h3 className="text-lg font-semibold text-center">
-                    {topic.name}
+                    {topic[`name_${language}`]}
                   </h3>
                   <p className="text-md text-gray-500 text-center">
-                    {topic.description}
+                    {topic[`description_${language}`]}
                   </p>
                 </div>
               </Card>

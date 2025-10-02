@@ -142,37 +142,6 @@ const writingService = {
 
         return updatedData;
     },
-
-    // Đếm số lần submit bài tập writingParagraph của user
-    async countSubmitsWritingParagraph(user_id, paragraph_id) {
-        const { count, error } = await supabase
-            .from("submitExParagraph")
-            .select("*", { count: "exact", head: true })
-            .eq("user_id", user_id)
-            .eq("exParagraph_id", paragraph_id);
-        if (error) {
-            console.error("Error counting submits:", error);
-            throw error;
-        }
-        return count;
-    },
-
-    // Đếm số lần submit cho câu hiện tại (để tính điểm)
-    async countSubmitsForCurrentSentence(user_id, paragraph_id, sentence_index) {
-        const { count, error } = await supabase
-            .from("submitExParagraph")
-            .select("*", { count: "exact", head: true })
-            .eq("user_id", user_id)
-            .eq("exParagraph_id", paragraph_id)
-            .eq("index_sentence", sentence_index);
-
-        if (error) {
-            console.error("Error counting submits for current sentence:", error);
-            throw error;
-        }
-
-        return count;
-    }
 };
 
 module.exports = writingService;

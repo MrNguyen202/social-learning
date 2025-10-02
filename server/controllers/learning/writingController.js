@@ -34,9 +34,9 @@ const writingController = {
 
     // Submit writing-paragraph exercise
     submitWritingParagraphExercise: async (req, res) => {
-        const { user_id, paragraph_id, originalVietnamese, originalEnglish } = req.body;
+        const { user_id, paragraph_id, content_submit } = req.body;
 
-        if (!user_id || !paragraph_id || !originalVietnamese || !originalEnglish) {
+        if (!user_id || !paragraph_id || !content_submit) {
             console.error("Missing required fields in request body");
             return res.status(400).json({ error: "Missing required fields" });
         }
@@ -48,11 +48,8 @@ const writingController = {
             return res.status(400).json({ error: "Invalid paragraph_id" });
         }
 
-        // Lấy progress hiện tại của user về bài tập này
-        const progress = await writingService.getProgressWritingParagraph(user_id, paragraph_id);
-
         // Lấy prompt để gửi cho Gemini
-        const prompt = promptGiveFeedbackWritingParagraph(paragraph.content_vi, paragraph.content_en, originalVietnamese, originalEnglish);
+        const prompt = promptGiveFeedbackWritingParagraph(paragraph.content_vi, paragraph.content_en, content_submit);
 
         try {
             const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
@@ -69,59 +66,50 @@ const writingController = {
 
             // Lưu feedback vào Supabase
             const data = {
-                accuracy: json.accuracy,
-                highlighted: json.highlighted,
-                suggestions: json.suggestions,
-                comment: json.comment,
                 score: json.score,
+                accuracy: json.accuracy,
+                strengths: json.strengths,
+                errors: json.errors,
+                comment: json.comment,
             };
 
-            const resultSaveFeedback = await botCoverLearningService.saveWritingFeedback(data);
+            const savedFeedback = await botCoverLearningService.saveWritingFeedback(data);
 
-            // Lưu submitWritingParagraph
-            const dataSubmit = {
+            // Lưu submit bài tập
+            const submitData = {
                 user_id,
                 exParagraph_id: paragraph_id,
-                content_vi: originalVietnamese,
-                content_submit: originalEnglish,
-                feedback_id: resultSaveFeedback[0].id,
-                submit_date: new Date().toISOString(),
-                index_sentence: progress ? progress.completed_sentences + 1 : 1,
+                content_submit,
+                feedback_id: savedFeedback[0].id
             };
-            const resultSubmit = await writingService.submitWritingParagraphExercise(dataSubmit);
 
-            if (resultSaveFeedback && resultSubmit) {
-                if (progress === null) {
-                    const dataProgress = {
-                        user_id,
-                        writingParagraph_id: paragraph_id,
-                        completed_sentences: resultSaveFeedback[0].accuracy >= 92 ? 1 : 0,
-                        status: "progressing",
-                        lastSubmit_id: resultSubmit[0].id,
-                        total_accuracy: resultSaveFeedback[0].accuracy >= 92 ? 100 : 0,
-                        total_point: resultSaveFeedback[0].accuracy >= 92 ? 15 : 0
-                    };
-                    await writingService.saveProgressWritingParagraph(dataProgress);
-                } else {
-                    // Nếu đã có progress rồi, không lưu nữa mà chỉ cập nhật
-                    console.log("Current progress:", user_id, paragraph_id, progress.completed_sentences + 1);
-                    const submitTimes = await writingService.countSubmitsForCurrentSentence(user_id, paragraph_id, progress.completed_sentences + 1);
-                    // Đếm số lần submit bài tập của user
-                    console.log("Submit times for current sentence:", user_id, paragraph_id);
-                    const submitCount = await writingService.countSubmitsWritingParagraph(user_id, paragraph_id);
-
-                    const updatedProgress = {
-                        completed_sentences: progress.completed_sentences + (resultSaveFeedback[0].accuracy >= 92 ? 1 : 0),
-                        lastSubmit_id: resultSubmit[0].id,
-                        total_accuracy: (progress.completed_sentences + (resultSaveFeedback[0].accuracy >= 92 ? 1 : 0)) / (submitCount + (resultSaveFeedback[0].accuracy >= 92 ? 1 : 0)) * 100,
-                        total_point: progress.total_point + (resultSaveFeedback[0].accuracy >= 92 ? (submitTimes === 0 ? 15 : submitTimes === 1 ? 10 : submitTimes === 2 ? 5 : 0) : 0),
-                        status: (progress.completed_sentences + (resultSaveFeedback[0].accuracy >= 92 ? 1 : 0)) === paragraph.number_sentence ? "completed" : "progressing"
-                    };
-                    await writingService.updateProgressWritingParagraph(user_id, paragraph_id, updatedProgress);
-                }
+            const savedSubmit = await writingService.submitWritingParagraphExercise(submitData);
+            if (!savedSubmit) {
+                console.error("Error saving writing paragraph submit:", savedSubmit);
+                return res.status(500).json({ error: "Internal Server Error" });
             }
 
-            res.json({ message: "Submit writing paragraph exercise successfully", feedback: resultSaveFeedback[0], submit: resultSubmit[0] });
+            // Cập nhật hoặc tạo mới progress
+            const progressData = await writingService.getProgressWritingParagraph(user_id, paragraph_id);
+            if (progressData) {
+                // Cập nhật progress
+                const dataNew = {
+                    lastSubmit_id: savedSubmit[0].id,
+                    submit_times: progressData.submit_times + 1
+                };
+                await writingService.updateProgressWritingParagraph(user_id, paragraph_id, dataNew);
+            } else {
+                // Tạo mới progress
+                const dataNew = {
+                    user_id,
+                    writingParagraph_id: paragraph_id,
+                    lastSubmit_id: savedSubmit[0].id,
+                    submit_times: 1
+                };
+                await writingService.saveProgressWritingParagraph(dataNew);
+            }
+
+            return res.json({ data: { feedback: json, submit: savedSubmit[0] } });
         } catch (error) {
             console.error("Error submitting writing paragraph exercise:", error);
             res.status(500).json({ error: "Internal Server Error" });

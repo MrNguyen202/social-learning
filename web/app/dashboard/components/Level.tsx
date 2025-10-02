@@ -13,10 +13,12 @@ type Level = {
     name: string;
     color: string;
   };
-  name: string;
+  name_vi: string;
   slug: string;
-  description: string;
+  description_vi: string;
   time_advice: string;
+  name_en: string;
+  description_en: string;
 };
 
 interface LevelProps {
@@ -31,7 +33,7 @@ interface LevelProps {
 }
 
 export function Level({ selectedLevel, setSelectedLevel }: LevelProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [levels, setLevels] = useState<Level[]>([]);
 
   // Lấy list level
@@ -69,7 +71,7 @@ export function Level({ selectedLevel, setSelectedLevel }: LevelProps) {
                   setSelectedLevel({
                     id: level.id,
                     slug: level.slug,
-                    name: level.name,
+                    name: level[`name_${language}`],
                   })
                 }
                 key={level.id}
@@ -94,8 +96,8 @@ export function Level({ selectedLevel, setSelectedLevel }: LevelProps) {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-lg font-semibold">{level.name}</h3>
-                  <p className="text-md text-gray-500">{level.description}</p>
+                  <h3 className="text-lg font-semibold">{level[`name_${language}`]}</h3>
+                  <p className="text-md text-gray-500">{level[`description_${language}`]}</p>
                   <p className="text-sm text-gray-500">{level.time_advice}</p>
                 </div>
               </Card>

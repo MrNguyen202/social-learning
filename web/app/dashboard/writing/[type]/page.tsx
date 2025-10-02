@@ -9,9 +9,11 @@ import { useState } from "react";
 import { TypeParagraph } from "../../components/TypeParagraph";
 import { generateWritingParagraphByAI } from "@/app/api/learning/writing/route";
 import { Loader2 } from "lucide-react"; // icon loading
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 export default function Page() {
   const router = useRouter();
+  const { t } = useLanguage();
   const { type } = useParams();
   const [selectedLevel, setSelectedLevel] = useState<{
     id: number;
@@ -90,9 +92,9 @@ export default function Page() {
     <>
       <div className="flex-1 px-6 py-6 pb-36">
         <div className="flex flex-col items-center justify-center text-center gap-2 mt-6">
-          <h2 className="text-3xl font-semibold">Luyện viết đoạn văn</h2>
+          <h2 className="text-3xl font-semibold">{type === "writing-paragraph" ? t("learning.titlePracticeTypeParagraph") : t("learning.titlePracticeTypeSentence")}</h2>
           <p className="text-lg tracking-widest text-gray-600">
-            Không ngừng cải thiện kỹ năng viết của bạn để giao tiếp hiệu quả hơn
+            {t("learning.descriptionPracticeType")}
           </p>
         </div>
 

@@ -1,12 +1,15 @@
 "use client";
 
-import { getProgressWritingParagraph, getWritingParagraphById, submitWritingParagraphExercise } from '@/app/api/learning/writing/route';
+import { feedbackWritingParagraphExercise, getWritingParagraphById, submitWritingParagraphExercise } from '@/app/api/learning/writing/route';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import useAuth from '@/hooks/useAuth';
-import { ArrowLeftFromLine, BookMarked, CircleEqual, Lightbulb, Snowflake, Target } from 'lucide-react';
-import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { CircleEqual, Lightbulb, Snowflake } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { useScore } from '@/components/contexts/ScoreContext';
+import { toast } from 'react-toastify';
+import { useLanguage } from '@/components/contexts/LanguageContext';
 
 interface ExerciseDetail {
     id: number;
@@ -22,16 +25,22 @@ interface ExerciseDetail {
 
 export default function PageExerciseDetail() {
     const { user } = useAuth();
+    const { t } = useLanguage();
+    const router = useRouter();
     const userData = user;
     const { id } = useParams();
     const [exerciseDetail, setExerciseDetail] = useState<ExerciseDetail | null>(null);
     const [inputValue, setInputValue] = useState<string>('');
-    const [completedCount, setCompletedCount] = useState<number>(0);
     const [feedback, setFeedback] = useState<any>(null);
-    const [progress, setProgress] = useState<any>(null);
+    const [feedbackLoading, setFeedbackLoading] = useState<boolean>(false);
+    const { score } = useScore();
 
-    const sentences = exerciseDetail?.content_vi.match(/[^.!?]+[.!?]?/g) || [];
-    const parts = feedback?.highlighted.split(/(\(.*?\)|\[.*?\])/g);
+    const [showMinus, setShowMinus] = useState(false);
+    const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
+    const [endPos, setEndPos] = useState<{ x: number; y: number } | null>(null);
+
+    const suggestBtnRef = useRef<HTMLButtonElement | null>(null);
+    const scoreRef = useRef<HTMLDivElement | null>(null);
 
     // Lấy thông tin bài tập theo id
     useEffect(() => {
@@ -39,11 +48,6 @@ export default function PageExerciseDetail() {
             try {
                 const response = await getWritingParagraphById(Number(id));
                 setExerciseDetail(response);
-                if (user) {
-                    const progressResponse = await getProgressWritingParagraph(userData.id, Number(id));
-                    setProgress(progressResponse);
-                    setCompletedCount(progressResponse ? progressResponse.completed_sentences : 0);
-                }
             } catch (error) {
                 console.error("Error fetching exercise detail:", error);
             }
@@ -60,141 +64,270 @@ export default function PageExerciseDetail() {
             const response = await submitWritingParagraphExercise(
                 userData.id,
                 exerciseDetail!.id,
-                exerciseDetail!.content_vi.split('.')[completedCount],
                 inputValue
             );
-
-            setFeedback(response.feedback);
-            if (response.feedback.accuracy >= 92) {
-                setCompletedCount(prev => prev + 1);
-            }
-            setInputValue('');
+            setFeedback(response.data.feedback);
+            setInputValue(response.data.submit.content_submit);
         } catch (error) {
             console.error("Error submitting exercise:", error);
         }
         setInputValue('');
     }
 
+    // Handle xem gợi ý
+    const handleSuggest = async () => {
+        if (!exerciseDetail && !userData) return;
+        if (score && score.number_snowflake < 2) {
+            toast.error("Bạn không đủ bông tuyết để sử dụng gợi ý!");
+            return;
+        }
+
+        const btnRect = suggestBtnRef.current?.getBoundingClientRect();
+        const scoreRect = scoreRef.current?.getBoundingClientRect();
+
+        if (btnRect && scoreRect) {
+            setStartPos({ x: btnRect.left + btnRect.width / 2, y: btnRect.top });
+            setEndPos({ x: scoreRect.left + scoreRect.width / 2, y: scoreRect.top });
+            setShowMinus(true);
+        }
+        score && (score.number_snowflake = Math.max(0, score.number_snowflake - 2));
+        try {
+            setFeedbackLoading(true);
+            const response = await feedbackWritingParagraphExercise(
+                userData.id,
+                exerciseDetail!.id,
+                inputValue
+            );
+            setFeedback(response.data);
+            setFeedbackLoading(false);
+        } catch (error) {
+            console.error("Error fetching feedback writing paragraph:", error);
+        }
+    };
+
     return (
-        <div className='pt-10 w-full pb-20'>
+        <div className='w-full grid grid-cols-1 gap-6 mt-6'>
             {/* heading */}
-            <div className='flex items-center justify-between'>
-                <h1 className='text-2xl font-bold'>{exerciseDetail?.title}</h1>
-                <div className='flex items-center gap-4'>
-                    <div className='flex items-center'>
-                        <Snowflake className="inline h-6 w-6 text-blue-500" />
-                        <span className="ml-2">{18} bông tuyết</span>
+            <div className="flex items-center justify-between h-18 border p-4 
+            rounded-2xl shadow-sm hover:shadow-md transition-all bg-white">
+                <h1 className="text-2xl font-bold text-gray-800">
+                    {exerciseDetail?.title}
+                </h1>
+
+                <div className="flex items-center gap-6 text-sm font-medium text-gray-700">
+                    {/* Snowflake */}
+                    <div ref={scoreRef} className="flex items-center bg-blue-50 px-3 py-1 rounded-full">
+                        <Snowflake className="h-5 w-5 text-blue-500" />
+                        <span className="ml-2 text-blue-600">{score?.number_snowflake} bông tuyết</span>
                     </div>
-                    <span>|</span>
-                    <div className='flex items-center'>
-                        <CircleEqual className="inline h-6 w-6 text-yellow-500" />
-                        <span className="ml-2">{1200} điểm</span>
+
+                    {/* Separator */}
+                    <span className="text-gray-300">|</span>
+
+                    {/* Circle Equal */}
+                    <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
+                        <CircleEqual className="h-5 w-5 text-yellow-500" />
+                        <span className="ml-2 text-yellow-600">{score?.practice_score} điểm</span>
                     </div>
                 </div>
             </div>
-            {/* progress */}
-            <div className='flex flex-col items-end my-8 gap-2'>
-                <Progress value={20} max={100} className="w-full h-4 rounded-lg bg-gray-200 [&>div]:bg-gradient-to-r [&>div]:from-orange-500 [&>div]:to-pink-500" />
-                <span className="text-sm text-gray-500 mr-4">2/{exerciseDetail?.number_sentence} câu</span>
-            </div>
+
 
             {/* Content */}
-            <div className='flex gap-10'>
+            <div className="flex gap-8">
                 {/* Left content */}
-                <div className='flex flex-col gap-6 w-[60%]'>
+                <div className="flex flex-col gap-6 w-[60%]">
                     {/* Content in Vietnamese */}
-                    <p className='text-xl'>
-                        {sentences.map((sentence, i) => {
-                            let className = "text-gray-700"; // default: chưa làm
-                            if (i < completedCount) className = "text-green-600 font-semibold"; // đã làm
-                            if (i === completedCount) className = "text-red-500 font-semibold"; // đang làm
+                    <div className="bg-white p-4 rounded-xl shadow-sm border">
+                        <p className="text-lg text-gray-700 leading-relaxed">
+                            {exerciseDetail?.content_vi}
+                        </p>
 
-                            return (
-                                <span key={i} className={className}>
-                                    {sentence.trim() + " "}
-                                </span>
-                            );
-                        })}
-                    </p>
-
-                    {/* Input submit */}
-                    <div>
-                        <textarea value={inputValue} onChange={(e) => setInputValue(e.target.value)} className=' text-xl w-full border border-gray-300 rounded-md p-2 mt-2' rows={4} placeholder='Nhập nội dung bài tập ở đây...'></textarea>
+                        <textarea
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            className="text-lg w-full border border-gray-300 rounded-lg p-3 mt-2 focus:outline-none focus:ring-2 focus:ring-green-400"
+                            rows={10}
+                            placeholder="Nhập nội dung bài tập ở đây..."
+                        ></textarea>
                     </div>
-                    <div className='flex items-center justify-between'>
-                        <Button className='bg-blue-500 text-white rounded-md px-4 py-2'><ArrowLeftFromLine className='inline h-4 w-4 text-white' /> Thoát</Button>
-                        <div className='flex items-center gap-4'>
-                            <Button className='bg-green-500 text-white rounded-md px-4 py-2' variant={'default'}>
-                                <BookMarked className='inline h-4 w-4 text-white mr-2' />
-                                Từ điển
+
+                    {/* Buttons */}
+                    <div className="flex items-center justify-between">
+                        <Button onClick={() => router.back()} className="bg-gray-200 text-gray-700 rounded-lg px-5 py-2 hover:bg-gray-300 hover:cursor-pointer">
+                            {t('learning.buttonExit')}
+                        </Button>
+                        <div className="flex items-center gap-3">
+                            <Button
+                                className="bg-green-500 text-white rounded-lg px-5 py-2 hover:bg-green-600 hover:cursor-pointer"
+                            >
+                                {t('learning.buttonDictionary')} (-1)
                             </Button>
-                            <Button className='bg-blue-500 text-white rounded-md px-4 py-2'><Lightbulb className='inline h-4 w-4 text-yellow-500' /> Xem gợi ý</Button>
-                            <Button className='bg-blue-500 text-white rounded-md px-4 py-2' onClick={handleSubmit}>Nộp</Button>
+                            <Button
+                                ref={suggestBtnRef}
+                                className="bg-yellow-400 text-white rounded-lg px-5 py-2 hover:bg-yellow-500 hover:cursor-pointer"
+                                onClick={handleSuggest}
+                            >
+                                {t('learning.buttonSuggestion')} (-2)
+                            </Button>
+                            <Button
+                                className="bg-blue-500 text-white rounded-lg px-5 py-2 hover:bg-blue-600 hover:cursor-pointer"
+                                onClick={handleSubmit}
+                            >
+                                {t('learning.buttonSubmit')}
+                            </Button>
                         </div>
                     </div>
                 </div>
 
                 {/* Right content */}
-                <div className='flex flex-col gap-4 w-[40%]'>
-                    <div className='grid grid-cols-2 gap-4'>
-                        <div className='flex flex-col items-center gap-2 bg-gray-200 p-2'>
-                            <CircleEqual className='inline h-6 w-6 text-blue-500' />
-                            <span>{100}</span>
-                            <span>Tổng điểm</span>
-                        </div>
-
-                        <div className='flex flex-col items-center gap-2 bg-gray-200 p-2'>
-                            <Target className='inline h-6 w-6 text-green-500' />
-                            <span>{100} %</span>
-                            <span>Độ chính xác</span>
+                <div className="flex flex-col gap-2 w-[40%]">
+                    {/* Progress */}
+                    <div className='bg-gradient-to-r from-red-300 to-pink-300 p-6 rounded-xl shadow-sm border relative'>
+                        <h3 className="text-lg font-semibold mb-2">{t('learning.progressTitle')}</h3>
+                        <div className="flex flex-col">
+                            <div className="pt-1 border-b">
+                                <span>{t('learning.numberOfSubmissions')}</span>
+                                <span className="font-bold float-right">{feedback ? feedback.attempts : 0}</span>
+                            </div>
+                            <div className="pt-1 border-b">
+                                <span>{t('learning.highestScore')}</span>
+                                <span className="font-bold float-right">{feedback ? feedback.highestScore : 0}</span>
+                            </div>
+                            <div className="pt-1 border-b">
+                                <span>{t('learning.highestAccuracy')}</span>
+                                <span className="font-bold float-right">{feedback ? feedback.highestAccuracy : 0}%</span>
+                            </div>
+                            <Button
+                                className="absolute top-4 right-4 bg-white text-gray-700 rounded-lg px-5 py-2 hover:bg-gray-100 hover:cursor-pointer"
+                            >
+                                {t('learning.buttonHistorySubmissions')}
+                            </Button>
                         </div>
                     </div>
-
                     {/* Feedback */}
-                    <div className='bg-gray-200 p-4 h-full'>
+                    <div className="bg-white p-6 rounded-xl shadow-sm border min-h-1/3 max-h-[calc(100vh-150px)] overflow-y-auto">
                         {feedback ? (
-                            <div>
-                                <p className="text-lg leading-relaxed">
-                                    <span className='font-semibold'>Suggestion: </span>
-                                    {parts.map((part: string, index: number) => {
-                                        if (part.startsWith("(") && part.endsWith(")")) {
-                                            return (
-                                                <span key={index} className="text-red-500 font-semibold line-through">
-                                                    {part.replace(/[()]/g, "")}
-                                                </span>
-                                            );
-                                        }
-                                        if (part.startsWith("[") && part.endsWith("]")) {
-                                            return (
-                                                <span key={index} className="text-green-600 font-bold">
-                                                    {part.replace(/[\[\]]/g, "")}
-                                                </span>
-                                            );
-                                        }
-                                        return <span key={index}>{part}</span>;
-                                    })}
-                                </p>
-                                <div>
-                                    <h3 className='text-lg font-semibold mt-4'>Suggestion improvement:</h3>
-                                    <ul className='list-disc list-inside'>
-                                        {feedback.suggestions.map((suggestion: string, idx: number) => (
-                                            <li key={idx} className='text-sm text-gray-700'>{suggestion}</li>
-                                        ))}
-                                    </ul>
+                            <div className="space-y-4">
+                                {/* Tổng quan */}
+                                <div className='flex flex-col items-center w-full'>
+                                    <h3 className="text-lg font-semibold mb-1">Overview</h3>
+                                    <p className="text-sm text-gray-700">
+                                        Điểm: <span className="font-bold text-green-600">{feedback.score}</span> | Độ
+                                        chính xác:{" "}
+                                        <span className="font-bold text-blue-600">{feedback.accuracy}%</span>
+                                    </p>
                                 </div>
-                                <div>
-                                    <h3 className='text-lg font-semibold mt-4'>Nhận xét:</h3>
-                                    <p className='text-sm text-gray-700'>{feedback.comment}</p>
-                                </div>
+
+                                {/* Các lỗi cần cải thiện */}
+                                {feedback.errors.length > 0 && (
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-2">Suggestions</h3>
+                                        <ul className="space-y-4">
+                                            {feedback.errors?.map((err: any, i: number) => (
+                                                <li key={i} className="border-b pb-3">
+                                                    <p className="text-md mt-1">
+                                                        {err.highlight.split(/(\(.*?\)|\[.*?\])/g).map(
+                                                            (part: string, idx: number) => {
+                                                                if (part.startsWith("(") && part.endsWith(")")) {
+                                                                    return (
+                                                                        <span
+                                                                            key={idx}
+                                                                            className="text-red-500 line-through mx-1"
+                                                                        >
+                                                                            {part.replace(/[()]/g, "")}
+                                                                        </span>
+                                                                    );
+                                                                }
+                                                                if (part.startsWith("[") && part.endsWith("]")) {
+                                                                    return (
+                                                                        <span
+                                                                            key={idx}
+                                                                            className="text-green-600 font-bold mx-1"
+                                                                        >
+                                                                            {part.replace(/[\[\]]/g, "")}
+                                                                        </span>
+                                                                    );
+                                                                }
+                                                                return <span key={idx}>{part}</span>;
+                                                            }
+                                                        )}
+                                                    </p>
+                                                    <ul className="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
+                                                        {err.suggestion.map((s: string, j: number) => (
+                                                            <li key={j}>
+                                                                {s.split(/('.*?')/g).map((part, idx) => {
+                                                                    if (part.startsWith("'") && part.endsWith("'")) {
+                                                                        return (
+                                                                            <span key={idx} className="font-bold text-blue-800">
+                                                                                {part} {/* Giữ nguyên dấu nháy */}
+                                                                            </span>
+                                                                        );
+                                                                    }
+                                                                    return <span key={idx}>{part}</span>;
+                                                                })}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {/* Nhận xét tổng quan */}
+                                {feedback.accuracy > 95 && feedback.errors.length === 0 ? (
+                                    <div className="text-center text-green-500">
+                                        <h3 className="text-lg font-semibold">Chúc mừng bạn đã hoàn thành bài viết!  🎉🎉</h3>
+                                        <p className="text-sm text-gray-700 mt-1">Bạn đã hoàn thành bài viết một cách xuất sắc. Hãy tiếp tục phát huy! </p>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <h3 className="text-lg font-semibold">Nhận xét tổng quan</h3>
+                                        <p className="text-sm text-gray-700 mt-1">{feedback.comment}</p>
+                                    </div>
+                                )}
                             </div>
                         ) : (
-                            <div>
-                                <h3 className='text-lg font-semibold'>Phản hồi</h3>
-                                <p className='text-sm text-gray-500'>Nộp câu trả lời để nhận phản hồi.</p>
-                            </div>
+                            feedbackLoading ? (
+                                <div className="flex flex-col items-center justify-center h-full">
+                                    <Lightbulb className="h-12 w-12 text-yellow-400 mb-4 animate-pulse" />
+                                    <p className="text-gray-500">Đang lấy phản hồi...</p>
+                                </div>
+                            ) : (
+                                <div className="text-center text-gray-500">
+                                    <h3 className="text-lg font-semibold mb-1">{t("learning.feedbackAITitle")}</h3>
+                                    <p className="text-sm">{t("learning.feedbackAIDescription")}</p>
+                                </div>
+                            )
                         )}
                     </div>
                 </div>
+                <AnimatePresence>
+                    {showMinus && startPos && endPos && (
+                        <motion.div
+                            initial={{
+                                position: "fixed",
+                                left: startPos.x,
+                                top: startPos.y,
+                                opacity: 1,
+                                scale: 1,
+                            }}
+                            animate={{
+                                left: endPos.x,
+                                top: endPos.y,
+                                opacity: 0,
+                                scale: 0.5,
+                            }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 2, ease: "easeInOut" }}
+                            onAnimationComplete={() => setShowMinus(false)}
+                            className="pointer-events-none text-red-500 font-bold text-3xl"
+                        >
+                            -2 <Snowflake className="inline h-8 w-8 ml-2" />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </div >
     );

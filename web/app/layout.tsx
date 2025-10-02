@@ -6,6 +6,7 @@ import ClientWrapper from "./ClientWrapper";
 import { ConversationProvider } from "@/components/contexts/ConversationContext";
 import OnlineStatusProvider from "@/components/contexts/OnlineStatusProvider";
 import { LanguageProvider } from "@/components/contexts/LanguageContext";
+import { ScoreProvider } from "@/components/contexts/ScoreContext";
 
 const overpass = Overpass({
   subsets: ["latin"],
@@ -29,11 +30,13 @@ export default function RootLayout({
       <body className={overpass.className}>
         <LanguageProvider>
           <AuthProvider>
-            <ConversationProvider>
-              <ClientWrapper>
-                <OnlineStatusProvider>{children}</OnlineStatusProvider>
-              </ClientWrapper>
-            </ConversationProvider>
+            <ScoreProvider>
+              <ConversationProvider>
+                <ClientWrapper>
+                  <OnlineStatusProvider>{children}</OnlineStatusProvider>
+                </ClientWrapper>
+              </ConversationProvider>
+            </ScoreProvider>
           </AuthProvider>
         </LanguageProvider>
       </body>

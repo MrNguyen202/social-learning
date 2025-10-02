@@ -4,6 +4,10 @@ const promptGenerateParagraph = require("../../utils/prompt/generateParagraph");
 const promptGenerateListening = require("../../utils/prompt/generateListening");
 require('dotenv').config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const writingService = require("../../services/learning/writingService");
+const promptGiveFeedbackWritingParagraph = require('../../utils/prompt/feedbackAIExParagraph');
+const userService = require("../../services/userService");
+const scoreUserService = require("../../services/learning/scoreUserService");
 
 // Khởi tạo Gemini client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -35,7 +39,7 @@ const botCoverLearningController = {
         // Lấy danh sách topics từ Supabase
         const topics = await learningService.getAllTopics();
 
-        const prompt = promptGenerateParagraph(level.name, typeParagraph.name, topics.map(topic => topic.name));
+        const prompt = promptGenerateParagraph(level.name_vi, typeParagraph.name_vi, topics.map(topic => topic.name_vi));
 
         try {
             const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
@@ -58,7 +62,7 @@ const botCoverLearningController = {
                 title: json.title,
                 level_id: level.id,
                 type_exercise_id: typeExerciseData.id,
-                topic_id: topics.find(topic => topic.name === json.topic)?.id || null,
+                topic_id: topics.find(topic => topic.name_vi === json.topic)?.id || null,
                 type_paragraph_id: typeParagraph.id,
                 number_sentence: json.number_of_sentences
             };
@@ -123,6 +127,43 @@ const botCoverLearningController = {
         } catch (error) {
             console.error("Error generating content:", error);
             return res.status(500).json({ error: "Error generating content" });
+        }
+    },
+
+    // Feedback writing paragraph exercise
+    feedbackWritingParagraphExercise: async (req, res) => {
+        const { user_id, paragraph_id, content_submit } = req.body;
+        if (!user_id || !paragraph_id || !content_submit) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        // Lấy thông tin bài tập gốc
+        const paragraph = await writingService.getWritingParagraphById(paragraph_id);
+        if (!paragraph) {
+            console.error("Invalid paragraph_id:", paragraph_id);
+            return res.status(400).json({ error: "Invalid paragraph_id" });
+        }
+
+        const prompt = promptGiveFeedbackWritingParagraph(paragraph.content_vi, paragraph.content_en, content_submit);
+
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+            const result = await model.generateContent(prompt);
+            const text = result.response.text();
+            // Lọc JSON thuần từ Gemini
+            const match = text.match(/\{[\s\S]*\}/);
+            if (!match) {
+                return res.status(500).json({ error: "Gemini không trả JSON hợp lệ", raw: text });
+            }
+            const json = JSON.parse(match[0]);
+
+            // cập nhật lại number_snowflake
+            await scoreUserService.deductSnowflakeFromUser(user_id, -2);
+            
+            return res.json({ data: json });
+        } catch (error) {
+            console.error("Error fetching writing paragraph feedback:", error);
+            res.status(500).json({ error: "Internal Server Error" });
         }
     }
 };
