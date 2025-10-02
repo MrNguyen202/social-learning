@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { RightSidebar } from "../components/RightSidebar";
 import { useRouter } from "next/navigation";
-import { listeningService } from "@/app/apiClient/learning/listening/listerning";
+import { listeningService } from "@/app/apiClient/learning/listening/listening";
 
 export default function ListeningPage() {
     const router = useRouter();
