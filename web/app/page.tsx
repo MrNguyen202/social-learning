@@ -31,6 +31,7 @@ import { useEffect, useRef } from "react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { toast } from "react-toastify";
+import { useConversation } from "@/components/contexts/ConversationContext";
 
 export default function Page() {
   const { t } = useLanguage();
@@ -63,6 +64,7 @@ export default function Page() {
   ];
 
   const { user, setUser } = useAuth();
+  const { setSelectedConversation } = useConversation();
 
   const heroRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
@@ -104,6 +106,8 @@ export default function Page() {
     try {
       await supabase.auth.signOut();
       setUser(null);
+      localStorage.removeItem("selectedConversation");
+      setSelectedConversation(null);
       toast.success(t("logoutSuccess"), { autoClose: 1000 });
     } catch (error) {
       console.error("Logout error:", error);
