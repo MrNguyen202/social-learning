@@ -31,6 +31,10 @@ import PostDetail from '../screens/post/PostDetail';
 import EditPost from '../screens/post/EditPost';
 import UserFollowScreen from '../screens/follow/UserFollow';
 import RecommendFriend from '../screens/recommend/friends/RecommendFriend';
+import Listening from '../screens/learning/listening/Listening';
+import ListeningDetail from '../screens/learning/listening/ListeningDetail';
+import Speaking from '../screens/learning/speaking/Speaking';
+import Writing from '../screens/learning/writing/Writing';
 
 const Tab = createBottomTabNavigator();
 
@@ -179,6 +183,26 @@ const AppNavigation = () => {
         />
 
         {/* Learning */}
+        <Stack.Screen
+          name="Listening"
+          component={Listening}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ListeningDetail"
+          component={ListeningDetail}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name="Speaking"
+          component={Speaking}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name="Writing"
+          component={Writing}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="Rankings"
           component={Rankings}
