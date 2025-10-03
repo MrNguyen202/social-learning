@@ -53,5 +53,15 @@
   "titlePracticeTypeParagraph": "Luyện viết đoạn văn",
   "titlePracticeTypeSentence": "Luyện viết câu",
   "descriptionPracticeType": "Không ngừng cải thiện kỹ năng viết của bạn để giao tiếp hiệu quả hơn",
-  "exerciseList": "Danh sách bài tập"
+  "selectTypeParagraphTitle": "Chọn loại văn bản",
+  "exerciseList": "Danh sách bài tập",
+  "breadcrumbHome": "Trang chủ",
+  "breadcrumbWriting": "Luyện viết",
+  "filterByTopic": "Lọc theo chủ đề",
+  "optionAll": "Tất cả",
+  "errorGetSuggestions": "Bạn không đủ bông tuyết để đổi gợi ý!",
+  "snowflake": "Bông tuyết",
+  "points": "Điểm",
+  "inputPlaceholder": "Nhập nội dung bài tập ở đây...",
+  "noHistorySubmit": "Chưa có bảng submit!"
 }

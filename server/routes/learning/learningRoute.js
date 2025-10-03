@@ -20,4 +20,13 @@ router.get('/type-paragraphs', learningController.getAllTypeParagraphs);
 // Get all topics
 router.get('/topics', learningController.getAllTopics);
 
+// Get level by slug
+router.get('/level/slug/:slug', learningController.getLevelBySlug);
+
+// Get topic by slug
+router.get('/topic/slug/:slug', learningController.getTopicBySlug);
+
+// Get type paragraph by slug
+router.get('/type-paragraph/slug/:slug', learningController.getTypeParagraphBySlug);
+
 module.exports = router;

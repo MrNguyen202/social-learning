@@ -231,7 +231,7 @@ const learningService = {
         `
       )
       .eq("slug", slug)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching level by slug:", error);
@@ -256,7 +256,7 @@ const learningService = {
         `
       )
       .eq("slug", slug)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching topic by slug:", error);

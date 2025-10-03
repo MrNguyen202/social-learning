@@ -102,3 +102,14 @@ export const feedbackWritingParagraphExercise = async (
         throw error;
     }
 };
+
+// Get history submit writingParagraph exercise by user_id and paragraph_id with feedback information
+export const getHistorySubmitWritingParagraphByUserAndParagraph = async (user_id: string, paragraph_id: string) => {
+  try {
+    const response = await api.get(`/api/learning/writing/history-submit/${user_id}/${paragraph_id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching history submit writing paragraph by user and paragraph:", error);
+    throw error;
+  }
+};

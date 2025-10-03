@@ -85,8 +85,8 @@ export default function Page() {
         ? `${selectedTypeParagraph.name} - ${selectedLevel.name}`
         : ""
       : selectedLevel && selectedTopic
-      ? `${selectedTopic.name} - ${selectedLevel.name}`
-      : "";
+        ? `${selectedTopic.name} - ${selectedLevel.name}`
+        : "";
 
   return (
     <>
@@ -118,17 +118,17 @@ export default function Page() {
       </div>
 
       {isReady && (
-        <div className="fixed bottom-6 left-0 right-0 flex justify-center z-50">
-          <div className="flex flex-col items-center gap-3 bg-white shadow-xl px-6 py-4 rounded-2xl max-w-5xl">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+          <div className="flex flex-col items-center gap-3 bg-white shadow-xl px-6 py-4 rounded-2xl">
             <span className="text-lg font-semibold underline text-center">
               {selectedInfo}
             </span>
             <div className="flex items-center gap-4">
-              <Button variant={"destructive"} onClick={handleGenerateAI}>
+              <Button variant="destructive" onClick={handleGenerateAI}>
                 Generate AI
               </Button>
               or
-              <Button variant={"default"} onClick={handleStart}>
+              <Button variant="default" onClick={handleStart}>
                 Next step
               </Button>
             </div>

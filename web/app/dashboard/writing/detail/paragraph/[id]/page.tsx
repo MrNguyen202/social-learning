@@ -1,6 +1,6 @@
 "use client";
 
-import { feedbackWritingParagraphExercise, getWritingParagraphById, submitWritingParagraphExercise } from '@/app/apiClient/learning/writing/writing';
+import { feedbackWritingParagraphExercise, getHistorySubmitWritingParagraphByUserAndParagraph, getWritingParagraphById, submitWritingParagraphExercise } from '@/app/apiClient/learning/writing/writing';
 import { Button } from '@/components/ui/button';
 import useAuth from '@/hooks/useAuth';
 import { CircleEqual, Lightbulb, Snowflake } from 'lucide-react';
@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { useScore } from '@/components/contexts/ScoreContext';
 import { toast } from 'react-toastify';
 import { useLanguage } from '@/components/contexts/LanguageContext';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface ExerciseDetail {
     id: number;
@@ -25,7 +26,7 @@ interface ExerciseDetail {
 
 export default function PageExerciseDetail() {
     const { user } = useAuth();
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const router = useRouter();
     const userData = user;
     const { id } = useParams();
@@ -34,6 +35,7 @@ export default function PageExerciseDetail() {
     const [feedback, setFeedback] = useState<any>(null);
     const [feedbackLoading, setFeedbackLoading] = useState<boolean>(false);
     const { score } = useScore();
+    const [history, setHistory] = useState<any[]>([]);
 
     const [showMinus, setShowMinus] = useState(false);
     const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
@@ -41,6 +43,7 @@ export default function PageExerciseDetail() {
 
     const suggestBtnRef = useRef<HTMLButtonElement | null>(null);
     const scoreRef = useRef<HTMLDivElement | null>(null);
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
     // Lấy thông tin bài tập theo id
     useEffect(() => {
@@ -48,13 +51,19 @@ export default function PageExerciseDetail() {
             try {
                 const response = await getWritingParagraphById(Number(id));
                 setExerciseDetail(response);
+
+                // Lấy lịch sử nộp bài
+                if (userData) {
+                    const historyResponse = await getHistorySubmitWritingParagraphByUserAndParagraph(String(userData.id), String(id));
+                    setHistory(historyResponse);
+                }
             } catch (error) {
                 console.error("Error fetching exercise detail:", error);
             }
         };
 
         fetchExerciseDetail();
-    }, [id]);
+    }, [id, userData, language]);
 
     // Xử lý submit bài tập
     const handleSubmit = async () => {
@@ -68,17 +77,23 @@ export default function PageExerciseDetail() {
             );
             setFeedback(response.data.feedback);
             setInputValue(response.data.submit.content_submit);
+
+            // gọi lại history
+            const historyResponse = await getHistorySubmitWritingParagraphByUserAndParagraph(
+                String(userData.id),
+                String(exerciseDetail!.id)
+            );
+            setHistory(historyResponse);
         } catch (error) {
             console.error("Error submitting exercise:", error);
         }
-        setInputValue('');
     }
 
     // Handle xem gợi ý
     const handleSuggest = async () => {
         if (!exerciseDetail && !userData) return;
         if (score && score.number_snowflake < 2) {
-            toast.error("Bạn không đủ bông tuyết để sử dụng gợi ý!");
+            toast.error(t("learning.errorGetSuggestions"));
             return;
         }
 
@@ -105,6 +120,43 @@ export default function PageExerciseDetail() {
         }
     };
 
+    // Handle history
+    const handleHistory = (item: any) => {
+        if (!history) return;
+
+        // set submit value
+        setInputValue(item.content_submit);
+
+        // set feedback
+        if (item.feedback) {
+            try {
+                const parsedFeedback = typeof item.feedback === "string"
+                    ? JSON.parse(item.feedback)
+                    : item.feedback;
+                setFeedback(parsedFeedback);
+            } catch (err) {
+                console.error("Error parsing feedback:", err);
+                setFeedback(null);
+            }
+        } else {
+            setFeedback(null);
+        }
+    };
+
+    // Highlight từ trong input
+    const handleHighlightInInput = (word: string) => {
+        if (!textareaRef.current || !inputValue) return;
+
+        const text = inputValue;
+        const index = text.indexOf(word);
+
+        if (index !== -1) {
+            textareaRef.current.focus();
+            textareaRef.current.setSelectionRange(index, index + word.length);
+        }
+    };
+
+
     return (
         <div className='w-full grid grid-cols-1 gap-6 mt-6'>
             {/* heading */}
@@ -118,7 +170,7 @@ export default function PageExerciseDetail() {
                     {/* Snowflake */}
                     <div ref={scoreRef} className="flex items-center bg-blue-50 px-3 py-1 rounded-full">
                         <Snowflake className="h-5 w-5 text-blue-500" />
-                        <span className="ml-2 text-blue-600">{score?.number_snowflake} bông tuyết</span>
+                        <span className="ml-2 text-blue-600">{score?.number_snowflake} {t("learning.snowflake")}</span>
                     </div>
 
                     {/* Separator */}
@@ -127,7 +179,7 @@ export default function PageExerciseDetail() {
                     {/* Circle Equal */}
                     <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
                         <CircleEqual className="h-5 w-5 text-yellow-500" />
-                        <span className="ml-2 text-yellow-600">{score?.practice_score} điểm</span>
+                        <span className="ml-2 text-yellow-600">{score?.practice_score} {t("learning.points")}</span>
                     </div>
                 </div>
             </div>
@@ -144,12 +196,13 @@ export default function PageExerciseDetail() {
                         </p>
 
                         <textarea
+                            ref={textareaRef}
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             className="text-lg w-full border border-gray-300 rounded-lg p-3 mt-2 focus:outline-none focus:ring-2 focus:ring-green-400"
                             rows={10}
-                            placeholder="Nhập nội dung bài tập ở đây..."
-                        ></textarea>
+                            placeholder={t("learning.inputPlaceholder")}
+                        />
                     </div>
 
                     {/* Buttons */}
@@ -188,21 +241,55 @@ export default function PageExerciseDetail() {
                         <div className="flex flex-col">
                             <div className="pt-1 border-b">
                                 <span>{t('learning.numberOfSubmissions')}</span>
-                                <span className="font-bold float-right">{feedback ? feedback.attempts : 0}</span>
+                                <span className="font-bold float-right">{history ? history.length : 0}</span>
                             </div>
                             <div className="pt-1 border-b">
                                 <span>{t('learning.highestScore')}</span>
-                                <span className="font-bold float-right">{feedback ? feedback.highestScore : 0}</span>
+                                <span className="font-bold float-right">
+                                    {history && history.length > 0
+                                        ? Math.max(...history.map(item => item.feedback?.score ?? 0))
+                                        : 0}
+                                </span>
                             </div>
                             <div className="pt-1 border-b">
                                 <span>{t('learning.highestAccuracy')}</span>
-                                <span className="font-bold float-right">{feedback ? feedback.highestAccuracy : 0}%</span>
+                                <span className="font-bold float-right">
+                                    {history && history.length > 0
+                                        ? Math.max(...history.map(item => item.feedback?.accuracy ?? 0))
+                                        : 0}%
+                                </span>
                             </div>
-                            <Button
-                                className="absolute top-4 right-4 bg-white text-gray-700 rounded-lg px-5 py-2 hover:bg-gray-100 hover:cursor-pointer"
-                            >
-                                {t('learning.buttonHistorySubmissions')}
-                            </Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button className="absolute top-4 right-4 bg-white text-gray-700 rounded-lg px-5 py-2 hover:bg-gray-100 hover:cursor-pointer">
+                                        {t('learning.buttonHistorySubmissions')}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-64 max-h-60 overflow-y-auto">
+                                    {history.length > 0 ? (
+                                        history.map((item, idx) => (
+                                            <DropdownMenuItem
+                                                key={idx}
+                                                className="flex flex-col items-start hover:bg-gray-100 cursor-pointer"
+                                                onClick={() => handleHistory(item)}
+                                            >
+                                                <span className="font-medium text-gray-800">
+                                                    {new Date(item.submit_date).toLocaleDateString()}
+                                                </span>
+                                                <span className="text-xs text-gray-500">
+                                                    {new Date(item.submit_date).toLocaleTimeString()}
+                                                </span>
+                                            </DropdownMenuItem>
+                                        ))
+                                    ) : (
+                                        <DropdownMenuItem disabled>
+                                            {t("learning.noHistorySubmit")}
+                                        </DropdownMenuItem>
+                                    )}
+                                </DropdownMenuContent>
+
+                            </DropdownMenu>
+
                         </div>
                     </div>
                     {/* Feedback */}
@@ -230,12 +317,14 @@ export default function PageExerciseDetail() {
                                                         {err.highlight.split(/(\(.*?\)|\[.*?\])/g).map(
                                                             (part: string, idx: number) => {
                                                                 if (part.startsWith("(") && part.endsWith(")")) {
+                                                                    const wrongWord = part.replace(/[()]/g, "");
                                                                     return (
                                                                         <span
                                                                             key={idx}
-                                                                            className="text-red-500 line-through mx-1"
+                                                                            className="text-red-500 line-through mx-1 cursor-pointer hover:bg-red-100"
+                                                                            onClick={() => handleHighlightInInput(wrongWord)}
                                                                         >
-                                                                            {part.replace(/[()]/g, "")}
+                                                                            {wrongWord}
                                                                         </span>
                                                                     );
                                                                 }

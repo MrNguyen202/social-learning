@@ -97,7 +97,7 @@ const botCoverLearningController = {
         }
 
         // Prompt để gọi Gemini
-        const prompt = promptGenerateListening(level.name, topic.name);
+        const prompt = promptGenerateListening(level.name_vi, topic.name_vi);
 
         try {
             const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
