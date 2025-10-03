@@ -12,8 +12,8 @@ Yêu cầu:
 8. Tránh sử dụng các từ ngữ mang tính xúc phạm hoặc không phù hợp.
 9. Tránh sử dụng các từ ngữ mang tính chính trị hoặc tôn giáo.
 10. Tránh sử dụng các từ ngữ mang tính quảng cáo hoặc tiếp thị.
-11. Tạo 10 bài tập nói khác nhau.
-Trả lời bằng định dạng JSON với cấu trúc sau:
+11. Tạo 2 bài tập nói khác nhau.
+Trả lời bằng định dạng JSON thuần với cấu trúc sau:
 {
     [
         "id": "1",

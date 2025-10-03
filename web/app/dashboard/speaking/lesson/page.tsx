@@ -213,11 +213,22 @@ function LessonContent() {
   ]);
 
   const speak = (text: string) => {
-    if (!text) return;
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US";
-    utterance.rate = 0.9;
-    window.speechSynthesis.speak(utterance);
+    const voices = speechSynthesis.getVoices();
+
+    // Lọc chỉ những giọng tiếng Anh
+    const englishVoices = voices.filter((v) => v.lang.startsWith("en"));
+
+    if (englishVoices.length > 0) {
+      // Random 1 voice
+      const randomVoice =
+        englishVoices[Math.floor(Math.random() * englishVoices.length)];
+      utterance.voice = randomVoice;
+    }
+
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    speechSynthesis.speak(utterance);
   };
 
   const progress =
@@ -265,7 +276,7 @@ function LessonContent() {
       </div>
     );
   }
-console.log(lessons);
+
   return (
     <div className="flex-1 py-2 px-12">
       {showCelebration && (
@@ -383,7 +394,7 @@ console.log(lessons);
                   <motion.button
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => speak(currentSentence)}
+                    onClick={() => currentSentence && speak(currentSentence)}
                     className="flex items-center gap-3 px-6 py-3 rounded-xl bg-white/25 hover:bg-white/35 transition-all backdrop-blur-sm border-2 border-white/30 font-semibold text-lg shadow-lg"
                   >
                     <Volume2 className="w-6 h-6" />
