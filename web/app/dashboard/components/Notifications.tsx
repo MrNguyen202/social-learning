@@ -118,7 +118,7 @@ export function NotificationsPanel({
 
             {/* Panel */}
             <motion.div
-              className="fixed left-0 top-0 bottom-0 w-[350px] bg-white border-r border-gray-200 z-50 flex flex-col"
+              className="fixed left-0 top-0 bottom-0 w-80 bg-white border-r border-gray-200 z-50 flex flex-col"
               initial={{ x: -320 }}
               animate={{ x: 0 }}
               exit={{ x: -320 }}
