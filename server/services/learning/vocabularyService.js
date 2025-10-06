@@ -1,22 +1,50 @@
 const supabase = require("../../lib/supabase").supabase;
 
 const vocabularyService = {
-  
-  async insertVocabulary(userId, vocabData) {
-    const { data, error } = await supabase
+  async insertOrUpdateVocabulary(userId, vocabData) {
+    // Kiểm tra từ đã tồn tại chưa
+    const { data: existing, error: checkError } = await supabase
       .from("userVocabErrors")
-      .insert({
-        userId: userId,
-        word: vocabData.word,
-        error_type: vocabData.error_type,
-        skill: vocabData.skill,
-      })
-      .select()
-      .single();
+      .select("id,error_count")
+      .eq("userId", userId)
+      .eq("word", vocabData.word)
+      .eq("error_type", vocabData.error_type)
+      .eq("skill", vocabData.skill)
+      .maybeSingle();
 
-    if (error) throw error;
+    if (checkError) throw checkError;
 
-    return { data, error };
+    if (existing) {
+      // Nếu đã tồn tại, tăng error_count
+      const { data, error } = await supabase
+        .from("userVocabErrors")
+        .update({
+          error_count: existing.error_count + 1,
+          created_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { data, error };
+    } else {
+      // Nếu chưa có, insert mới
+      const { data, error } = await supabase
+        .from("userVocabErrors")
+        .insert({
+          userId,
+          word: vocabData.word,
+          error_type: vocabData.error_type,
+          skill: vocabData.skill,
+          error_count: 1,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { data, error };
+    }
   },
 
   async deleteVocabularyErrors(userId, word) {
@@ -90,7 +118,7 @@ const vocabularyService = {
       .eq("userId", userId)
       .eq("created", true)
       .gte("error_count", 5);
-      
+
     if (error) throw error;
 
     return { data, error };

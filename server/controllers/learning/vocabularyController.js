@@ -1,14 +1,14 @@
 const vocabularyService = require("../../services/learning/vocabularyService");
 
 const vocabularyController = {
-  async insertVocabulary(req, res) {
+  async insertOrUpdateVocabulary(req, res) {
     const { userId, vocabData } = req.body;
     console.log("req.body", req.body);
     if (!userId || !vocabData) {
       return res.status(400).json({ error: "Missing or invalid parameters" });
     }
     try {
-      const { data, error } = await vocabularyService.insertVocabulary(
+      const { data, error } = await vocabularyService.insertOrUpdateVocabulary(
         userId,
         vocabData
       );

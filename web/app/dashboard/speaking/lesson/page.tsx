@@ -37,7 +37,7 @@ import {
   getScoreUserByUserId,
 } from "@/app/apiClient/learning/score/score";
 import useAuth from "@/hooks/useAuth";
-import { insertVocabularyErrors } from "@/app/apiClient/learning/vocabulary/vocabulary";
+import { insertOrUpdateVocabularyErrors } from "@/app/apiClient/learning/vocabulary/vocabulary";
 
 interface Lesson {
   id: number;
@@ -356,8 +356,7 @@ function LessonContent() {
     
     // đưa từ cần đọc vào danh sách vocab error
     wrongPairs.forEach(({ correct, spoken }) => {
-      // Ở đây bạn có thể gọi API hoặc lưu vào state để hiển thị sau
-      insertVocabularyErrors({
+      insertOrUpdateVocabularyErrors({
         userId: user.id,
         vocabData: {
           word: correct,

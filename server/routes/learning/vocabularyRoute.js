@@ -3,7 +3,7 @@ const router = express.Router();
 const vocabularyController = require("../../controllers/learning/vocabularyController");
 
 // Route to insert vocabulary data
-router.post("/insert", vocabularyController.insertVocabulary);
+router.post("/insert", vocabularyController.insertOrUpdateVocabulary);
 
 // Route to delete vocabulary errors
 router.delete("/delete", vocabularyController.deleteVocabularyErrors);

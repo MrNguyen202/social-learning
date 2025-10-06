@@ -7,7 +7,7 @@ interface VocabularyData {
 }
 
 // Insert vocabulary errors of user
-export const insertVocabularyErrors = async ({ userId, vocabData }: { userId: string; vocabData: VocabularyData }) => {
+export const insertOrUpdateVocabularyErrors = async ({ userId, vocabData }: { userId: string; vocabData: VocabularyData }) => {
   console.log("Inserting vocabulary error:", { userId, vocabData });
   const response = await api.post(`/api/learning/vocabulary/insert`, {
     userId,
