@@ -35,6 +35,7 @@ import Listening from '../screens/learning/listening/Listening';
 import ListeningDetail from '../screens/learning/listening/ListeningDetail';
 import Speaking from '../screens/learning/speaking/Speaking';
 import Writing from '../screens/learning/writing/Writing';
+import LessonSpeaking from '../screens/learning/speaking/lesson/LessonSpeaking';
 
 const Tab = createBottomTabNavigator();
 
@@ -196,6 +197,11 @@ const AppNavigation = () => {
          <Stack.Screen
           name="Speaking"
           component={Speaking}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="LessonSpeaking"
+          component={LessonSpeaking}
           options={{ headerShown: false }}
         />
          <Stack.Screen

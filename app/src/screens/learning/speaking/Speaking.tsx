@@ -32,8 +32,8 @@ export default function Speaking() {
 
   const handleStart = () => {
     if (isReady) {
-      // navigation.navigate("SpeakingList");
-      console.log('Navigate to SpeakingList');
+      navigation.navigate("LessonSpeaking");
+      console.log('Navigate to LessonSpeaking');
     }
   };
 
