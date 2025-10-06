@@ -293,6 +293,8 @@ const botCoverLearningController = {
         meaning_vi: item.meaning_vi,
         example: item.example,
         example_vi: item.example_vi,
+        ipa: item.ipa,
+        word_type: item.word_type,
       }));
 
       // Lưu vào mảng jsonb của bảng personalVocab
@@ -301,7 +303,7 @@ const botCoverLearningController = {
       if (resultSaveVocab.error) {
         return res.status(500).json({ error: "Lỗi khi lưu từ vựng cá nhân" });
       }
-      console.log("Tạo từ vựng cá nhân thành công cho từ :", word);
+      
       res
         .status(200)
         .json({ success: true, message: "Tạo từ vựng cá nhân thành công", data });

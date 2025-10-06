@@ -130,7 +130,6 @@ const notificationController = {
   async fetchNotificationsLearning(req, res) {
     try {
       const { userId } = req.params;
-      console.log("userId:", userId);
 
       if (!userId) {
         return res.status(400).json({

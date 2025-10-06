@@ -11,6 +11,8 @@ Yêu cầu:
    - "meaning_vi": giải thích ngắn bằng tiếng Việt (1 câu).
    - "example": một câu ví dụ ngắn gọn (3–8 từ).
    - "example_vi": bản dịch tiếng Việt của câu ví dụ.
+   - "ipa": phiên âm quốc tế của từ.
+   - "word_type": loại từ (danh từ, động từ, tính từ, trạng từ, giới từ, liên từ, đại từ, thán từ). Kết quả phải bao gồm loại từ tiếng Anh và tiếng Việt.
 3. Các từ vựng phải mang ý nghĩa khác nhau, không lặp lại.
 4. Không sử dụng kí tự đặc biệt như @, #, $, %, ^, &, *, (, ), -, +, =, v.v.
 5. Chỉ trả về JSON thuần, không giải thích.
@@ -25,7 +27,9 @@ Yêu cầu:
     "meaning": "giải thích ngắn tiếng Anh",
     "meaning_vi": "giải thích ngắn tiếng Việt",
     "example": "câu ví dụ ngắn",
-    "example_vi": "nghĩa tiếng Việt của câu ví dụ"
+    "example_vi": "nghĩa tiếng Việt của câu ví dụ",
+    "ipa": "phiên âm quốc tế",
+    "word_type": "loại từ (tiếng Anh - tiếng Việt)"
   },
   ...
 ]

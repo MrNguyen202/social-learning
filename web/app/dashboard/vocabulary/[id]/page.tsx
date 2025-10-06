@@ -8,14 +8,10 @@ import {
   ArrowLeft,
   BookOpen,
   Volume2,
-  Lightbulb,
-  MessageSquare,
   TrendingUp,
   AlertCircle,
   Sparkles,
   Link2,
-  ThumbsUp,
-  ThumbsDown,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -40,6 +36,42 @@ export default function VocabularyDetailPage() {
     };
     fetchData();
   }, [id]);
+
+  useEffect(() => {
+    const loadVoices = () => {
+      window.speechSynthesis.getVoices();
+    };
+    window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
+    return () =>
+      window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
+  }, []);
+
+  const speakWord = (text: string) => {
+    if (!window.speechSynthesis) {
+      console.warn("Speech Synthesis not supported");
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+
+    // Lấy tất cả voice tiếng Anh
+    const voices = window.speechSynthesis.getVoices();
+    const englishVoices = voices.filter((v) => v.lang.startsWith("en-US"));
+
+    // Random voice nếu có
+    if (englishVoices.length > 0) {
+      const randomVoice =
+        englishVoices[Math.floor(Math.random() * englishVoices.length)];
+      utterance.voice = randomVoice;
+      utterance.lang = randomVoice.lang;
+    }
+
+    window.speechSynthesis.cancel(); // dừng voice cũ
+    window.speechSynthesis.speak(utterance);
+  };
 
   const getMasteryColor = (score: number) => {
     if (score >= 70) return "from-green-500 to-emerald-500";
@@ -67,6 +99,8 @@ export default function VocabularyDetailPage() {
       </div>
     );
   }
+
+  const vocab = relatedVocab[0];
 
   if (!personalVocab) {
     return (
@@ -118,7 +152,7 @@ export default function VocabularyDetailPage() {
           <Button
             variant="ghost"
             onClick={() => router.push("/dashboard/vocabulary")}
-            className="group hover:bg-white/50"
+            className="group hover:bg-gray-200 cursor-pointer"
           >
             <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
             Quay lại
@@ -146,24 +180,20 @@ export default function VocabularyDetailPage() {
                         {personalVocab.word}
                       </h1>
 
-                      {/* Phát âm */}
+                      {/* ipa */}
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <Volume2 className="h-4 w-4" />
-                        <span className="text-lg">
-                          personalVocab.pronunciation
+                        <span className="text-lg">{vocab.ipa}</span>
+                        <span className="inline-block rounded-full bg-gradient-to-r from-orange-100 to-pink-100 px-3 py-1 text-sm font-medium text-orange-700">
+                          {vocab.word_type}
                         </span>
                       </div>
-
-                      <span className="mt-2 inline-block rounded-full bg-gradient-to-r from-orange-100 to-pink-100 px-3 py-1 text-sm font-medium text-orange-700">
-                        personalVocab.word_type
-                      </span>
                     </div>
                   </div>
 
                   {/* Translation */}
                   <div className="rounded-xl bg-gradient-to-r from-orange-50 to-pink-50 p-4">
                     <p className="text-lg font-medium text-gray-700">
-                      {personalVocab.translation}
+                      {vocab.word_vi}
                     </p>
                   </div>
                 </div>
@@ -206,7 +236,7 @@ export default function VocabularyDetailPage() {
                   <div className="flex-1 rounded-2xl bg-gradient-to-br from-red-50 to-pink-50 p-4 shadow-lg md:w-48">
                     <div className="mb-2 flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-600">
-                        Số lần sai
+                        Tổng số lần sai
                       </span>
                       <AlertCircle className="h-4 w-4 text-red-500" />
                     </div>
@@ -221,14 +251,15 @@ export default function VocabularyDetailPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Button className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600">
+              <div className="md:mt-[-35px] mt-6 flex flex-wrap gap-3">
+                <Button className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer">
                   <Sparkles className="mr-2 h-4 w-4" />
                   Luyện tập ngay
                 </Button>
                 <Button
                   variant="outline"
-                  className="border-orange-200 hover:bg-orange-50 bg-transparent"
+                  onClick={() => speakWord(personalVocab.word)}
+                  className="border-orange-200 hover:bg-orange-50 bg-transparent cursor-pointer"
                 >
                   <Volume2 className="mr-2 h-4 w-4" />
                   Phát âm
@@ -237,98 +268,6 @@ export default function VocabularyDetailPage() {
             </CardContent>
           </Card>
         </motion.div>
-
-        {/* Main Content Grid */}
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Meaning Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className="h-full border-0 bg-white/80 shadow-lg backdrop-blur-sm transition-all hover:shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-orange-600">
-                  <Lightbulb className="h-5 w-5" />
-                  Nghĩa
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-lg leading-relaxed text-gray-700">
-                  {personalVocab.translation}
-                </p>
-                {personalVocab.synonyms &&
-                  personalVocab.synonyms.length > 0 && (
-                    <div className="mt-4">
-                      <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-600">
-                        <ThumbsUp className="h-4 w-4" />
-                        Từ đồng nghĩa
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {personalVocab.synonyms.map(
-                          ({ synonym, index }: any) => (
-                            <span
-                              key={index}
-                              className="rounded-full bg-gradient-to-r from-green-100 to-emerald-100 px-3 py-1 text-sm text-green-700"
-                            >
-                              {synonym}
-                            </span>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-                {personalVocab.antonyms &&
-                  personalVocab.antonyms.length > 0 && (
-                    <div className="mt-4">
-                      <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-600">
-                        <ThumbsDown className="h-4 w-4" />
-                        Từ trái nghĩa
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {personalVocab.antonyms.map(
-                          ({ antonym, index }: any) => (
-                            <span
-                              key={index}
-                              className="rounded-full bg-gradient-to-r from-red-100 to-pink-100 px-3 py-1 text-sm text-red-700"
-                            >
-                              {antonym}
-                            </span>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Example Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Card className="h-full border-0 bg-white/80 shadow-lg backdrop-blur-sm transition-all hover:shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-pink-600">
-                  <MessageSquare className="h-5 w-5" />
-                  Ví dụ
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="rounded-lg bg-gradient-to-r from-orange-50 to-pink-50 p-4">
-                  <p className="mb-2 font-medium text-gray-800">
-                    {personalVocab.example}
-                  </p>
-                  <p className="text-sm text-gray-600 italic">
-                    {personalVocab.translation}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
 
         {/* Related Words Section */}
         {relatedVocab.length > 0 && (
@@ -358,12 +297,13 @@ export default function VocabularyDetailPage() {
                       <div className="mb-2 flex items-start justify-between">
                         <div>
                           <h3 className="text-lg font-semibold text-gray-800 group-hover:text-orange-600 transition-colors">
-                            {word.word}
+                            {word.word} :{" "}
+                            <span className="mb-2 text-lg font-medium text-gray-700">
+                              {word.word_vi}
+                            </span>
                           </h3>
-                          {word.pronunciation && (
-                            <p className="text-sm text-gray-500">
-                              {word.pronunciation}
-                            </p>
+                          {word.ipa && (
+                            <p className="text-sm text-gray-500">{word.ipa}</p>
                           )}
                           {word.word_type && (
                             <span className="mt-1 inline-block rounded-full bg-orange-100 px-2 py-0.5 text-xs text-orange-700">
@@ -371,11 +311,15 @@ export default function VocabularyDetailPage() {
                             </span>
                           )}
                         </div>
-                        <Volume2 className="h-4 w-4 text-gray-400 opacity-0 transition-opacity group-hover:opacity-100" />
+                        <Volume2
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            speakWord(word.word);
+                          }}
+                          className="h-6 w-6 text-gray-400 opacity-0 transition-opacity group-hover:opacity-100"
+                        />
                       </div>
-                      <p className="mb-2 text-sm font-medium text-gray-700">
-                        {word.word_vi}
-                      </p>
+
                       <div className="space-y-2 text-sm">
                         <div className="rounded-lg bg-orange-50/50 p-2">
                           <p className="text-gray-700">{word.meaning}</p>

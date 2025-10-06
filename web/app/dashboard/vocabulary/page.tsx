@@ -387,16 +387,6 @@ export default function VocabularyPage() {
                           />
                         </div>
                       </div>
-
-                      {/* Error Count */}
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1 px-3 py-1 bg-red-100 rounded-full">
-                          <AlertCircle className="w-4 h-4 text-red-600" />
-                          <span className="text-xs font-medium text-red-600">
-                            {vocab.error_count} {t("learning.error")}
-                          </span>
-                        </div>
-                      </div>
                     </div>
                   </motion.div>
                 );
@@ -426,7 +416,9 @@ export default function VocabularyPage() {
               </div>
             </motion.div>
             <h3 className="text-2xl font-bold text-gray-800 mb-2">
-              {searchQuery ? t("learning.noVocabularyFound") : t("learning.noVocabulary")}
+              {searchQuery
+                ? t("learning.noVocabularyFound")
+                : t("learning.noVocabulary")}
             </h3>
             <p className="text-gray-600 text-center max-w-md">
               {searchQuery

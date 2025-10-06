@@ -3,7 +3,6 @@ const vocabularyService = require("../../services/learning/vocabularyService");
 const vocabularyController = {
   async insertOrUpdateVocabulary(req, res) {
     const { userId, vocabData } = req.body;
-    console.log("req.body", req.body);
     if (!userId || !vocabData) {
       return res.status(400).json({ error: "Missing or invalid parameters" });
     }
@@ -24,7 +23,6 @@ const vocabularyController = {
 
   async deleteVocabularyErrors(req, res) {
     const { userId, word } = req.body;
-    console.log("req.body", req.body);
     if (!userId || !word) {
       return res.status(400).json({ error: "Missing or invalid parameters" });
     }
@@ -47,7 +45,6 @@ const vocabularyController = {
 
   async getListPersonalVocabByUserIdAndErrorCount(req, res) {
     const { userId } = req.params;
-    console.log("req.params", req.params);
     if (!userId) {
       return res.status(400).json({ error: "Missing or invalid parameters" });
     }
@@ -73,7 +70,6 @@ const vocabularyController = {
 
   async getListPersonalVocabByUserIdAndRelatedWord(req, res) {
     const { userId } = req.params;
-    console.log("req.params", req.params);
     if (!userId) {
       return res.status(400).json({ error: "Missing or invalid parameters" });
     }
@@ -99,7 +95,6 @@ const vocabularyController = {
 
   async getListPersonalVocabByUserIdAndCreated(req, res) {
     const { userId } = req.params;
-    console.log("req.params", req.params);
     if (!userId) {
       return res.status(400).json({ error: "Missing or invalid parameters" });
     }
@@ -120,7 +115,6 @@ const vocabularyController = {
 
   async getPersonalVocabById(req, res) {
     const { personalVocabId } = req.params;
-    console.log("req.params", req.params);
     if (!personalVocabId) {
       return res.status(400).json({ error: "Missing or invalid parameters" });
     }
