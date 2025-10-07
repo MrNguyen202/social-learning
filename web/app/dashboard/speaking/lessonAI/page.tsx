@@ -41,6 +41,8 @@ import {
   getScoreUserByUserId,
 } from "@/app/apiClient/learning/score/score";
 import useAuth from "@/hooks/useAuth";
+import { insertOrUpdateVocabularyErrors } from "@/app/apiClient/learning/vocabulary/vocabulary";
+import { supabase } from "@/lib/supabase";
 
 interface Lesson {
   id: number;
@@ -143,6 +145,13 @@ function LessonAIContent() {
       .replace(/\s+/g, " ")
       .trim();
 
+  const update_mastery_on_success = async (userId: string, word: string) => {
+    await supabase.rpc("update_mastery_on_success", {
+      user_id: userId,
+      word_input: word,
+    });
+  };
+
   const buildResultAndCheck = (): boolean => {
     if (!currentSentence) return false;
 
@@ -154,6 +163,9 @@ function LessonAIContent() {
 
     const compared = sampleWords.map((word, i) => {
       if (spokenWords[i] === word) {
+        if (user) {
+          update_mastery_on_success(user.id, word);
+        }
         return (
           <motion.span
             key={i}
@@ -232,10 +244,10 @@ function LessonAIContent() {
                       {t("learning.allComplete")}
                     </div>
                     <div className="text-blue-600">
-                      🎉 Bạn được cộng <b>10 điểm thực hành</b>
+                      🎉 {t("learning.pointsEarned")}
                     </div>
                     <div className="text-purple-600">
-                      🏆 Tổng số điểm bạn có hiện tại là: <b>{totalScore}</b>
+                      🏆 {t("learning.totalPoints")} <b>{totalScore}</b>
                     </div>
                   </motion.div>
                 );
@@ -352,14 +364,25 @@ function LessonAIContent() {
           correct: word,
           spoken: spokenWords[i] || "(bỏ qua)",
         });
-        console.log("test:", wrongPairs);
-        console.log("Wrong word:", word, "Spoken as:", spokenWords[i]);
+
         return (
           <span key={i} className="text-red-600 mr-2">
             {spokenWords[i] || "___"}
           </span>
         );
       }
+    });
+
+    // đưa từ cần đọc vào danh sách vocab error
+    wrongPairs.forEach(({ correct, spoken }) => {
+      insertOrUpdateVocabularyErrors({
+        userId: user.id,
+        vocabData: {
+          word: correct,
+          error_type: "pronunciation",
+          skill: "speaking",
+        },
+      });
     });
   };
 

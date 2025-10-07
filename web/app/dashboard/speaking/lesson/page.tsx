@@ -38,6 +38,7 @@ import {
 } from "@/app/apiClient/learning/score/score";
 import useAuth from "@/hooks/useAuth";
 import { insertOrUpdateVocabularyErrors } from "@/app/apiClient/learning/vocabulary/vocabulary";
+import { supabase } from "@/lib/supabase";
 
 interface Lesson {
   id: number;
@@ -136,6 +137,13 @@ function LessonContent() {
       .replace(/\s+/g, " ")
       .trim();
 
+  const update_mastery_on_success = async (userId: string, word: string) => {
+    await supabase.rpc("update_mastery_on_success", {
+      user_id: userId,
+      word_input: word,
+    });
+  };
+
   const buildResultAndCheck = (): boolean => {
     if (!currentSentence) return false;
 
@@ -147,6 +155,9 @@ function LessonContent() {
 
     const compared = sampleWords.map((word, i) => {
       if (spokenWords[i] === word) {
+        if (user) {
+          update_mastery_on_success(user.id, word);
+        }
         return (
           <motion.span
             key={i}
@@ -225,10 +236,10 @@ function LessonContent() {
                       {t("learning.allComplete")}
                     </div>
                     <div className="text-blue-600">
-                      🎉 Bạn được cộng <b>10 điểm thực hành</b>
+                      🎉 {t("learning.pointsEarned")}
                     </div>
                     <div className="text-purple-600">
-                      🏆 Tổng số điểm bạn có hiện tại là: <b>{totalScore}</b>
+                      🏆 {t("learning.totalPoints")} <b>{totalScore}</b>
                     </div>
                   </motion.div>
                 );
@@ -331,7 +342,7 @@ function LessonContent() {
     let allCorrect = true;
     let wrongPairs: Array<{ correct: string; spoken: string }> = [];
 
-    const compared = sampleWords.map((word, i) => {
+    sampleWords.map((word, i) => {
       if (spokenWords[i] === word) {
         return (
           <span key={i} className="text-green-600 mr-2">
@@ -353,7 +364,7 @@ function LessonContent() {
         );
       }
     });
-    
+
     // đưa từ cần đọc vào danh sách vocab error
     wrongPairs.forEach(({ correct, spoken }) => {
       insertOrUpdateVocabularyErrors({

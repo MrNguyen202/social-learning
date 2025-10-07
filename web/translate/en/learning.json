@@ -64,6 +64,8 @@
   "points": "Points",
   "inputPlaceholder": "Enter the exercise content here...",
   "noHistorySubmit": "No submission table yet!",
+  "pointsEarned": "You earned 10 practice points",
+  "totalPoints": "Your total points are:",
 
   "myVocabulary": "My Vocabulary",
   "myVocabularyDescription": "Master your words, expand your knowledge",
