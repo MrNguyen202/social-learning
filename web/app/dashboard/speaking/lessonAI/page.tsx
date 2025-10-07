@@ -33,8 +33,7 @@ import Confetti from "react-confetti";
 import type { JSX } from "react/jsx-runtime";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import {
-  generateSpeakingExerciseByAI,
-  getSpeakingByTopicAndLevel,
+  generateSpeakingExerciseByAI
 } from "@/app/apiClient/learning/speaking/speaking";
 import {
   addPracticeScore,
@@ -350,7 +349,7 @@ function LessonAIContent() {
     let allCorrect = true;
     let wrongPairs: Array<{ correct: string; spoken: string }> = [];
 
-    const compared = sampleWords.map((word, i) => {
+    sampleWords.map((word, i) => {
       if (spokenWords[i] === word) {
         return (
           <span key={i} className="text-green-600 mr-2">
