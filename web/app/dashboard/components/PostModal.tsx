@@ -8,10 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
 import { toast } from "react-toastify";
-import { addComment, deleteComment, fetchComments } from "@/app/apiClient/post/post";
+import {
+  addComment,
+  deleteComment,
+  fetchComments,
+} from "@/app/apiClient/post/post";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Heart, Send } from "lucide-react";
-import { getSupabaseFileUrl, getUserImageSrc } from "@/app/apiClient/image/image";
+import {
+  getSupabaseFileUrl,
+  getUserImageSrc,
+} from "@/app/apiClient/image/image";
 import { convertToDate, formatTime } from "@/utils/formatTime";
 import { CreateOrUpdatePostModal } from "./CreateOrUpdatePost";
 import { createNotification } from "@/app/apiClient/notification/notification";
@@ -247,18 +254,20 @@ export function PostModal({
                       {post?.user?.nick_name}
                     </span>
                   </div>
-                  <div className="px-10">
-                    <Button
-                      onClick={() => {
-                        setEditingPost(post); // state cha giữ post đang sửa
-                        setIsEdit(true);
-                        setIsOpenModal(true); // mở modal
-                      }}
-                      className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white hover:text-white rounded-full p-4 text-[14px] cursor-pointer"
-                    >
-                      {t("dashboard.edit")}
-                    </Button>
-                  </div>
+                  {post?.user?.id === userId && (
+                    <div className="px-10">
+                      <Button
+                        onClick={() => {
+                          setEditingPost(post); // state cha giữ post đang sửa
+                          setIsEdit(true);
+                          setIsOpenModal(true); // mở modal
+                        }}
+                        className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white hover:text-white rounded-full p-4 text-[14px] cursor-pointer"
+                      >
+                        {t("dashboard.edit")}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </DialogHeader>
 
