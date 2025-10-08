@@ -66,6 +66,12 @@
   "noHistorySubmit": "No submission table yet!",
   "pointsEarned": "You earned 10 practice points",
   "totalPoints": "Your total points are:",
+  "selectPracticeMode": "Select Practice Mode",
+  "selectSpeakingMode": "Select how you want to practice speaking",
+  "personalSpeaking": "Personal Speaking Practice",
+  "sentenceSpeaking": "Sentence Speaking Practice",
+  "aiSpeaking": "AI Speaking Practice",
+  "conversationAI": "AI Conversation Practice",
 
   "myVocabulary": "My Vocabulary",
   "myVocabularyDescription": "Master your words, expand your knowledge",

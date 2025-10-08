@@ -66,6 +66,12 @@
   "noHistorySubmit": "Chưa có bảng submit!",
   "pointsEarned": "Bạn được cộng 10 điểm thực hành",
   "totalPoints": "Tổng số điểm bạn có hiện tại là:",
+  "selectPracticeMode": "Chọn chế độ luyện tập",
+  "selectSpeakingMode": "Chọn cách bạn muốn luyện nói",
+  "personalSpeaking": "Luyện nói cá nhân",
+  "sentenceSpeaking": "Luyện phát âm từng câu theo tốc độ của bạn",
+  "aiSpeaking": "Luyện nói với AI",
+  "conversationAI": "Thực hành hội thoại tương tác với AI",
 
   "myVocabulary": "Từ vựng của tôi",
   "myVocabularyDescription": "Làm chủ lời nói, mở rộng kiến ​​thức",

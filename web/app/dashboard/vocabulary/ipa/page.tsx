@@ -2,26 +2,46 @@
 
 import { useRef } from "react";
 import { motion } from "framer-motion";
-import { Play, Volume2 } from "lucide-react";
+import { ArrowLeft, Play, Volume2 } from "lucide-react";
 import IPA_DATA from "@/lib/ipa";
 import { useLanguage } from "@/components/contexts/LanguageContext";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export default function IPAPage() {
   const { t } = useLanguage();
+  const router = useRouter();
 
   return (
     <main className="p-6 max-w-7xl mx-auto">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
+        className="mb-8 flex"
       >
-        <h1 className="text-4xl font-bold mb-2 text-center bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-          {t("learning.ipaTitle")}
-        </h1>
-        <p className="text-center text-gray-600">
-          {t("learning.ipaDescription")}
-        </p>
+        <div className="flex">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <Button
+              variant="ghost"
+              onClick={() => router.back()}
+              className="group hover:bg-gray-200 cursor-pointer"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+              Quay lại
+            </Button>
+          </motion.div>
+        </div>
+        <div className="flex-grow">
+          <h1 className="text-4xl font-bold mb-2 text-center bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+            {t("learning.ipaTitle")}
+          </h1>
+          <p className="text-center text-gray-600">
+            {t("learning.ipaDescription")}
+          </p>
+        </div>
       </motion.div>
 
       <motion.div
@@ -72,7 +92,9 @@ function IPAEntry({
       className="p-6 border-2 border-gray-200 rounded-2xl shadow-sm hover:shadow-xl hover:border-blue-300 transition-all bg-white"
     >
       <div className="flex items-center justify-between mb-4">
-        <span className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">{symbol}</span>
+        <span className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
+          {symbol}
+        </span>
         {audio ? (
           <>
             <motion.button

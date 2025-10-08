@@ -17,4 +17,7 @@ router.post('/generate-speaking-exercise', botCoverLearningController.createGene
 // Route to create a generated personal word exercise
 router.post('/generate-personal-word-by-AI', botCoverLearningController.createGeneratePersonalWordByAI);
 
+// Route to create a generated conversation practice exercise
+router.post('/generate-conversation-practice-by-AI', botCoverLearningController.createGenerateConversationPracticeByAI);
+
 module.exports = router;

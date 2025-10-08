@@ -19,21 +19,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { JSX } from "react/jsx-runtime";
-
-// Mock dialogue data - replace with API call based on level and topic
-const getDialogueData = (
-  levelId: string,
-  topicId: string
-): Array<{ speaker: "A" | "B"; text: string }> => {
-  return [
-    { speaker: "A", text: "Hello, how are you?" },
-    { speaker: "B", text: "I'm fine, thank you. And you?" },
-    { speaker: "A", text: "I'm great. What are you doing today?" },
-    { speaker: "B", text: "I'm going to the park." },
-    { speaker: "A", text: "That sounds nice! What will you do there?" },
-    { speaker: "B", text: "I will read a book and relax." },
-  ];
-};
+import { generateConversationPracticeByAI } from "@/app/apiClient/learning/speaking/speaking";
 
 function ConversationPracticeContent() {
   const router = useRouter();
@@ -41,9 +27,7 @@ function ConversationPracticeContent() {
   const levelId = searchParams.get("level");
   const topicId = searchParams.get("topic");
 
-  const [dialogue, setDialogue] = useState<
-    Array<{ speaker: "A" | "B"; text: string }>
-  >([]);
+  const [dialogue, setDialogue] = useState<any[]>([]);
   const [role, setRole] = useState<"A" | "B" | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -57,11 +41,26 @@ function ConversationPracticeContent() {
   const finishDebounceRef = useRef<number | null>(null);
   const lastCheckedTranscriptRef = useRef<string>("");
 
+  // Mock dialogue data - replace with API call based on level and topic
+  const getConversationPracticeByAI = async (
+    levelId: string,
+    topicId: string
+  ) => {
+    try {
+      setLoading(true);
+      const res = await generateConversationPracticeByAI(levelId, topicId);
+      setDialogue(res.data?.content || []);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error generating conversation practice:", error);
+      setLoading(false);
+      return [];
+    }
+  };
+
   useEffect(() => {
     if (levelId && topicId) {
-      const data = getDialogueData(levelId, topicId);
-      setDialogue(data);
-      setLoading(false);
+      getConversationPracticeByAI(levelId, topicId);
     }
   }, [levelId, topicId]);
 
@@ -81,7 +80,8 @@ function ConversationPracticeContent() {
     const current = dialogue[currentIndex];
     if (!current) return false;
 
-    const sample = normalize(current.text);
+    const sample = normalize(current.content);
+
     const spoken = normalize(transcript || "");
     const sampleWords = sample.split(" ");
     const spokenWords = spoken.split(" ");
@@ -110,7 +110,7 @@ function ConversationPracticeContent() {
 
     const score = Math.round((correctCount / sampleWords.length) * 100);
     setAccuracyScore(score);
-    setCanRetry(score < 90);
+    setCanRetry(score < 80);
 
     setResult(
       <div className="mt-4 text-center">
@@ -121,7 +121,7 @@ function ConversationPracticeContent() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className={`mt-4 font-bold text-xl flex items-center justify-center gap-2 ${
-            score >= 90 ? "text-green-600" : "text-orange-600"
+            score >= 80 ? "text-green-600" : "text-orange-600"
           }`}
         >
           <Trophy className="w-6 h-6" />
@@ -130,7 +130,7 @@ function ConversationPracticeContent() {
       </div>
     );
 
-    return score >= 90;
+    return score >= 80;
   };
 
   useEffect(() => {
@@ -138,7 +138,7 @@ function ConversationPracticeContent() {
     const current = dialogue[currentIndex];
     if (!current) return;
 
-    if (current.speaker === role) {
+    if (current.id === role) {
       resetTranscript();
       setAccuracyScore(null);
       setResult(null);
@@ -148,12 +148,12 @@ function ConversationPracticeContent() {
         language: "en-US",
       });
     } else {
-      speak(current.text);
+      speak(current.content);
     }
   }, [currentIndex, role, dialogue, hasStarted]);
 
   useEffect(() => {
-    if (!listening || dialogue[currentIndex]?.speaker !== role) return;
+    if (!listening || dialogue[currentIndex]?.id !== role) return;
     if (!transcript) return;
     if (transcript === lastCheckedTranscriptRef.current) return;
 
@@ -194,7 +194,7 @@ function ConversationPracticeContent() {
   const handleReplay = () => {
     const current = dialogue[currentIndex];
     if (current) {
-      speak(current.text);
+      speak(current.content);
     }
   };
 
@@ -360,23 +360,25 @@ function ConversationPracticeContent() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.1 }}
                       className={`flex ${
-                        line.speaker === "A" ? "justify-start" : "justify-end"
+                        line.id === "A" ? "justify-start" : "justify-end"
                       }`}
                     >
                       <div
                         className={`inline-block max-w-[80%] ${
-                          line.speaker === "A"
+                          line.id === "A"
                             ? "bg-blue-100 text-blue-900"
                             : "bg-green-100 text-green-900"
                         } px-4 py-3 rounded-2xl ${
-                          line.speaker === role ? "ring-2 ring-orange-400" : ""
+                          line.id === role ? "ring-2 ring-orange-400" : ""
                         }`}
                       >
                         <p className="font-semibold text-xs mb-1 opacity-70">
-                          {line.speaker === "A" ? "Người A" : "Người B"}
-                          {line.speaker === role && " (Bạn)"}
+                          {line.id === "A"
+                            ? `Người A - ${line.speaker}`
+                            : `Người B - ${line.speaker}`}{" "}
+                          {line.id === role && " (Bạn)"}
                         </p>
-                        <p className="text-sm">{line.text}</p>
+                        <p className="text-md">{line.content}</p>
                       </div>
                     </motion.div>
                   ))}
@@ -458,19 +460,19 @@ function ConversationPracticeContent() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 0.4, y: 0 }}
                     className={`flex mb-4 ${
-                      dialogue[currentIndex - 1].speaker === "A"
+                      dialogue[currentIndex - 1].id === "A"
                         ? "justify-start"
                         : "justify-end"
                     }`}
                   >
                     <div
                       className={`inline-block max-w-[70%] ${
-                        dialogue[currentIndex - 1].speaker === "A"
+                        dialogue[currentIndex - 1].id === "A"
                           ? "bg-blue-100 text-blue-900"
                           : "bg-green-100 text-green-900"
                       } px-3 py-2 rounded-xl text-sm`}
                     >
-                      {dialogue[currentIndex - 1].text}
+                      {dialogue[currentIndex - 1].content}
                     </div>
                   </motion.div>
                 )}
@@ -482,37 +484,37 @@ function ConversationPracticeContent() {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{ duration: 0.4 }}
                   className={`flex ${
-                    dialogue[currentIndex].speaker === "A"
+                    dialogue[currentIndex].id === "A"
                       ? "justify-start"
                       : "justify-end"
                   }`}
                 >
                   <div
                     className={`inline-block max-w-[85%] ${
-                      dialogue[currentIndex].speaker === "A"
+                      dialogue[currentIndex].id === "A"
                         ? "bg-blue-100 text-blue-900"
                         : "bg-green-100 text-green-900"
                     } px-6 py-4 rounded-2xl shadow-lg ${
-                      dialogue[currentIndex].speaker === role
+                      dialogue[currentIndex].id === role
                         ? "ring-4 ring-orange-400"
                         : ""
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      {dialogue[currentIndex].speaker === "A" ? (
+                      {dialogue[currentIndex].id === "A" ? (
                         <User className="w-4 h-4" />
                       ) : (
                         <Bot className="w-4 h-4" />
                       )}
                       <p className="font-semibold text-sm">
-                        {dialogue[currentIndex].speaker === "A"
-                          ? "Người A"
-                          : "Người B"}
-                        {dialogue[currentIndex].speaker === role && " (Bạn)"}
+                        {dialogue[currentIndex].id === "A"
+                          ? `Người A - ${dialogue[currentIndex].speaker}`
+                          : `Người B - ${dialogue[currentIndex].speaker}`}
+                        {dialogue[currentIndex].id === role && " (Bạn)"}
                       </p>
                     </div>
                     <p className="text-lg font-medium">
-                      {dialogue[currentIndex].text}
+                      {dialogue[currentIndex].content}
                     </p>
                   </div>
                 </motion.div>
@@ -558,17 +560,27 @@ function ConversationPracticeContent() {
 
               {/* Action Buttons */}
               <div className="flex justify-center gap-3 pt-4">
-                {dialogue[currentIndex].speaker === role ? (
+                {dialogue[currentIndex].id === role ? (
                   <>
                     {canRetry && (
-                      <Button
-                        onClick={handleRetry}
-                        variant="outline"
-                        className="flex items-center gap-2 border-orange-300 text-orange-600 hover:bg-orange-50 bg-transparent"
-                      >
-                        <RotateCcw className="w-4 h-4" />
-                        Thử lại
-                      </Button>
+                      <>
+                        <Button
+                          onClick={handleReplay}
+                          variant="outline"
+                          className="flex items-center gap-2 bg-transparent"
+                        >
+                          <Volume2 className="w-4 h-4" />
+                          Nghe lại
+                        </Button>
+                        <Button
+                          onClick={handleRetry}
+                          variant="outline"
+                          className="flex items-center gap-2 border-orange-300 text-orange-600 hover:bg-orange-50 bg-transparent"
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                          Thử lại
+                        </Button>
+                      </>
                     )}
                   </>
                 ) : (
