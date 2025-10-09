@@ -8,9 +8,11 @@ import { Loader2 } from "lucide-react";
 import { RightSidebar } from "../components/RightSidebar";
 import { useRouter } from "next/navigation";
 import { listeningService } from "@/app/apiClient/learning/listening/listening";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 export default function ListeningPage() {
     const router = useRouter();
+    const { t } = useLanguage();
     const [selectedLevel, setSelectedLevel] = useState<{ id: number; slug: string; name: string } | null>(null);
     const [selectedTopic, setSelectedTopic] = useState<{ id: number; slug: string; name: string } | null>(null);
     const [loading, setLoading] = useState(false);
@@ -20,7 +22,7 @@ export default function ListeningPage() {
 
     const handleStart = () => {
         if (selectedLevel && selectedTopic) {
-            router.push(`/dashboard/listening/list`);
+            router.push(`/dashboard/listening/list?level=${selectedLevel.slug}&topic=${selectedTopic.slug}`);
         }
     };
 
@@ -37,14 +39,14 @@ export default function ListeningPage() {
             }
         }
     };
-    
+
     return (
         <>
             <div className="flex-1 px-6 py-6 pb-36">
                 <div className="flex flex-col items-center justify-center text-center gap-2 mt-6">
-                    <h2 className="text-3xl font-semibold">Luyện nghe</h2>
+                    <h2 className="text-3xl font-semibold">{t("learning.listeningTitle")}</h2>
                     <p className="text-lg tracking-widest text-gray-600">
-                        Không ngừng cải thiện kỹ năng nghe của bạn để giao tiếp hiệu quả hơn
+                        {t("learning.descriptionListening")}
                     </p>
                 </div>
 

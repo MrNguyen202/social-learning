@@ -86,5 +86,12 @@
   "suggestion": "Try adjusting your search query",
   "clearSearch": "Clear Search",
   "noVocabulary": "No vocabulary yet",
-  "startLearning": "Start learning and add new words to your personal vocabulary collection"
+  "startLearning": "Start learning and add new words to your personal vocabulary collection",
+
+  "listeningTitle": "Listening Practice",
+  "descriptionListening": "Continuously improve your listening skills to communicate more effectively",
+
+  "breadcrumbListening": "Listening",
+  "sloganListening": "Practice listening to improve skills",
+  "overview": "Overview"
 }

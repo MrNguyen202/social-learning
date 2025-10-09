@@ -8,7 +8,9 @@ Yêu cầu:
 5. Mỗi câu phải có ít nhất 2-3 từ bị đục lỗ.
 Trả lời bằng định dạng JSON với cấu trúc sau:
 {
-"title": "Tiêu đề ngắn gọn cho bài tập nghe bằng tiếng Anh",
+"title_en": "Tiêu đề ngắn gọn cho bài tập nghe bằng tiếng Anh",
+"title_vi": "Tiêu đề ngắn gọn cho bài tập nghe bằng tiếng Việt",
+"description": "Mô tả ngắn gọn về bài tập nghe bằng tiếng Việt",
 "text_content": "Nội dung bài tập nghe bằng tiếng Anh(bản gốc, không đánh dấu chỗ trống đục lỗ)",
 "word_hiddens": ["Danh sách các từ bị ẩn(chỗ trống đục lỗ) trong bài tập nghe"],
 }

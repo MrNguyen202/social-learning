@@ -15,7 +15,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const compact = pathname.startsWith("/dashboard/chat");
   const compactWriting =
     pathname.startsWith("/dashboard/writing/writing-paragraph/") ||
-    pathname.startsWith("/dashboard/writing/detail/");
+    pathname.startsWith("/dashboard/writing/detail/") ||
+    pathname.startsWith("/dashboard/listening/");
 
   useEffect(() => {
     const handleResize = () => {

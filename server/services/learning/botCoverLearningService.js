@@ -75,9 +75,11 @@ const botCoverLearningService = {
             .from("listenParagraphs")
             .insert([
                 {
-                    title: data.title,
+                    title_en: data.title_en,
+                    title_vi: data.title_vi,
+                    description: data.description,
                     text_content: data.text_content,
-                    audio_url: null,
+                    audio_url: data.audio_url,
                     level_id: data.level_id,
                     topic_id: data.topic_id,
                     created_at: new Date().toISOString()
