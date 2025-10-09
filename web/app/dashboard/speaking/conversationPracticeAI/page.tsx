@@ -580,6 +580,13 @@ function ConversationPracticeContent() {
                           <RotateCcw className="w-4 h-4" />
                           Thử lại
                         </Button>
+                        <Button
+                          onClick={handleNext}
+                          className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600"
+                        >
+                          Tiếp theo
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
                       </>
                     )}
                   </>

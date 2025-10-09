@@ -88,11 +88,32 @@ export default function SpeakingPage() {
     <>
       <div className="flex-1 px-6 py-6 pb-36 sm:ml-10">
         {/* Decorative background elements */}
-        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-          <div className="absolute w-32 h-32 md:w-40 md:h-40 bg-orange-200/20 rounded-full blur-3xl top-[5%] left-[10%] animate-pulse" />
-          <div className="absolute w-40 h-40 md:w-52 md:h-52 bg-pink-200/20 rounded-full blur-3xl top-[40%] right-[5%] animate-pulse delay-1000" />
-          <div className="absolute w-28 h-28 md:w-36 md:h-36 bg-orange-100/20 rounded-full blur-3xl bottom-[15%] left-[15%] animate-pulse delay-2000" />
-        </div>
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className="absolute -top-20 -right-20 w-96 h-96 bg-gradient-to-br from-orange-300/30 to-pink-300/30 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 90, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "linear",
+          }}
+        />
+        <motion.div
+          className="absolute -bottom-20 -left-20 w-96 h-96 bg-gradient-to-br from-pink-300/30 to-purple-300/30 rounded-full blur-3xl"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            rotate: [90, 0, 90],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "linear",
+          }}
+        />
+      </div>
 
         {/* Header Section */}
         <motion.div

@@ -145,111 +145,148 @@ export default function RecommendFriends() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="max-w-3xl mx-auto px-4 py-8"
-    >
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">{t("dashboard.title")}</h2>
-        <span className="text-sm text-gray-500">
-          {friends.length} {t("dashboard.suggestions")}
-        </span>
+    <>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className="absolute -top-20 -right-20 w-96 h-96 bg-gradient-to-br from-orange-300/30 to-pink-300/30 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 90, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "linear",
+          }}
+        />
+        <motion.div
+          className="absolute -bottom-20 -left-20 w-96 h-96 bg-gradient-to-br from-pink-300/30 to-purple-300/30 rounded-full blur-3xl"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            rotate: [90, 0, 90],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "linear",
+          }}
+        />
+        <motion.div
+          className="absolute bottom-20 right-50 w-96 h-96 bg-gradient-to-br from-purple-300/30 to-orange-300/30 rounded-full blur-3xl"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            rotate: [90, 0, 90],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "linear",
+          }}
+        />
       </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="max-w-3xl mx-auto px-4 py-8"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">{t("dashboard.title")}</h2>
+          <span className="text-sm text-gray-500">
+            {friends.length} {t("dashboard.suggestions")}
+          </span>
+        </div>
 
-      <div className="space-y-4">
-        {friends.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg"
-          >
-            <p className="text-lg mb-2">
-              🔍 {t("dashboard.noSuggestions")}
-            </p>
-            <p className="text-sm">{t("dashboard.noSuggestionsHint")}</p>
-          </motion.div>
-        ) : (
-          <AnimatePresence>
-            {friends.map((friend, index) => (
-              <motion.div
-                key={friend.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ delay: index * 0.05 }}
-                whileHover={{ scale: 1.02 }}
-                className="flex items-center gap-3 sm:gap-4 bg-white shadow-md rounded-lg p-3 sm:p-4 hover:shadow-lg transition-shadow border-l-4 border-pink-300"
-              >
+        <div className="space-y-4">
+          {friends.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg"
+            >
+              <p className="text-lg mb-2">🔍 {t("dashboard.noSuggestions")}</p>
+              <p className="text-sm">{t("dashboard.noSuggestionsHint")}</p>
+            </motion.div>
+          ) : (
+            <AnimatePresence>
+              {friends.map((friend, index) => (
                 <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  className="cursor-pointer flex-shrink-0"
-                  onClick={() =>
-                    router.push(`/dashboard/profile/${friend.nick_name}`)
-                  }
+                  key={friend.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ scale: 1.02 }}
+                  className="flex items-center gap-3 sm:gap-4 bg-white shadow-md rounded-lg p-3 sm:p-4 hover:shadow-lg transition-shadow border-l-4 border-pink-300"
                 >
-                  <img
-                    src={getUserImageSrc(friend.avatar) || "/placeholder.svg"}
-                    alt={friend.name}
-                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border"
-                    loading="lazy"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "/default-avatar.png";
-                    }}
-                  />
-                </motion.div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
-                    <h3
-                      onClick={() =>
-                        router.push(`/dashboard/profile/${friend.nick_name}`)
-                      }
-                      className="font-semibold text-base sm:text-lg cursor-pointer truncate hover:underline"
-                    >
-                      {friend.name}
-                    </h3>
-                    {friend.isFoF && friend.mutualCount > 0 && (
-                      <span className="text-[10px] sm:text-xs bg-blue-100 text-blue-700 px-1.5 sm:px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
-                        {friend.mutualCount} {t("dashboard.mutualFriends")}
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="text-xs sm:text-sm text-gray-600 mb-1 truncate">
-                    {friend.nick_name}
-                  </p>
-
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
-                    <span className="text-orange-600 font-medium">
-                      {t("dashboard.level")}: {friend.level}
-                    </span>
-                    <span className="text-gray-500">
-                      • {friend.matchCount}{" "}
-                      {t("dashboard.matchingCriteria")}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="text-right flex-shrink-0">
                   <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.1 }}
+                    className="cursor-pointer flex-shrink-0"
+                    onClick={() =>
+                      router.push(`/dashboard/profile/${friend.nick_name}`)
+                    }
                   >
-                    <Button
-                      size="sm"
-                      className="px-2 sm:px-3 text-xs sm:text-sm bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white cursor-pointer"
-                    >
-                      {t("dashboard.addFriend")}
-                    </Button>
+                    <img
+                      src={getUserImageSrc(friend.avatar) || "/placeholder.svg"}
+                      alt={friend.name}
+                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border"
+                      loading="lazy"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "/default-avatar.png";
+                      }}
+                    />
                   </motion.div>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        )}
-      </div>
-    </motion.div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
+                      <h3
+                        onClick={() =>
+                          router.push(`/dashboard/profile/${friend.nick_name}`)
+                        }
+                        className="font-semibold text-base sm:text-lg cursor-pointer truncate hover:underline"
+                      >
+                        {friend.name}
+                      </h3>
+                      {friend.isFoF && friend.mutualCount > 0 && (
+                        <span className="text-[10px] sm:text-xs bg-blue-100 text-blue-700 px-1.5 sm:px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
+                          {friend.mutualCount} {t("dashboard.mutualFriends")}
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1 truncate">
+                      {friend.nick_name}
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                      <span className="text-orange-600 font-medium">
+                        {t("dashboard.level")}: {friend.level}
+                      </span>
+                      <span className="text-gray-500">
+                        • {friend.matchCount} {t("dashboard.matchingCriteria")}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-right flex-shrink-0">
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Button
+                        size="sm"
+                        className="px-2 sm:px-3 text-xs sm:text-sm bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white cursor-pointer"
+                      >
+                        {t("dashboard.addFriend")}
+                      </Button>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )}
+        </div>
+      </motion.div>
+    </>
   );
 }
