@@ -95,10 +95,10 @@ const listeningService = {
 
     // Tạo mới tiến độ học
     async createUserProgress(data) {
-        const { user_id, listen_para_id, number_word_completed, status, lastSubmit, completed_date } = data;
+        const { user_id, listen_para_id, number_word_completed, status, lastSubmit, completed_date, submit_times, score } = data;
         const { data: result, error } = await supabase
             .from("progressListenParagraph")
-            .insert({ user_id, listen_para_id, number_word_completed, status, lastSubmit, completed_date })
+            .insert({ user_id, listen_para_id, number_word_completed, status, lastSubmit, completed_date, submit_times, score })
             .select()
             .single();
         if (error) {
@@ -110,10 +110,10 @@ const listeningService = {
 
     // Cập nhật tiến độ học
     async updateUserProgress(data) {
-        const { user_id, listen_para_id, number_word_completed, status, lastSubmit, completed_date, submit_times } = data;
+        const { user_id, listen_para_id, number_word_completed, status, lastSubmit, completed_date, submit_times, score } = data;
         const { data: result, error } = await supabase
             .from("progressListenParagraph")
-            .update({ number_word_completed, status, lastSubmit, completed_date, submit_times })
+            .update({ number_word_completed, status, lastSubmit, completed_date, submit_times, score })
             .eq("user_id", user_id)
             .eq("listen_para_id", listen_para_id)
             .select()

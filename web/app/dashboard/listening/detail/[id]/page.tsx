@@ -93,7 +93,8 @@ export default function ListeningDetailPage() {
         }))
 
         try {
-            await listeningService.submitListeningResults(user?.id, exercise?.id, wordAnswers)
+            
+            const res = await listeningService.submitListeningResults(user?.id, exercise?.id, wordAnswers)
             setLoadingSubmit(false)
         } catch (error) {
             console.error("Error submitting results:", error)
@@ -265,7 +266,7 @@ export default function ListeningDetailPage() {
                                 <CircleEqual className="inline h-5 w-5 text-yellow-500" />
                                 <p>Điểm cao nhất</p>
                             </div>
-                            <span>{8}</span>
+                            <span>{progress?.score || 0}</span>
                         </div>
                     </div>
                     {/* Biểu đồ tròn thể hiện tiến trình làm bài */}

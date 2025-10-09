@@ -1,5 +1,6 @@
 const learningService = require("../../services/learning/listeningService");
 const listeningService = require("../../services/learning/listeningService");
+const scoreUserService = require("../../services/learning/scoreUserService");
 
 const listeningController = {
     // Get listening exercise by id
@@ -55,16 +56,27 @@ const listeningController = {
             // Cập nhật lại progress
             const progress = await listeningService.getUserProgress(user_id, ex_listen_id);
 
+            // Cộng điểm cho user
+            const score = ((wordAnswers.filter(ans => ans.is_correct).length / wordAnswers.length) * 10).toFixed(0);
+            if (score > 0) {
+                if (progress && progress.score <= score) {
+                    await scoreUserService.addPracticeScore(user_id, score - progress.score);
+                } else if (!progress) {
+                    await scoreUserService.addPracticeScore(user_id, score);
+                }
+            }
+
             if (progress) {
                 // Cập nhật progress nếu cần thiết
                 const updatedProgressData = {
                     user_id,
                     listen_para_id: ex_listen_id,
-                    number_word_completed: wordAnswers.filter(ans => ans.is_correct).length,
+                    number_word_completed: wordAnswers.filter(ans => ans.is_correct).length > progress.number_word_completed ? wordAnswers.filter(ans => ans.is_correct).length : progress.number_word_completed,
                     status: wordAnswers.every(ans => ans.is_correct) ? 'completed' : 'in_progress',
                     lastSubmit: resultSubmission.id,
                     completed_date: wordAnswers.every(ans => ans.is_correct) ? new Date() : null,
-                    submit_times: progress.submit_times + 1
+                    submit_times: progress.submit_times + 1,
+                    score: ((wordAnswers.filter(ans => ans.is_correct).length / wordAnswers.length) * 10).toFixed(0) > progress.score ? ((wordAnswers.filter(ans => ans.is_correct).length / wordAnswers.length) * 10).toFixed(0) : progress.score
                 };
                 await listeningService.updateUserProgress(updatedProgressData);
             } else {
@@ -76,12 +88,13 @@ const listeningController = {
                     status: wordAnswers.every(ans => ans.is_correct) ? 'completed' : 'in_progress',
                     lastSubmit: resultSubmission.id,
                     completed_date: wordAnswers.every(ans => ans.is_correct) ? new Date() : null,
-                    submit_times: 1
+                    submit_times: 1,
+                    score: ((wordAnswers.filter(ans => ans.is_correct).length / wordAnswers.length) * 10).toFixed(0)
                 };
                 await listeningService.createUserProgress(newProgressData);
             }
 
-            res.json({ message: "Listening results submitted successfully" });
+            res.json({ message: "Listening results submitted successfully", score: (progress && progress.score < score ? score - progress.score : score)});
 
         } catch (error) {
             console.error("Error submitting listening results:", error);
