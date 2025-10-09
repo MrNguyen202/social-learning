@@ -32,7 +32,7 @@ export function useOnlineStatus() {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
 
-      if (personalVocab.data && personalVocab.data.length > 0) {
+      if (personalVocab?.data && personalVocab?.data.length > 0) {
         personalVocab.data.forEach((item: any) => {
           const res = generateVocabByAI({
             userId: item.userId,

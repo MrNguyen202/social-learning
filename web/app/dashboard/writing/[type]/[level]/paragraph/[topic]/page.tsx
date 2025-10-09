@@ -39,7 +39,7 @@ export default function Page() {
     const [writingExercises, setWritingExercises] = useState<WritingExercise[]>([]);
     const [typeExerciseName, setTypeExerciseName] = useState<string>("");
     const [levelExerciseName, setLevelExerciseName] = useState<string>("");
-    const [topicExerciseName, setTopicExerciseName] = useState<string>("");
+    const [typeParagraphExerciseName, setTypeParagraphExerciseName] = useState<string>("");
     const [topicFilters, setTopicFilters] = useState<Topic[]>([]);
     const [selectedTopic, setSelectedTopic] = useState<string>("all");
 
@@ -58,7 +58,7 @@ export default function Page() {
                     setLevelExerciseName(levelName ? levelName[`name_${language}`] : "");
 
                     const topicName = await getTypeParagraphBySlug(topic);
-                    setTopicExerciseName(topicName ? topicName[`name_${language}`] : "");
+                    setTypeParagraphExerciseName(topicName ? topicName[`name_${language}`] : "");
                 } catch (error) {
                     console.error("Error fetching writing exercises:", error);
                 }
@@ -95,7 +95,6 @@ export default function Page() {
         <>
             <div className='flex flex-col mt-2 w-full'>
                 {/* Breadcrumb */}
-                {/* Breadcrumb */}
                 <div className="py-4">
                     <Breadcrumb>
                         <BreadcrumbList>
@@ -118,7 +117,7 @@ export default function Page() {
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
                             <BreadcrumbItem>
-                                <BreadcrumbPage className='text-lg'>{topicExerciseName}</BreadcrumbPage>
+                                <BreadcrumbPage className='text-lg'>{typeParagraphExerciseName}</BreadcrumbPage>
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>

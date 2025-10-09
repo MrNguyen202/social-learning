@@ -7,16 +7,53 @@ const promptGeneratePersonalWord = require("../../utils/prompt/generateVocabular
 const promptGenerateConversationPractice = require("../../utils/prompt/generateConversationPractice");
 require("dotenv").config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI } = require("@google/genai");
 const writingService = require("../../services/learning/writingService");
 const promptGiveFeedbackWritingParagraph = require("../../utils/prompt/feedbackAIExParagraph");
 const scoreUserService = require("../../services/learning/scoreUserService");
-const {
-  updatePersonalVocab,
-} = require("../../services/learning/vocabularyService");
+const { updatePersonalVocab } = require("../../services/learning/vocabularyService");
+const fs = require("fs");
+const wav = require("wav");
+const { uploadAudioBufferToCloudinary } = require("../../services/cloudinaryService");
 
 // Khởi tạo Gemini client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI2 = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+// Giọng đọc Anh Mỹ (được đánh giá là rõ, tự nhiên, phổ thông)
+const americanVoices = [
+  "Kore",        // Firm - giọng Mỹ trung tính
+  "Fenrir",      // Excitable - sôi nổi
+  "Aoede",       // Breezy - nhẹ nhàng
+  "Umbriel",     // Easy-going - thân thiện
+  "Enceladus",   // Breathy - nhẹ
+  "Laomedeia",   // Upbeat - tươi vui
+  "Algieba",     // Smooth - tự nhiên
+  "Achird",      // Friendly - dễ nghe
+  "Gacrux",      // Mature - giọng người lớn, rõ
+  "Sulafat"      // Warm - ấm áp
+];
+
+
+// Hàm lưu file WAV từ buffer
+async function saveWaveFile(filename, pcmData, channels = 1, rate = 24000, sampleWidth = 2) {
+  return new Promise((resolve, reject) => {
+    const writer = new wav.FileWriter(filename, {
+      channels,
+      sampleRate: rate,
+      bitDepth: sampleWidth * 8,
+    });
+
+    writer.on("finish", resolve);
+    writer.on("error", reject);
+
+    writer.write(pcmData);
+    writer.end();
+  });
+}
+
+
+// CONTROLLER XỬ LÝ YÊU CẦU
 const botCoverLearningController = {
   // Generate paragraph exercise lưu vào bảng writingParagraphs
   createGenerateParagraphExercise: async (req, res) => {
@@ -132,14 +169,58 @@ const botCoverLearningController = {
       }
       const json = JSON.parse(match[0]);
 
+      const randomVoice = americanVoices[Math.floor(Math.random() * americanVoices.length)];
+
+      // gen audio từ text_en
+      const audioResponse = await genAI2.models.generateContent({
+        model: "gemini-2.5-flash-preview-tts",
+        contents: [{ parts: [{ text: json.text_content }] }],
+        config: {
+          responseModalities: ["AUDIO"],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: randomVoice },
+            },
+          },
+        },
+      })
+
+      // Lấy dữ liệu base64 audio
+      const dataAudio = audioResponse.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+
+      if (!dataAudio) {
+        return res.status(500).json({ error: "Lỗi khi tạo audio từ Gemini TTS" });
+      }
+
+      // Giai mã base64 và lưu file tạm thời
+      const audioBuffer = Buffer.from(dataAudio, 'base64');
+      const tempFilePath = `./uploads/tss_${Date.now()}.wav`;
+      await saveWaveFile(tempFilePath, audioBuffer);
+
+      // Upload file audio lên Cloudinary
+      const uploadResult = await uploadAudioBufferToCloudinary(
+        tempFilePath,
+        "social-learning/audio-listening"
+      );
+
+      // Xoá file tạm
+      if (uploadResult.success) {
+        fs.unlinkSync(tempFilePath);
+      } else {
+        console.error("Lỗi khi upload audio lên Cloudinary:", uploadResult.error);
+      }
+
       // Lưu bài tập nghe vào Supabase
       const data = {
-        title: json.title,
+        title_en: json.title_en,
+        title_vi: json.title_vi,
+        description: json.description,
         text_content: json.text_content,
+        audio_url: uploadResult.url,
         word_hiddens: json.word_hiddens // Mảng các từ bị ẩn
           ? json.word_hiddens
-              .map((word) => word.trim())
-              .filter((word) => word.length > 0)
+            .map((word) => word.trim())
+            .filter((word) => word.length > 0)
           : [],
         level_id: level.id,
         topic_id: topic.id,
@@ -348,7 +429,7 @@ const botCoverLearningController = {
           .status(500)
           .json({ error: "Lỗi phân tích JSON", raw: jsonMatch[1] });
       }
-      
+
       // Lưu bài nói vào data
       const data = {
         description: json.description,
