@@ -36,7 +36,7 @@ import {
   generateSpeakingExerciseByAI
 } from "@/app/apiClient/learning/speaking/speaking";
 import {
-  addPracticeScore,
+  addSkillScore,
   getScoreUserByUserId,
 } from "@/app/apiClient/learning/score/score";
 import useAuth from "@/hooks/useAuth";
@@ -227,7 +227,7 @@ function LessonAIContent() {
             setShowCelebration(true);
             // Gọi API cộng điểm
             if (user) {
-              addPracticeScore(user.id, 10).then(async () => {
+              addSkillScore(user.id, "speaking", 10).then(async () => {
                 // gọi API lấy điểm mới nhất
                 const res = await getScoreUserByUserId(user.id);
                 const totalScore = res?.data?.practice_score ?? 0;

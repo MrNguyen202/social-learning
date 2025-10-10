@@ -21,21 +21,22 @@ const scoreUserController = {
     }
   },
 
-  // Cộng điểm thực hành cho user
-  addPracticeScore: async (req, res) => {
-    const { userId, practiceScore } = req.body;
-    if (!userId || typeof practiceScore !== "number") {
+  // Cộng điểm kỹ năng cho user
+  addSkillScore: async (req, res) => {
+    const { userId, skill, scoreToAdd } = req.body;
+    if (!userId || !skill || typeof scoreToAdd !== "number") {
       return res.status(400).json({ error: "Missing or invalid parameters" });
     }
     try {
-      const updatedScoreData = await scoreUserService.addPracticeScore(
+      const updatedScoreData = await scoreUserService.addSkillScore(
         userId,
-        practiceScore
+        skill,
+        scoreToAdd
       );
 
       return res.json({ data: updatedScoreData });
     } catch (error) {
-      console.error("Error in addPracticeScore:", error);
+      console.error("Error in addSkillScore:", error);
       return res.status(500).json({ error: "Internal Server Error" });
     }
   },

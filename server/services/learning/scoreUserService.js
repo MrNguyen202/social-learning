@@ -17,38 +17,52 @@ const scoreUserService = {
     return { data, error: null };
   },
 
-  // Cộng điểm cho user
-  async addPracticeScore(userId, practiceScore) {
-    // Kiểm tra score hiện tại của user có tồn tại không nếu không thì tạo mới
-    const { data: checkUserExists, error: checkUserError } =
-      await this.getScoreUserByUserId(userId);
+  // Cộng điểm vào score detail cho user
+  async addSkillScore(userId, skill, scoreToAdd) {
+    // Kiểm tra xem user đã có điểm kỹ năng này chưa
+    const { data: existing, error: checkError } = await supabase
+      .from("scoreDetail")
+      .select("*")
+      .eq("userId", userId)
+      .eq("skill", skill)
+      .single();
 
-    if (!checkUserExists) {
-      // Tạo mới bản ghi score cho user
-      const { data: newScoreData, error: newScoreError } = await supabase
-        .from("score")
-        .insert({ userId: userId, practice_score: practiceScore })
+    if (checkError && checkError.code !== "PGRST116") {
+      // PGRST116 = no rows returned
+      console.error("Error checking scoreDetail:", checkError);
+      throw checkError;
+    }
+
+    if (!existing) {
+      // Nếu chưa có, tạo mới
+      const { data: inserted, error: insertError } = await supabase
+        .from("scoreDetail")
+        .insert({
+          userId,
+          skill,
+          score: scoreToAdd,
+        })
         .select()
         .single();
-      if (newScoreError) {
-        console.error("Error creating user score:", newScoreError);
-        throw newScoreError;
-      }
-      return newScoreData;
+
+      if (insertError) throw insertError;
+      return inserted;
     } else {
-      // Cập nhật điểm cho user
-      const newTotalScore = checkUserExists.practice_score + practiceScore;
-      const { data: updatedScoreData, error: updateScoreError } = await supabase
-        .from("score")
-        .update({ practice_score: newTotalScore })
+      // Nếu có rồi → cộng thêm điểm
+      const newScore = existing.score + scoreToAdd;
+      const { data: updated, error: updateError } = await supabase
+        .from("scoreDetail")
+        .update({
+          score: newScore,
+          updated_at: new Date().toISOString(),
+        })
         .eq("userId", userId)
+        .eq("skill", skill)
         .select()
         .single();
-      if (updateScoreError) {
-        console.error("Error updating user score:", updateScoreError);
-        throw updateScoreError;
-      }
-      return updatedScoreData;
+
+      if (updateError) throw updateError;
+      return updated;
     }
   },
 

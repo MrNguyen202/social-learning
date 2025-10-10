@@ -11,14 +11,16 @@ export const getScoreUserByUserId = async (user_id: string) => {
   }
 };
 
-// Add practice score to user
-export const addPracticeScore = async (
+// Add skill score to user
+export const addSkillScore = async (
   userId: string,
-  practiceScore: number
+  skill: string,
+  scoreToAdd: number
 ) => {
-  const response = await api.post(`/api/learning/score-user/practiceScore`, {
+  const response = await api.post(`/api/learning/score-user/addSkillScore`, {
     userId,
-    practiceScore,
+    skill: skill,
+    scoreToAdd: scoreToAdd,
   });
   return response.data;
 };
