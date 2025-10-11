@@ -19,51 +19,18 @@ const scoreUserService = {
 
   // Cộng điểm vào score detail cho user
   async addSkillScore(userId, skill, scoreToAdd) {
-    // Kiểm tra xem user đã có điểm kỹ năng này chưa
-    const { data: existing, error: checkError } = await supabase
+    const { data: inserted, error: insertError } = await supabase
       .from("scoreDetail")
-      .select("*")
-      .eq("userId", userId)
-      .eq("skill", skill)
+      .insert({
+        userId,
+        skill,
+        score: scoreToAdd,
+      })
+      .select()
       .single();
 
-    if (checkError && checkError.code !== "PGRST116") {
-      // PGRST116 = no rows returned
-      console.error("Error checking scoreDetail:", checkError);
-      throw checkError;
-    }
-
-    if (!existing) {
-      // Nếu chưa có, tạo mới
-      const { data: inserted, error: insertError } = await supabase
-        .from("scoreDetail")
-        .insert({
-          userId,
-          skill,
-          score: scoreToAdd,
-        })
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
-      return inserted;
-    } else {
-      // Nếu có rồi → cộng thêm điểm
-      const newScore = existing.score + scoreToAdd;
-      const { data: updated, error: updateError } = await supabase
-        .from("scoreDetail")
-        .update({
-          score: newScore,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("userId", userId)
-        .eq("skill", skill)
-        .select()
-        .single();
-
-      if (updateError) throw updateError;
-      return updated;
-    }
+    if (insertError) throw insertError;
+    return inserted;
   },
 
   // Trừ điểm bông tuyết
