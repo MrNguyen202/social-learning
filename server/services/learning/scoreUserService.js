@@ -82,6 +82,108 @@ const scoreUserService = {
       return updatedSnowflakeData;
     }
   },
+
+  // Thống kê điểm theo kỹ năng speaking và thời gian
+  async getScoreStatisticsSpeaking(userId, period) {
+    let fromDate = null;
+    if (period === "7days") fromDate = "now() - interval '7 days'";
+    else if (period === "30days") fromDate = "now() - interval '30 days'";
+
+    let query = supabase
+      .from("scoreDetail")
+      .select("skill, score, created_at")
+      .eq("userId", userId)
+      .eq("skill", "speaking");
+
+    if (fromDate) {
+      const since = new Date(
+        Date.now() - (period === "7days" ? 7 : 30) * 86400000
+      ).toISOString();
+      query = query.gte("created_at", since);
+    }
+
+    const { data, error } = await query.order("created_at", {
+      ascending: true,
+    });
+
+    if (error) throw new Error(error.message);
+
+    return data;
+  },
+
+  // Thống kê điểm theo kỹ năng writing và thời gian
+  async getScoreStatisticsWriting(userId, period) {
+    let fromDate = null;
+    if (period === "7days") fromDate = "now() - interval '7 days'";
+    else if (period === "30days") fromDate = "now() - interval '30 days'";
+
+    let query = supabase
+      .from("scoreDetail")
+      .select("skill, score, created_at")
+      .eq("userId", userId)
+      .eq("skill", "writing");
+
+    if (fromDate) {
+      const since = new Date(
+        Date.now() - (period === "7days" ? 7 : 30) * 86400000
+      ).toISOString();
+      query = query.gte("created_at", since);
+    }
+
+    const { data, error } = await query.order("created_at", {
+      ascending: true,
+    });
+
+    if (error) throw new Error(error.message);
+
+    return data;
+  },
+
+  // Thống kê điểm theo kỹ năng listening và thời gian
+  async getScoreStatisticsListening(userId, period) {
+    let fromDate = null;
+    if (period === "7days") fromDate = "now() - interval '7 days'";
+    else if (period === "30days") fromDate = "now() - interval '30 days'";
+
+    let query = supabase
+      .from("scoreDetail")
+      .select("skill, score, created_at")
+      .eq("userId", userId)
+      .eq("skill", "listening");
+
+    if (fromDate) {
+      const since = new Date(
+        Date.now() - (period === "7days" ? 7 : 30) * 86400000
+      ).toISOString();
+      query = query.gte("created_at", since);
+    }
+
+    const { data, error } = await query.order("created_at", {
+      ascending: true,
+    });
+
+    if (error) throw new Error(error.message);
+
+    return data;
+  },
+
+  // Thống kê điểm theo kỹ năng của user
+  async getScoreStatisticsBySkill(userId, skill) {
+    const { data, error } = await supabase
+      .from("scoreDetail")
+      .select("skill, score")
+      .eq("userId", userId)
+      .eq("skill", skill);
+
+    if (error) throw new Error(error.message);
+
+    const totalScore = data.reduce((sum, item) => sum + item.score, 0);
+    
+    return {
+      skill,
+      totalScore,
+    };
+  },
 };
 
 module.exports = scoreUserService;

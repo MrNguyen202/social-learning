@@ -8,4 +8,16 @@ router.get("/score/:user_id", scoreUserController.getScoreUserByUserId);
 // Route to add skill score to user
 router.post("/addSkillScore", scoreUserController.addSkillScore);
 
+// Route to get score statistics
+router.get("/scoreStatisticsSpeaking", scoreUserController.getScoreStatisticsSpeaking);
+
+// Route to get score statistics for writing
+router.get("/scoreStatisticsWriting", scoreUserController.getScoreStatisticsWriting);
+
+// Route to get score statistics for listening
+router.get("/scoreStatisticsListening", scoreUserController.getScoreStatisticsListening);
+
+// Route to get score statistics by skill
+router.get("/scoreStatisticsBySkill", scoreUserController.getScoreStatisticsBySkill);
+
 module.exports = router;
