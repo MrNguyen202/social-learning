@@ -42,7 +42,7 @@ Nếu level là "Advanced":
 8. Câu ở trình độ Intermediate có thể dùng thì tiếp diễn, quá khứ đơn, hiện tại hoàn thành, hoặc câu phức đơn giản.
 9. Câu ở trình độ Advanced được phép dùng câu ghép, câu phức, mệnh đề quan hệ, hoặc từ vựng học thuật.
 10. Các câu nói phải mang ý tưởng khác nhau, tránh lặp lại cấu trúc hoặc nội dung quá giống nhau.
-11. Không sử dụng [your name], [your country], [your favorite place] hoặc các cụm từ tương tự mà hãy hãy tạo tên bất kì.
+11. Không sử dụng [email], [your name], [your country], [your favorite place] hoặc các cụm từ tương tự mà hãy hãy tạo tên bất kì.
 12. Không sử dụng kí tự đặc biệt như @, #, $, %, ^, &, *, (, ), -, +, =, v.v.
 
 Chỉ trả về một danh sách JSON thuần, không giải thích, không chèn text, không xuống dòng thừa.
