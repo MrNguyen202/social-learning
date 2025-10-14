@@ -20,7 +20,6 @@ const rankingService = {
       .eq("leaderboard_type", leaderboard_type)
       .order("score", { ascending: false })
       .limit(10);
-    console.log(data, error);
 
     if (error) throw error;
     return { data, error: null };
