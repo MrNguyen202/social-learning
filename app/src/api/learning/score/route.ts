@@ -24,3 +24,50 @@ export const addSkillScore = async (
   });
   return response.data;
 };
+
+export const statisticsScoreSpeaking = async (
+  userId: string,
+  period: string
+) => {
+  const response = await api.get(
+    `/api/learning/score-user/scoreStatisticsSpeaking`,
+    {
+      params: { userId, period },
+    }
+  );
+  return response.data;
+};
+
+export const statisticsScoreListening = async (
+  userId: string,
+  period: string
+) => {
+  const response = await api.get(
+    `/api/learning/score-user/scoreStatisticsListening`,
+    {
+      params: { userId, period },
+    }
+  );
+  return response.data;
+};
+
+export const statisticsScoreWriting = async (
+  userId: string,
+  period: string
+) => {
+  const response = await api.get(
+    `/api/learning/score-user/scoreStatisticsWriting`,
+    {
+      params: { userId, period },
+    }
+  );
+  return response.data;
+};
+
+export const getActivityHeatmap = async (userId: string) => {
+  const response = await api.get(
+    `/api/learning/score-user/getActivityHeatmap`,
+    { params: { userId } }
+  );
+  return response.data;
+};

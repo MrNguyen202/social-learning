@@ -858,7 +858,7 @@ export default function LessonSpeaking() {
       <Modal
         isVisible={showCelebration}
         onBackdropPress={() => setShowCelebration(false)}
-        style={{ margin: 0, justifyContent: 'center' }}
+        style={{ marginLeft: 23, justifyContent: 'center' }}
         backdropOpacity={0.7}
       >
         <View
