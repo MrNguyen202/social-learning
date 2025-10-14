@@ -12,13 +12,13 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <OnlineStatusProvider>
-          <NavigationContainer>
+        <NavigationContainer>
+          <OnlineStatusProvider>
             <AppNavigation />
             <Toast />
-          </NavigationContainer>
-          {/* <ChatBotAI /> */}
-        </OnlineStatusProvider>
+            {/* <ChatBotAI /> */}
+          </OnlineStatusProvider>
+        </NavigationContainer>
       </AuthProvider>
     </SafeAreaProvider>
   );

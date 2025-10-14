@@ -14,11 +14,9 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   withDelay,
-  withRepeat,
-  withSequence,
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
-import { getPersonalVocabById } from '../../../api/learning/vocabulary/route'; // Điều chỉnh đường dẫn nếu cần
+import { getPersonalVocabById } from '../../../api/learning/vocabulary/route';
 
 import {
   ArrowLeft,
@@ -29,11 +27,8 @@ import {
   Sparkles,
   Link2,
 } from 'lucide-react-native';
-// LƯU Ý: Chức năng phát âm yêu cầu thư viện bên ngoài.
-// Chạy lệnh: npm install react-native-tts
 import Tts from 'react-native-tts';
 
-// --- Skeleton Loader Component ---
 const Skeleton = ({ style }: { style: any }) => (
   <Animated.View style={[styles.skeleton, style]} />
 );
@@ -51,7 +46,6 @@ const SkeletonLoader = () => (
   </View>
 );
 
-// --- Related Word Card Component ---
 const RelatedWordCard = ({
   word,
   onSpeak,
@@ -135,7 +129,6 @@ export default function VocabularyDetail() {
     Tts.speak(text);
   }, []);
 
-  // --- Helper functions for styling ---
   const getMasteryColors = (score: number) => {
     if (score >= 70) return ['#22c55e', '#10b981'];
     if (score >= 40) return ['#f59e0b', '#fbbf24'];

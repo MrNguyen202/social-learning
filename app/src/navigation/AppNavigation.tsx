@@ -13,8 +13,6 @@ import ProfileTab from '../(tabs)/Profile';
 import Notification from '../screens/notification/Notification';
 import Message from '../screens/message/Message';
 import Options from '../screens/user/Options';
-import Rankings from '../screens/learning/Rankings';
-import Progress from '../screens/user/Progress';
 import EditProfile from '../screens/user/EditProfile';
 import Follow from '../screens/user/components/Follow';
 import ChatDetail from '../screens/message/chat/ChatDetail';
@@ -39,6 +37,8 @@ import LessonSpeaking from '../screens/learning/speaking/lesson/LessonSpeaking';
 import LessonSpeakingAI from '../screens/learning/speaking/lessonAI/LessonSpeaking';
 import Vocabulary from '../screens/learning/vocabulary/Vocabulary';
 import VocabularyDetail from '../screens/learning/vocabulary/VocabularyDetail';
+import ProgressPage from '../screens/learning/progress/Progress';
+import Ranking from '../screens/learning/ranking/Ranking';
 
 const Tab = createBottomTabNavigator();
 
@@ -228,13 +228,13 @@ const AppNavigation = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Rankings"
-          component={Rankings}
+          name="Ranking"
+          component={Ranking}
           options={{ headerShown: false }}
         />
         <Stack.Screen
           name="Progress"
-          component={Progress}
+          component={ProgressPage}
           options={{ headerShown: false }}
         />
 

@@ -66,7 +66,7 @@ const LearningTab = () => {
     {
       icon: Trophy,
       label: 'Bảng xếp hạng',
-      route: 'Rankings',
+      route: 'Ranking',
       color: '#FFD93D',
     },
     {
