@@ -107,6 +107,33 @@ export const getActivityHeatmap = async (userId: string) => {
   return response.data;
 };
 
+// Kiểm tra chuỗi học
+export const checkLearningStreak = async (userId: string) => {
+  const response = await api.get(
+    `/api/learning/score-user/streak/checkLearningStreak`,
+    { params: { userId } }
+  );
+  return response.data;
+};
+
+// Khôi phục chuỗi học
+export const restoreLearningStreak = async (userId: string) => {
+  const response = await api.get(
+    `/api/learning/score-user/streak/restoreLearningStreak`,
+    { params: { userId } }
+  );
+  return response.data;
+};
+
+// Reset chuỗi học
+export const resetLearningStreak = async (userId: string) => {
+  const response = await api.get(
+    `/api/learning/score-user/streak/resetLearningStreak`,
+    { params: { userId } }
+  );
+  return response.data;
+};
+
 // Thống kê nhanh
 export async function getOverviewStats(userId: string): Promise<OverviewStats> {
   await new Promise((resolve) => setTimeout(resolve, 500));

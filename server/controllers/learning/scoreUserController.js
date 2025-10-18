@@ -173,6 +173,48 @@ const scoreUserController = {
       return res.status(500).json({ error: err.message });
     }
   },
+
+  // Kiểm tra chuỗi học
+  checkLearningStreak: async (req, res) => {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+    try {
+      const data = await scoreUserService.checkLearningStreak(userId);
+      return res.status(200).json(data);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  },
+
+  // Khôi phục chuỗi học
+  restoreLearningStreak: async (req, res) => {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+    try {
+      const data = await scoreUserService.restoreLearningStreak(userId);
+      return res.status(200).json(data);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  },
+
+  // Reset chuỗi
+  resetLearningStreak: async (req, res) => {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+    try {
+      const data = await scoreUserService.resetLearningStreak(userId);
+      return res.status(200).json(data);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  },
 };
 
 module.exports = scoreUserController;

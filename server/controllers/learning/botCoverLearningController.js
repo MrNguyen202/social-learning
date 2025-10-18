@@ -344,7 +344,7 @@ const botCoverLearningController = {
     const prompt = promptGeneratePersonalWord(word);
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const result = await model.generateContent(prompt);
 
       const text = result.response.text();
@@ -408,7 +408,7 @@ const botCoverLearningController = {
     const prompt = promptGenerateConversationPractice(level_slug, topic_slug);
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const result = await model.generateContent(prompt);
 
       const text = result.response.text();

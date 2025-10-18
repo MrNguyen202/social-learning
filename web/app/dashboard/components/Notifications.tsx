@@ -20,6 +20,7 @@ import { getPostById } from "@/app/apiClient/post/post";
 import { PostModal } from "./PostModal";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 interface NotificationsPanelProps {
   isOpen: boolean;
@@ -133,6 +134,11 @@ export function NotificationsPanel({
   const handleOpenVocabFromNotif = async (notif: any) => {
     try {
       if (!notif) return;
+      if (!notif.personalVocabId) {
+        markAsReadLearning(notif.id);
+        toast.success(t("learning.congratulations"), { autoClose: 1000 });
+        return;
+      }
 
       route.push(
         `/dashboard/vocabulary?personalVocabId=${notif.personalVocabId}`
