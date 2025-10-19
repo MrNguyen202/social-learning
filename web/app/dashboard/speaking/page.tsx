@@ -46,8 +46,8 @@ export default function SpeakingPage() {
   const handleSoloPracticeAI = () => {
     setLoading(true);
     if (selectedLevel && selectedTopic) {
-      localStorage.setItem("levelId", JSON.stringify(selectedLevel.id));
-      localStorage.setItem("topicId", JSON.stringify(selectedTopic.id));
+      localStorage.setItem("levelSlug", JSON.stringify(selectedLevel.slug));
+      localStorage.setItem("topicSlug", JSON.stringify(selectedTopic.slug));
       router.push(
         `/dashboard/speaking/lessonAI?level=${selectedLevel.id}&topic=${selectedTopic.id}`
       );
@@ -70,8 +70,8 @@ export default function SpeakingPage() {
   const handleConversationPracticeAI = () => {
     setLoading(true);
     if (selectedLevel && selectedTopic) {
-      localStorage.setItem("levelId", JSON.stringify(selectedLevel.id));
-      localStorage.setItem("topicId", JSON.stringify(selectedTopic.id));
+      localStorage.setItem("levelSlug", JSON.stringify(selectedLevel.slug));
+      localStorage.setItem("topicSlug", JSON.stringify(selectedTopic.slug));
       router.push(
         `/dashboard/speaking/conversationPracticeAI?level=${selectedLevel.id}&topic=${selectedTopic.id}`
       );
