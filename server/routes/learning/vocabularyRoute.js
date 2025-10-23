@@ -29,4 +29,22 @@ router.get(
 // Route to get personal vocabulary by ID
 router.get("/:personalVocabId", vocabularyController.getPersonalVocabById);
 
+// Route to get personal vocabulary by mastery score range
+router.get(
+  "/mastery_score/:userId/:from/:to",
+  vocabularyController.getSumPersonalVocabByMasteryScore
+);
+
+// Route to get all personal topic vocabulary
+router.get(
+  "/topics/all/:userId",
+  vocabularyController.getPersonalVocabAllTopic
+);
+
+// Route to get personal vocabulary by topic
+router.get(
+  "/topics/:userId/:topic",
+  vocabularyController.getPersonalVocabByTopic
+);
+
 module.exports = router;

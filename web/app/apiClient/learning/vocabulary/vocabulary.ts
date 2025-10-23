@@ -35,3 +35,18 @@ export const getPersonalVocabById = async ({ personalVocabId }: { personalVocabI
   const response = await api.get(`/api/learning/vocabulary/${personalVocabId}`);
   return response.data;
 }
+
+export const getSumPersonalVocabByMasteryScore = async ({ userId, from, to }: { userId: string; from: number; to: number }) => {
+  const response = await api.get(`/api/learning/vocabulary/mastery_score/${userId}/${from}/${to}`);
+  return response.data;
+}
+
+export const getPersonalAllTopics = async ({ userId }: { userId: string }) => {
+  const response = await api.get(`/api/learning/vocabulary/topics/all/${userId}`);
+  return response.data;
+}
+
+export const getPersonalVocabByTopic = async ( {userId, topic}:any) => {
+  const response = await api.get(`/api/learning/vocabulary/topics/${userId}/${topic}`);
+  return response.data;
+}

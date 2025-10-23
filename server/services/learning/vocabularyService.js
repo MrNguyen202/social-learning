@@ -88,10 +88,11 @@ const vocabularyService = {
   },
 
   // Lưu mảng từ vựng cá nhân vào bảng personalVocab khi generate từ AI
-  async updatePersonalVocab(userId, word, dataVocab) {
+  async updatePersonalVocab(userId, word, topic, dataVocab) {
     const { data, error } = await supabase
       .from("personalVocab")
       .update({
+        topic,
         related_words: dataVocab,
         created: true,
       })
@@ -112,6 +113,7 @@ const vocabularyService = {
         id,
         word,
         error_count,
+        topic,
         mastery_score
       `
       )
@@ -136,6 +138,48 @@ const vocabularyService = {
 
     return { data, error };
   },
-};
 
+  // Lấy tổng số các từ vựng trong khoảng mastery_score
+  async getSumPersonalVocabByMasteryScore(userId, from, to) {
+    const { data, error } = await supabase
+      .from("personalVocab")
+      .select("id, mastery_score")
+      .eq("userId", userId)
+      .eq("created", true)
+      .gte("mastery_score", from)
+      .lte("mastery_score", to);
+
+    if (error) throw error;
+
+    const total = data.reduce((sum, item) => sum + 1, 0);
+
+    return { data, total, error };
+  },
+
+  // Lấy tất cả các chủ đề từ vựng cá nhân của người dùng
+  async getPersonalVocabAllTopic(userId) {
+    const { data, error } = await supabase
+      .from("personalVocab")
+      .select("topic, mastery_score")
+      .eq("userId", userId)
+      .not("topic", "is", null);
+
+    if (error) throw error;
+
+    return { data, error };
+  },
+
+  // Lấy từ vựng cá nhân dựa trên chủ đề
+  async getPersonalVocabByTopic(userId, topic) {
+    const { data, error } = await supabase
+      .from("personalVocab")
+      .select("word, related_words, mastery_score, next_review_at")
+      .eq("userId", userId)
+      .eq("topic", topic);
+
+    if (error) throw error;
+
+    return { data, error };
+  },
+};
 module.exports = vocabularyService;

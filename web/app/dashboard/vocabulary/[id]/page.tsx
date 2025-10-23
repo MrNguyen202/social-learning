@@ -152,7 +152,7 @@ export default function VocabularyDetailPage() {
           >
             <Button
               variant="ghost"
-              onClick={() => router.push("/dashboard/vocabulary")}
+              onClick={() => router.back()}
               className="group hover:bg-gray-200 cursor-pointer"
             >
               <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
