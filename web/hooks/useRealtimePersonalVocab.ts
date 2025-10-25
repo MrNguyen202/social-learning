@@ -26,7 +26,6 @@ export function useRealtimePersonalVocab() {
             filter: `userId=eq.${userId}`,
           },
           async (payload) => {
-            console.log("📢 [useRealtimePersonalVocab] New personal vocab added:", payload.new);
             // Khi có từ mới, tự động gọi AI backend để tạo topic
             await generateTopicsForUser({ userId });
           }
