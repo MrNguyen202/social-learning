@@ -502,7 +502,7 @@ const botCoverLearningController = {
       res.status(200).json({
         success: true,
         message: "Tạo bài tập thành công",
-        json,
+        data: json,
       });
     } catch (error) {
       console.error("Error generating content:", error);

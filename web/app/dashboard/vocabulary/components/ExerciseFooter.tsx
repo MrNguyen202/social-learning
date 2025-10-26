@@ -1,0 +1,51 @@
+"use client";
+
+import { motion, AnimatePresence } from "framer-motion";
+
+export type FeedbackStatus = {
+  status: "correct" | "incorrect";
+  correctAnswer: string;
+} | null;
+
+interface Props {
+  feedback: FeedbackStatus;
+  onContinue: () => void;
+}
+
+export default function ExerciseFooter({ feedback, onContinue }: Props) {
+  const isCorrect = feedback?.status === "correct";
+  const title = isCorrect ? "Chính xác!" : "Không chính xác!";
+  const bgColor = isCorrect ? "bg-green-100" : "bg-red-100";
+  const textColor = isCorrect ? "text-green-600" : "text-red-600";
+  const buttonColor = isCorrect
+    ? "bg-green-500 hover:bg-green-600"
+    : "bg-red-500 hover:bg-red-600";
+
+  return (
+    <AnimatePresence>
+      {feedback && (
+        <motion.div
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
+          exit={{ y: "100%" }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className={`fixed bottom-0 left-0 right-0 p-6 rounded-t-2xl shadow-2xl ${bgColor}`}
+        >
+          <h3 className={`text-xl font-bold ${textColor}`}>{title}</h3>
+          {!isCorrect && (
+            <p className="mt-2 text-gray-700">
+              Đáp án đúng:{" "}
+              <span className="font-bold">{feedback.correctAnswer}</span>
+            </p>
+          )}
+          <button
+            onClick={onContinue}
+            className={`w-full mt-4 py-3 rounded-xl text-white font-bold text-lg ${buttonColor}`}
+          >
+            Tiếp tục
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

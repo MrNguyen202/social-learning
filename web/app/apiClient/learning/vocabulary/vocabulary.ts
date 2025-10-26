@@ -67,3 +67,12 @@ export const getVocabByTopic = async ({ userId, topicId }: { userId: string; top
   const response = await api.get(`/api/learning/vocabulary/vocab_topic/${userId}/${topicId}`);
   return response.data;
 }
+
+// Tạo bài tập theo danh sách từ vựng
+export const generateExerciseByVocabList = async ({ userId, words }: { userId: string; words: string[] }) => {
+  const response = await api.post(`/api/bot-cover-learning/generate-words-practice-by-AI`, {
+    userId,
+    words
+  });
+  return response.data;
+}

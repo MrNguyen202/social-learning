@@ -231,7 +231,7 @@ export default function VocabularyDetailPage() {
               {/* Action Buttons */}
               <div className="md:mt-[-35px] mt-6 flex flex-wrap gap-3">
                 <Button
-                  onClick={() => console.log(personalVocab)}
+                  onClick={() => console.log(personalVocab.word)}
                   className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer"
                 >
                   Luyện tập ngay

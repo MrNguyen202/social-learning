@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
 
 interface VocabItem {
   id: string;
@@ -44,6 +45,7 @@ export default function OverviewRangeView({
     "Đang tiến bộ": [30, 69],
     "Sắp thành thạo": [70, 99],
   };
+  const router = useRouter();
   const [min, max] = ranges[title] ?? [0, 100];
 
   const [vocabs, setVocabs] = useState<VocabItem[]>([]);
@@ -154,12 +156,15 @@ export default function OverviewRangeView({
       vocabRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   };
+
   const handlePrevPage = () => {
     if (currentPage > 1) {
       setCurrentPage((p) => p - 1);
       vocabRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  const getWords = filteredVocabs.map((v) => v.word);
 
   return (
     <motion.div
@@ -180,7 +185,13 @@ export default function OverviewRangeView({
             </Button>
             <h1 className="text-3xl font-bold mb-6">{title}</h1>
           </div>
-          <Button className="bg-gradient-to-br from-orange-600 to-pink-600 text-white font-bold shadow-lg">
+          <Button
+            onClick={() => {
+              sessionStorage.setItem("practiceWords", JSON.stringify(getWords));
+              router.push("/dashboard/vocabulary/wordPracticesAI");
+            }}
+            className="bg-gradient-to-br from-orange-600 to-pink-600 hover:from-orange-500 hover:to-pink-500 cursor-pointer text-white text-lg font-bold shadow-lg p-6 rounded-4xl"
+          >
             Luyện tập
           </Button>
         </div>
