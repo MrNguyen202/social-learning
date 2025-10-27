@@ -18,7 +18,8 @@ if (typeof window !== "undefined" && window.speechSynthesis) {
       const voices = window.speechSynthesis
         .getVoices()
         .filter((v) => v.lang.startsWith("en-"));
-      speechVoice = voices.find((v) => v.name === "Google US English") || voices[0];
+      speechVoice =
+        voices.find((v) => v.name === "Google US English") || voices[0];
     };
   }
 }
@@ -43,7 +44,7 @@ export default function ClickToSpeak({ word }: Props) {
   return (
     <span
       onClick={speak}
-      className="cursor-pointer font-bold text-blue-600 hover:bg-blue-100 p-1 rounded-md transition-all"
+      className="cursor-pointer font-bold hover:bg-white/20 p-1 rounded-md transition-all"
     >
       {word}
     </span>

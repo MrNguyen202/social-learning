@@ -191,7 +191,7 @@ export default function ExerciseSpeaking({
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={speak}
-          className="p-2 text-blue-500 hover:bg-blue-100 rounded-full"
+          className="p-2 text-blue-500 hover:bg-blue-100 rounded-full cursor-pointer"
         >
           <Volume2 className="w-6 h-6" />
         </motion.button>
@@ -207,7 +207,7 @@ export default function ExerciseSpeaking({
           onClick={startListening}
           whileTap={{ scale: 0.95 }}
           disabled={listening || isChecking} // Vô hiệu hóa khi đang nghe
-          className={`px-8 py-4 rounded-full text-lg font-bold text-white transition-all shadow-lg ${
+          className={`px-8 py-4 rounded-full text-lg font-bold text-white transition-all shadow-lg cursor-pointer ${
             listening
               ? "bg-gray-400 animate-pulse cursor-not-allowed"
               : "bg-blue-500 hover:bg-blue-600"
