@@ -82,7 +82,7 @@ export default function ExerciseWordBuild({
   return (
     <div className="text-center">
       <h2 className="text-xl font-semibold mb-2">{exercise.question}</h2>
-      <p className="text-gray-500 mb-6 italic">Gợi ý: "{hint}"</p>
+      <p className="text-gray-500 mb-6 text-xl italic">Gợi ý: "{hint}"</p>
 
       {/* Vùng Câu trả lời */}
       <div
@@ -129,7 +129,7 @@ export default function ExerciseWordBuild({
         <button
           onClick={handleCheck}
           disabled={currentWord.length === 0 || isChecking}
-          className="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 font-bold text-lg disabled:bg-gray-300"
+          className="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 font-bold text-lg disabled:bg-gray-300 cursor-pointer"
         >
           Kiểm tra
         </button>

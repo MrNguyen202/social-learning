@@ -120,6 +120,8 @@ export default function VocabularyDetailPage() {
     );
   }
 
+  const getWords = relatedVocab.map((v) => v.word);
+
   return (
     <div className="flex-1 px-6 py-6 pb-36 sm:ml-10">
       {/* Decorative Background Elements */}
@@ -231,7 +233,13 @@ export default function VocabularyDetailPage() {
               {/* Action Buttons */}
               <div className="md:mt-[-35px] mt-6 flex flex-wrap gap-3">
                 <Button
-                  onClick={() => console.log(personalVocab.word)}
+                  onClick={() => {
+                    sessionStorage.setItem(
+                      "practiceWords",
+                      JSON.stringify(getWords)
+                    );
+                    router.push("/dashboard/vocabulary/wordPracticesAI");
+                  }}
                   className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer"
                 >
                   Luyện tập ngay

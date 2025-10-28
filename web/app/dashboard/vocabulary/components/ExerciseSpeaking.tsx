@@ -191,9 +191,9 @@ export default function ExerciseSpeaking({
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={speak}
-          className="p-2 text-blue-500 hover:bg-blue-100 rounded-full cursor-pointer"
+          className="p-4 text-blue-500 hover:bg-blue-100 rounded-full cursor-pointer"
         >
-          <Volume2 className="w-6 h-6" />
+          <Volume2 className="w-8 h-8" />
         </motion.button>
         <p className="text-3xl font-bold text-blue-600 leading-relaxed">
           {clickableSentence}

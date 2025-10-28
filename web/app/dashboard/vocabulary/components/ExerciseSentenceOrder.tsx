@@ -56,7 +56,7 @@ export default function ExerciseSentenceOrder({
   return (
     <>
       <h2 className="text-xl font-semibold mb-4">{exercise.question}</h2>
-      <p className="text-gray-500 mb-6 italic text-center">"{answer_vi}"</p>
+      <p className="text-gray-500 mb-6 italic text-center text-2xl">"{answer_vi}"</p>
 
       {/* Vùng Câu trả lời */}
       <div
@@ -71,7 +71,7 @@ export default function ExerciseSentenceOrder({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               onClick={() => !isChecking && handleSelectFromAnswer(word)}
-              className="px-3 py-2 rounded-xl border bg-white shadow-sm font-medium"
+              className="px-3 py-2 rounded-xl border bg-white shadow-sm font-medium text-xl cursor-pointer"
             >
               {word.text}
             </motion.button>
@@ -91,7 +91,7 @@ export default function ExerciseSentenceOrder({
               exit={{ opacity: 0, scale: 0.8 }}
               onClick={() => !isChecking && handleSelectFromBank(word)}
               disabled={isChecking}
-              className="px-3 py-2 rounded-xl border bg-gray-50 hover:bg-gray-100 font-medium"
+              className="px-3 py-2 rounded-xl border bg-gray-50 hover:bg-gray-100 font-medium text-xl cursor-pointer"
             >
               {word.text}
             </motion.button>
@@ -103,7 +103,7 @@ export default function ExerciseSentenceOrder({
         <button
           onClick={handleCheck}
           disabled={answer.length === 0 || isChecking}
-          className="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 font-bold text-lg disabled:bg-gray-300"
+          className="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 font-bold text-lg disabled:bg-gray-300 cursor-pointer"
         >
           Kiểm tra
         </button>
