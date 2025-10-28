@@ -79,7 +79,9 @@
   "totalWords": "Tổng số từ",
   "averageMastery": "Khả năng thông thạo trung bình",
   "needReview": "Cần xem lại",
-  "searchPlaceholder": "Tìm kiếm từ vựng...",
+  "searchVocab": "Tìm kiếm từ vựng...",
+  "searchTopics": "Tìm kiếm chủ đề...",
+  "filterByLetter": "Lọc theo chữ cái",
   "masteryLevel": "Trình độ thành thạo",
   "error": "lỗi",
   "noVocabularyFound": "Không tìm thấy từ vựng",
@@ -93,5 +95,9 @@
 
   "breadcrumbListening": "Luyện nghe",
   "sloganListening": "Luyện nghe để nâng cao kỹ năng",
-  "overview": "Tổng quan"
+  "overview": "Tổng quan",
+  "mastered": "Đã thành thạo",
+  "byTopic": "Theo chủ đề",
+  "prePage": "Trước",
+  "nextPage": "Tiếp"
 }

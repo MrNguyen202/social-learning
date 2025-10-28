@@ -16,32 +16,64 @@ import {
   Play,
   Pause,
   RotateCcw,
-  CheckCircle,
-  XCircle,
   Volume2,
   FileText,
-  Award,
-  Headphones,
+  Snowflake,
+  CircleEqual,
+  History,
+  Menu,
 } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { listeningService } from '../../../api/learning/listening/route';
+import useAuth from '../../../../hooks/useAuth';
+import FloatingMenu from './components/FloatingMenu';
+import HistoryModal from './components/HistoryModal';
+import ProgressModal from './components/ProgressModal';
+import SubmitModal from './components/SubmitModal';
+import SubmittingModal from "./components/SubmittingModal";
+import { getScoreUserByUserId } from '../../../api/learning/score/route';
 
 export default function ListeningDetail() {
   const route = useRoute();
+  const { user } = useAuth();
   const navigation = useNavigation<any>();
   const { id } = route.params as { id: string };
 
   const [exercise, setExercise] = useState<any>(null);
+  const [score, setScore] = useState<any>(null);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [checkResult, setCheckResult] = useState<Record<number, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resSubmit, setResSubmit] = useState<any>(null);
+  const [progress, setProgress] = useState<any>(null)
+  const [history, setHistory] = useState<any[]>([]);
+
+  const [showTopMenu, setShowTopMenu] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showProgressModal, setShowProgressModal] = useState(false);
+
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submitResult, setSubmitResult] = useState<{ correct: number, total: number }>({ correct: 0, total: 0 });
+
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await listeningService.getListeningExerciseById(id);
         setExercise(data);
+
+        if (user) {
+          const score = await getScoreUserByUserId(user?.id)
+          setScore(score.data)
+
+          const prog = await listeningService.getUserProgress(user.id, id as string)
+          setProgress(prog)
+
+          const hist = await listeningService.getSubmissionHistory(user.id, data.id);
+          setHistory(hist);
+        }
       } catch (error) {
         console.error(error);
         Alert.alert('Lỗi', 'Không thể tải bài nghe');
@@ -50,7 +82,7 @@ export default function ListeningDetail() {
       }
     };
     fetchData();
-  }, [id]);
+  }, [id, user, isSubmitting]);
 
   if (loading) {
     return <ActivityIndicator size="large" style={{ marginTop: 40 }} />;
@@ -72,14 +104,99 @@ export default function ListeningDetail() {
 
   const words = exercise.text_content.split(/\s+/);
 
+  // Hàm kiểm tra đáp án
   const handleCheckAnswers = () => {
-    const result: Record<number, boolean> = {};
-    Object.entries(hiddenMap).forEach(([pos, correctAnswer]) => {
-      const position = parseInt(pos);
-      const userAns = (answers[position] || '').trim().toLowerCase();
-      result[position] = userAns === correctAnswer.toLowerCase();
-    });
-    setCheckResult(result);
+    const result: Record<number, boolean> = {}
+    Object.keys(hiddenMap).forEach((pos) => {
+      const position = parseInt(pos)
+      const correct = hiddenMap[position].toLowerCase()
+      const userAns = (answers[position] || "").toLowerCase()
+      result[position] = userAns === correct
+    })
+    setCheckResult(result)
+  }
+
+  // Hàm gợi ý
+  const handleSuggestHint = () => {
+    const unansweredPositions = Object.keys(hiddenMap).filter((pos) => !answers[parseInt(pos)]);
+    if (unansweredPositions.length === 0) return;
+
+    const randomPos = unansweredPositions[Math.floor(Math.random() * unansweredPositions.length)];
+    const correctWord = hiddenMap[parseInt(randomPos)];
+
+    setAnswers(prev => ({ ...prev, [parseInt(randomPos)]: correctWord }));
+    setCheckResult(prev => ({ ...prev, [parseInt(randomPos)]: true }));
+  };
+
+  // Handle submit
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+
+    const wordAnswers = exercise.wordHidden.map((wh: any) => ({
+      word_hidden_id: wh.id,
+      position: wh.position,
+      answer_input: answers[wh.position] || "",
+      is_correct:
+        (answers[wh.position] || "").trim().toLowerCase() ===
+        wh.answer.trim().toLowerCase(),
+    }));
+
+    try {
+      const res = await listeningService.submitListeningResults(
+        user?.id,
+        exercise?.id,
+        wordAnswers
+      );
+
+      setResSubmit(res)
+
+      const correctCount = wordAnswers.filter((a: { is_correct: boolean }) => a.is_correct).length;
+      setSubmitResult({ correct: correctCount, total: wordAnswers.length });
+
+      const newCheckResult: Record<number, boolean> = {};
+      wordAnswers.forEach((ans: { position: number; is_correct: boolean }) => {
+        newCheckResult[ans.position] = ans.is_correct;
+      });
+      setCheckResult(newCheckResult);
+
+      setShowSubmitModal(true);
+    } catch (error) {
+      console.error("Error submitting results:", error);
+      Alert.alert("Lỗi", "Không thể nộp bài. Vui lòng thử lại!");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Xử lý khi người dùng chọn một mục trong lịch sử
+  const handleHistory = (historyItem: any) => {
+    if (!historyItem || !historyItem.answers) {
+      console.error("Dữ liệu lịch sử không hợp lệ");
+      return;
+    }
+
+    // 1. Tạo một Map để tra cứu nhanh: { word_hidden_id => position }
+    // `exercise.wordHidden` là mảng chứa thông tin các từ bị ẩn, bao gồm cả id và position
+    const wordIdToPositionMap = new Map(
+      exercise.wordHidden.map((wh: any) => [wh.id, wh.position])
+    );
+
+    // 2. Tạo các object state mới từ dữ liệu lịch sử
+    const historicalAnswers: Record<number, string> = {};
+    const historicalCheckResult: Record<number, boolean> = {};
+
+    for (const ans of historyItem.answers) {
+      const position = wordIdToPositionMap.get(ans.word_hidden_id);
+      if (typeof position === "number") {
+        historicalAnswers[position] = ans.answer_input;
+        historicalCheckResult[position] = ans.is_correct;
+      }
+    }
+
+    // 3. Cập nhật lại state của component để UI thay đổi theo
+    setAnswers(historicalAnswers);
+    setCheckResult(historicalCheckResult);
+    setShowHistoryModal(false)
   };
 
   return (
@@ -91,82 +208,105 @@ export default function ListeningDetail() {
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       >
-        <View style={styles.headerContent}>
+        <View className='flex flex-row justify-between items-center'>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            style={styles.headerBackButton}
+            className='w-10 h-10 rounded-full bg-[rgba(255,255,255,0.2)] flex items-center justify-center'
             activeOpacity={0.8}
           >
             <ArrowLeft size={24} color="#fff" />
           </TouchableOpacity>
 
-          <View style={styles.headerCenter}>
-            <View style={styles.headerIconContainer}>
-              <Headphones size={24} color="#fff" />
+          <View className='flex-row items-center justify-end gap-10'>
+            <View className='flex flex-row items-center justify-center gap-2'>
+              <Text className='text-[#0000FF] text-xl'>{score?.practice_score || 0}</Text>
+              <Snowflake className="h-5 w-5" color={"#0000FF"} />
             </View>
-            <View>
-              <Text style={styles.headerTitle}>{exercise.title}</Text>
-              <Text style={styles.headerSubtitle}>
-                {exercise.level} • {exercise.topic}
-              </Text>
+            <View className='flex flex-row items-center justify-center gap-2'>
+              <Text className='text-[#FFFF00] text-xl'>{score?.number_snowflake || 0}</Text>
+              <CircleEqual className="h-5 w-5" color={"#FFFF00"} />
             </View>
           </View>
 
-          <View style={styles.headerRight} />
+          {/* Nút menu */}
+          <View style={{ position: 'relative' }}>
+            <TouchableOpacity
+              onPress={() => setShowTopMenu((prev) => !prev)}
+              activeOpacity={0.8}
+              style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Menu size={24} color="#fff" />
+            </TouchableOpacity>
+
+            {/* Menu dropdown */}
+            {showTopMenu && (
+              <View style={styles.dropdownMenu}>
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setShowTopMenu(false);
+                    setShowHistoryModal(true);
+                  }}
+                >
+                  <Text style={styles.dropdownText}>📜 History</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setShowTopMenu(false);
+                    setShowProgressModal(true);
+                  }}
+                >
+                  <Text style={styles.dropdownText}>📈 Progress</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         </View>
       </LinearGradient>
 
       {/* Content */}
       <View style={styles.content}>
+        {/* Audio Player cố định */}
+        <View style={styles.audioContainer}>
+          <View style={styles.audioHeader}>
+            <Volume2 size={20} color="#4ECDC4" />
+            <Text style={styles.audioTitle}>Audio Player</Text>
+          </View>
+
+          <View style={styles.audioControls}>
+            <TouchableOpacity
+              style={styles.audioButton}
+              activeOpacity={0.8}
+            >
+              {isPlaying ? (
+                <Pause size={24} color="#fff" />
+              ) : (
+                <Play size={24} color="#fff" />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.audioButtonSecondary}
+              activeOpacity={0.8}
+            >
+              <RotateCcw size={20} color="#4ECDC4" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Scroll chỉ cho đoạn văn */}
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Instructions */}
-          <View style={styles.instructionsContainer}>
-            <View style={styles.instructionHeader}>
-              <FileText size={20} color="#4ECDC4" />
-              <Text style={styles.instructionTitle}>Hướng dẫn</Text>
-            </View>
-            <Text style={styles.instructionText}>
-              Nghe đoạn audio và điền từ còn thiếu vào chỗ trống
-            </Text>
-          </View>
-
-          {/* Audio Player */}
-          <View style={styles.audioContainer}>
-            <View style={styles.audioHeader}>
-              <Volume2 size={20} color="#4ECDC4" />
-              <Text style={styles.audioTitle}>Audio Player</Text>
-            </View>
-
-            <View style={styles.audioControls}>
-              <TouchableOpacity
-                style={styles.audioButton}
-                activeOpacity={0.8}
-              >
-                {isPlaying ? (
-                  <Pause size={24} color="#fff" />
-                ) : (
-                  <Play size={24} color="#fff" />
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.audioButtonSecondary}
-                activeOpacity={0.8}
-              >
-                <RotateCcw size={20} color="#4ECDC4" />
-              </TouchableOpacity>
-            </View>
-          </View>
-
           {/* Text with blanks */}
           <View style={styles.textContainer}>
             <View style={styles.textHeader}>
               <FileText size={20} color="#4ECDC4" />
-              <Text style={styles.textTitle}>Điền từ vào chỗ trống</Text>
+              <Text style={styles.textTitle}>{exercise.title_vi}</Text>
             </View>
 
             <View style={styles.textContent}>
@@ -180,109 +320,67 @@ export default function ListeningDetail() {
                   return (
                     <View key={idx} style={styles.inputWrapper}>
                       <TextInput
-                        maxLength={correctAnswer.length + 2}
-                        placeholder={`(${correctAnswer.length} chữ)`}
-                        style={[
-                          styles.textInput,
-                          isSubmitted && {
-                            borderColor: isCorrect ? '#10b981' : '#ef4444',
-                            backgroundColor: isCorrect ? '#f0fdf4' : '#fef2f2',
-                          },
-                        ]}
+                        maxLength={correctAnswer.length}
+                        placeholder={"_ ".repeat(correctAnswer.length)}
+                        className={`text-[16px] border-b-2 text-center bg-white px-1 py-0.5 rounded-sm tracking-widest
+                      ${isCorrect === true
+                            ? "border-green-500 text-green-500"
+                            : isCorrect === false
+                              ? "border-red-500 text-red-500"
+                              : "border-gray-400 text-blue-700"
+                          }`}
                         value={userAnswer}
                         onChangeText={text =>
                           setAnswers({ ...answers, [position]: text })
                         }
-                        editable={!isSubmitted}
                       />
-                      {isSubmitted && (
-                        <View style={styles.resultIcon}>
-                          {isCorrect ? (
-                            <CheckCircle size={16} color="#10b981" />
-                          ) : (
-                            <XCircle size={16} color="#ef4444" />
-                          )}
-                        </View>
-                      )}
-                      {isSubmitted && !isCorrect && (
-                        <Text style={styles.correctAnswer}>
-                          Đáp án: {correctAnswer}
-                        </Text>
-                      )}
                     </View>
                   );
+                } else {
+                  return (
+                    <Text key={idx} style={styles.wordText}>
+                      {word}{' '}
+                    </Text>
+                  );
                 }
-
-                return (
-                  <Text key={idx} style={styles.wordText}>
-                    {word}{' '}
-                  </Text>
-                );
               })}
             </View>
           </View>
 
-          {/* Results */}
-          {isSubmitted && (
-            <View style={styles.resultsContainer}>
-              <View style={styles.resultsHeader}>
-                <Award size={20} color="#4ECDC4" />
-                <Text style={styles.resultsTitle}>Kết quả</Text>
-              </View>
-
-              {/* <View style={styles.scoreContainer}>
-                <Text style={styles.scoreText}>{score}%</Text>
-                <Text style={styles.scoreDescription}>
-                  {correctCount}/{totalQuestions} câu đúng
-                </Text>
-              </View>
-
-              <View style={styles.scoreBar}>
-                <View style={[styles.scoreProgress, { width: `${score}%` }]} />
-              </View> */}
-            </View>
-          )}
-
           <View style={styles.bottomSpacing} />
         </ScrollView>
-
-        {/* Action Buttons */}
-        <View style={styles.actionContainer}>
-          {!isSubmitted ? (
-            <TouchableOpacity
-              style={[
-                styles.submitButton,
-                Object.keys(answers).length === 0 &&
-                  styles.submitButtonDisabled,
-              ]}
-              onPress={handleCheckAnswers}
-              disabled={Object.keys(answers).length === 0}
-              activeOpacity={0.8}
-            >
-              <CheckCircle size={20} color="#fff" />
-              <Text style={styles.submitButtonText}>Nộp bài</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.resetButton}
-                activeOpacity={0.8}
-              >
-                <RotateCcw size={18} color="#6b7280" />
-                <Text style={styles.resetButtonText}>Làm lại</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.continueButton}
-                onPress={() => navigation.goBack()}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.continueButtonText}>Tiếp tục</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
       </View>
+
+
+      <FloatingMenu
+        onCheck={handleCheckAnswers}
+        onHint={handleSuggestHint}
+        onSubmit={handleSubmit}
+      />
+
+      <HistoryModal
+        visible={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        history={history}
+        handle={handleHistory}
+      />
+
+      <ProgressModal
+        visible={showProgressModal}
+        onClose={() => setShowProgressModal(false)}
+        progress={progress}
+      />
+
+      <SubmittingModal visible={isSubmitting} />
+
+      <SubmitModal
+        visible={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        correctCount={submitResult.correct}
+        total={submitResult.total}
+        practice_score={resSubmit?.score}
+        snowflake={resSubmit?.snowflake}
+      />
     </SafeAreaView>
   );
 }
@@ -420,35 +518,12 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 100,
   },
-  instructionsContainer: {
-    backgroundColor: '#f0fdfa',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#a7f3d0',
-  },
-  instructionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  instructionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginLeft: 8,
-  },
-  instructionText: {
-    fontSize: 14,
-    color: '#6b7280',
-    lineHeight: 20,
-  },
   audioContainer: {
     backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 20,
-    marginBottom: 20,
+    marginHorizontal: 20,
+    marginVertical: 20,
     borderWidth: 1,
     borderColor: '#e5e7eb',
     elevation: 2,
@@ -516,7 +591,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   textTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: '#1f2937',
     marginLeft: 8,
@@ -695,4 +770,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 38,
+    right: 0,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    width: 150,
+    zIndex: 999,
+  },
+  dropdownItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: '#374151',
+    fontWeight: '500',
+  }
 });

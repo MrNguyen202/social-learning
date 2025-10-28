@@ -258,7 +258,9 @@ export default function Page() {
                         <Link href="/auth/login">{t("layout.login")}</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/auth/register">{t("layout.register")}</Link>
+                        <Link href="/auth/register">
+                          {t("layout.register")}
+                        </Link>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -291,21 +293,25 @@ export default function Page() {
             {t("layout.heroDescription")}
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-12 py-6 text-lg cursor-pointer rounded-full transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/30 transform hover:-translate-y-1"
-            >
-              <Link href="auth/login">{t("layout.joinNow")}</Link>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="bg-white text-gray-700 border-gray-300 hover:bg-gray-50 px-12 py-6 text-lg cursor-pointer rounded-full transition-all duration-300 hover:scale-105 hover:shadow-xl transform hover:-translate-y-1"
-            >
-              {t("layout.tryLearning")}
-            </Button>
-          </div>
+          {!user ? (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-12 py-6 text-lg cursor-pointer rounded-full transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/30 transform hover:-translate-y-1"
+              >
+                <Link href="auth/login">{t("layout.joinNow")}</Link>
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="bg-white text-gray-700 border-gray-300 hover:bg-gray-50 px-12 py-6 text-lg cursor-pointer rounded-full transition-all duration-300 hover:scale-105 hover:shadow-xl transform hover:-translate-y-1"
+              >
+                {t("layout.tryLearning")}
+              </Button>
+            </div>
+          ) : (
+            <></>
+          )}
         </div>
 
         {/* Features */}
@@ -427,21 +433,31 @@ export default function Page() {
         </div>
 
         {/* Bắt đầu */}
-        <div
-          ref={ctaRef}
-          className="bg-gradient-to-r from-orange-500 to-pink-500 rounded-2xl p-8 text-center text-white max-w-4xl mx-auto opacity-0 translate-y-8 transition-all duration-1000 ease-out hover:shadow-2xl hover:shadow-orange-500/30 hover:scale-105 transform hover:-translate-y-2 cursor-pointer"
-        >
-          <h2 className="text-3xl font-bold mb-4">{t("layout.startYourJourney")}</h2>
-          <p className="text-xl mb-6 opacity-90">{t("layout.ctaDescription")}</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              className="bg-white text-orange-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl transform hover:-translate-y-1"
-            >
-              <Link href="auth/register">{t("layout.createFreeAccount")}</Link>
-            </Button>
+        {!user ? (
+          <div
+            ref={ctaRef}
+            className="bg-gradient-to-r from-orange-500 to-pink-500 rounded-2xl p-8 text-center text-white max-w-4xl mx-auto opacity-0 translate-y-8 transition-all duration-1000 ease-out hover:shadow-2xl hover:shadow-orange-500/30 hover:scale-105 transform hover:-translate-y-2 cursor-pointer"
+          >
+            <h2 className="text-3xl font-bold mb-4">
+              {t("layout.startYourJourney")}
+            </h2>
+            <p className="text-xl mb-6 opacity-90">
+              {t("layout.ctaDescription")}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="lg"
+                className="bg-white text-orange-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl transform hover:-translate-y-1"
+              >
+                <Link href="auth/register">
+                  {t("layout.createFreeAccount")}
+                </Link>
+              </Button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <></>
+        )}
       </main>
 
       {/* Rank */}

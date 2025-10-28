@@ -79,7 +79,9 @@
   "totalWords": "Total Words",
   "averageMastery": "Average Mastery",
   "needReview": "Need Review",
-  "searchPlaceholder": "Search vocabulary...",
+  "searchVocab": "Search vocabulary...",
+  "searchTopics": "Search topics...",
+  "filterByLetter": "Filter by Letter",
   "masteryLevel": "Mastery Level",
   "error": "error",
   "noVocabularyFound": "No vocabulary found",
@@ -93,5 +95,9 @@
 
   "breadcrumbListening": "Listening",
   "sloganListening": "Practice listening to improve skills",
-  "overview": "Overview"
+  "overview": "Overview",
+  "mastered": "Mastered",
+  "byTopic": "By Topic",
+  "prePage": "Previous",
+  "nextPage": "Next"
 }

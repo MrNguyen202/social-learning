@@ -141,8 +141,6 @@ const notificationController = {
       const { data, error } =
         await notificationService.fetchNotificationsLearning(userId);
 
-        console.log("data:", data);
-
       if (error) {
         return res.status(400).json({ success: false, message: error.message });
       }

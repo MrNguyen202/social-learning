@@ -79,11 +79,16 @@ export default function ListeningDetailPage() {
 
     // Hàm gợi ý
     const handleSuggestHint = () => {
-        const unansweredPositions = Object.keys(hiddenMap).filter((pos) => !answers[parseInt(pos)])
-        if (unansweredPositions.length === 0) return
-        const randomPos = unansweredPositions[Math.floor(Math.random() * unansweredPositions.length)]
-        setAnswers({ ...answers, [parseInt(randomPos)]: hiddenMap[parseInt(randomPos)] })
-    }
+        const unansweredPositions = Object.keys(hiddenMap).filter((pos) => !answers[parseInt(pos)]);
+        if (unansweredPositions.length === 0) return;
+
+        const randomPos = unansweredPositions[Math.floor(Math.random() * unansweredPositions.length)];
+        const correctWord = hiddenMap[parseInt(randomPos)];
+
+        setAnswers(prev => ({ ...prev, [parseInt(randomPos)]: correctWord }));
+        setCheckResult(prev => ({ ...prev, [parseInt(randomPos)]: true }));
+    };
+
 
     // Hàm nộp bài
     const handleSubmit = async () => {

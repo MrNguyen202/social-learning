@@ -12,16 +12,6 @@ export interface OverviewStats {
   };
 }
 
-export interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  unlocked: boolean;
-  progress: number;
-  target: number;
-}
-
 // Get score user by user_id
 export const getScoreUserByUserId = async (user_id: string) => {
   try {
@@ -107,6 +97,42 @@ export const getActivityHeatmap = async (userId: string) => {
   return response.data;
 };
 
+// Kiểm tra chuỗi học
+export const checkLearningStreak = async (userId: string) => {
+  const response = await api.get(
+    `/api/learning/score-user/streak/checkLearningStreak`,
+    { params: { userId } }
+  );
+  return response.data;
+};
+
+// Khôi phục chuỗi học
+export const restoreLearningStreak = async (userId: string) => {
+  const response = await api.get(
+    `/api/learning/score-user/streak/restoreLearningStreak`,
+    { params: { userId } }
+  );
+  return response.data;
+};
+
+// Reset chuỗi học
+export const resetLearningStreak = async (userId: string) => {
+  const response = await api.get(
+    `/api/learning/score-user/streak/resetLearningStreak`,
+    { params: { userId } }
+  );
+  return response.data;
+};
+
+// Lấy chuỗi học
+export const getLearningStreak = async (userId: string) => {
+  const response = await api.get(
+    `/api/learning/score-user/streak/getLearningStreak`,
+    { params: { userId } }
+  );
+  return response.data;
+};
+
 // Thống kê nhanh
 export async function getOverviewStats(userId: string): Promise<OverviewStats> {
   await new Promise((resolve) => setTimeout(resolve, 500));
@@ -124,6 +150,9 @@ export async function getOverviewStats(userId: string): Promise<OverviewStats> {
     b[1] > a[1] ? b : a
   )[0];
 
+  // Lấy chuỗi học hiện tại
+  const res = await getLearningStreak(userId);
+
   return {
     totalLessons: Math.floor(Math.random() * 50) + 100, // Giả sử từ 100 đến 150 bài học
     averageScore: Math.floor(
@@ -132,72 +161,27 @@ export async function getOverviewStats(userId: string): Promise<OverviewStats> {
         listeningScore.totalScore) /
         3
     ),
-    streak: Math.floor(Math.random() * 20) + 5, // Giả sử streak từ 5 đến 25 ngày
+    streak: res.data.current_streak,
     bestSkill,
     skillScores: scores,
   };
 }
 
-// giả sử thành tích
-export async function getAchievements(userId: string): Promise<Achievement[]> {
-  await new Promise((resolve) => setTimeout(resolve, 500));
+// lấy toàn bộ thành tích
+export const getAllAchievements = async () => {
+  const res = await api.get(
+    `/api/learning/score-user/achievements/getAllAchievements`
+  );
+  return res.data;
+};
 
-  return [
-    {
-      id: "1",
-      title: "Người mới bắt đầu",
-      description: "Hoàn thành 10 bài học",
-      icon: "🌱",
-      unlocked: true,
-      progress: 10,
-      target: 10,
-    },
-    {
-      id: "2",
-      title: "Học viên chăm chỉ",
-      description: "Học liên tục 7 ngày",
-      icon: "🔥",
-      unlocked: true,
-      progress: 7,
-      target: 7,
-    },
-    {
-      id: "3",
-      title: "Bậc thầy Speaking",
-      description: "Đạt 90 điểm Speaking",
-      icon: "🎤",
-      unlocked: false,
-      progress: 78,
-      target: 90,
-    },
-    {
-      id: "4",
-      title: "Chinh phục Writing",
-      description: "Đạt 90 điểm Writing",
-      icon: "✍️",
-      unlocked: false,
-      progress: 65,
-      target: 90,
-    },
-    {
-      id: "5",
-      title: "Thính giác siêu phàm",
-      description: "Đạt 90 điểm Listening",
-      icon: "👂",
-      unlocked: false,
-      progress: 82,
-      target: 90,
-    },
-    {
-      id: "6",
-      title: "Học viên xuất sắc",
-      description: "Hoàn thành 100 bài học",
-      icon: "⭐",
-      unlocked: false,
-      progress: 87,
-      target: 100,
-    },
-  ];
+// lấy thành tích của người dùng
+export const getUserAchievements = async (userId: string) => {
+  const res = await api.get(
+    `/api/learning/score-user/achievements/getUserAchievements`,
+    { params: { userId } }
+  );
+  return res.data;
 }
 
 // So sánh 3 kỹ năng tổng quát

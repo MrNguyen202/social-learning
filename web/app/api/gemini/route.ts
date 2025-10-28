@@ -3,7 +3,7 @@ import { streamText } from "ai";
 import { Message } from "@ai-sdk/react";
 
 const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_API_KEY,
+  apiKey: process.env.GEMINI_API_KEY,
 });
 
 export const runtime = "edge";
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     }
 
     const stream = await streamText({
-      model: google("gemini-2.0-flash-exp"),
+      model: google("gemini-2.0-flash"),
       messages: buildOptimizedPrompt(messages),
       temperature: 0.7,
       maxTokens: 1000, // Giới hạn độ dài response

@@ -47,53 +47,13 @@ const vocabularyService = {
     }
   },
 
-  async deleteVocabularyErrors(userId, word) {
-    const { data, error } = await supabase
-      .from("userVocabErrors")
-      .delete()
-      .eq("userId", userId)
-      .eq("word", word);
-
-    if (error) throw error;
-
-    return { data, error };
-  },
-
-  // Lấy danh sách từ vựng cá nhân của người dùng dựa trên userId và error_count >= 5
-  async getListPersonalVocabByUserIdAndErrorCount(userId) {
-    const { data, error } = await supabase
-      .from("personalVocab")
-      .select("*")
-      .eq("userId", userId)
-      .gte("error_count", 5)
-      .order("error_count", { ascending: false });
-
-    if (error) throw error;
-
-    return { data, error };
-  },
-
-  // Lấy danh sách từ vựng cá nhân của người dùng dựa trên userId và chưa được generate AI
-  async getListPersonalVocabByUserIdAndRelatedWord(userId) {
-    const { data, error } = await supabase
-      .from("personalVocab")
-      .select("*")
-      .eq("userId", userId)
-      .eq("related_words", JSON.stringify([])) // chỉ lấy những row chưa có giá trị
-      .eq("created", false); // chỉ lấy những row chưa có giá trị
-
-    if (error) throw error;
-
-    return { data, error };
-  },
-
   // Lưu mảng từ vựng cá nhân vào bảng personalVocab khi generate từ AI
   async updatePersonalVocab(userId, word, dataVocab) {
     const { data, error } = await supabase
       .from("personalVocab")
       .update({
         related_words: dataVocab,
-        created: true,
+        created_related_words: true,
       })
       .eq("userId", userId)
       .eq("word", word)
@@ -103,7 +63,7 @@ const vocabularyService = {
     return { data, error };
   },
 
-  // Lấy danh sách từ vựng cá nhân của người dùng dựa trên userId và created = true ( đã generate related_words )
+  // Lấy danh sách từ vựng cá nhân của người dùng dựa trên userId và created_related_words = true và related_words đã được tạo ( đã generate related_words )
   async getListPersonalVocabByUserIdAndCreated(userId) {
     const { data, error } = await supabase
       .from("personalVocab")
@@ -112,11 +72,12 @@ const vocabularyService = {
         id,
         word,
         error_count,
-        mastery_score
+        mastery_score,
+        related_words
       `
       )
       .eq("userId", userId)
-      .eq("created", true)
+      .eq("created_related_words", true)
       .gte("error_count", 5);
 
     if (error) throw error;
@@ -136,6 +97,81 @@ const vocabularyService = {
 
     return { data, error };
   },
-};
 
+  // Lấy tổng số các từ vựng trong khoảng mastery_score
+  async getSumPersonalVocabByMasteryScore(userId, from, to) {
+    const { data, error } = await supabase
+      .from("personalVocab")
+      .select("id, mastery_score")
+      .eq("userId", userId)
+      .eq("created_related_words", true)
+      .gte("mastery_score", from)
+      .lte("mastery_score", to);
+
+    if (error) throw error;
+
+    const total = data.reduce((sum, item) => sum + 1, 0);
+
+    return { data, total, error };
+  },
+
+  // Lấy danh sách chủ đề từ vựng của người dùng
+  async getUserTopics(userId) {
+    const { data, error } = await supabase
+      .from("topicsVocab")
+      .select("id, name_en, name_vi, total_vocab")
+      .eq("userId", userId)
+      .order("name_en", { ascending: true });
+
+    if (error) throw error;
+
+    return { data, error };
+  },
+
+  // Lấy danh sách từ vựng theo chủ đề
+  async getVocabByTopic(userId, topicId) {
+    const { data, error } = await supabase
+      .from("personalVocabTopics")
+      .select(
+        `
+      id,
+      personalVocab:personal_vocab_id (
+        id,
+        word,
+        related_words,
+        mastery_score,
+        userId
+      ),
+      topicsVocab:topic_vocab_id (
+        name_en,
+        name_vi
+      )
+    `
+      )
+      .eq("topic_vocab_id", topicId);
+
+    if (error) throw error;
+
+    // Lọc vocab đúng user
+    const filtered = data.filter(
+      (item) => item.personalVocab?.userId === userId
+    );
+
+    // Nếu không có dữ liệu thì return sớm
+    if (filtered.length === 0) return { data: [], error: null };
+
+    // Lấy topic info (giống nhau cho tất cả vì cùng topicId)
+    const { name_en, name_vi } = filtered[0].topicsVocab;
+
+    // Map danh sách vocab
+    const vocabList = filtered.map((item) => ({
+      id: item.personalVocab.id,
+      word: item.personalVocab.word,
+      related_words: item.personalVocab.related_words,
+      mastery_score: item.personalVocab.mastery_score,
+    }));
+
+    return { data: vocabList, name_en, name_vi, error };
+  },
+};
 module.exports = vocabularyService;

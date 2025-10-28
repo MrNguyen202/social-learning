@@ -35,3 +35,44 @@ export const getPersonalVocabById = async ({ personalVocabId }: { personalVocabI
   const response = await api.get(`/api/learning/vocabulary/${personalVocabId}`);
   return response.data;
 }
+
+export const getSumPersonalVocabByMasteryScore = async ({ userId, from, to }: { userId: string; from: number; to: number }) => {
+  const response = await api.get(`/api/learning/vocabulary/mastery_score/${userId}/${from}/${to}`);
+  return response.data;
+}
+
+export const getPersonalAllTopics = async ({ userId }: { userId: string }) => {
+  const response = await api.get(`/api/learning/vocabulary/topics/all/${userId}`);
+  return response.data;
+}
+
+export const getPersonalVocabByTopic = async ( {userId, topic}:any) => {
+  const response = await api.get(`/api/learning/vocabulary/topics/${userId}/${topic}`);
+  return response.data;
+}
+
+export const generateTopicsForUser = async ({ userId }: { userId: string }) => {
+  const response = await api.post(`/api/bot-cover-learning/generate-topics`, {
+    userId
+  });
+  return response.data;
+}
+
+export const getUserTopics = async ({ userId }: { userId: string }) => {
+  const response = await api.get(`/api/learning/vocabulary/user_topics/${userId}`);
+  return response.data;
+}
+
+export const getVocabByTopic = async ({ userId, topicId }: { userId: string; topicId: any }) => {
+  const response = await api.get(`/api/learning/vocabulary/vocab_topic/${userId}/${topicId}`);
+  return response.data;
+}
+
+// Tạo bài tập theo danh sách từ vựng
+export const generateExerciseByVocabList = async ({ userId, words }: { userId: string; words: string[] }) => {
+  const response = await api.post(`/api/bot-cover-learning/generate-words-practice-by-AI`, {
+    userId,
+    words
+  });
+  return response.data;
+}

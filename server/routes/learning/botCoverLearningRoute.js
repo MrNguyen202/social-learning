@@ -20,4 +20,10 @@ router.post('/generate-personal-word-by-AI', botCoverLearningController.createGe
 // Route to create a generated conversation practice exercise
 router.post('/generate-conversation-practice-by-AI', botCoverLearningController.createGenerateConversationPracticeByAI);
 
+// Route to create a generated words practice exercise
+router.post('/generate-words-practice-by-AI', botCoverLearningController.createGenerateWordsPracticeByAI);
+
+// Route to create or update topic vocabularies
+router.post("/generate-topics", botCoverLearningController.generateTopicsForUser);
+
 module.exports = router;

@@ -41,8 +41,6 @@ const scoreUserController = {
     }
   },
 
-  // Trừ điểm bông tuyết
-
   // Thống kê điểm theo kỹ năng speaking và thời gian
   getScoreStatisticsSpeaking: async (req, res) => {
     const { userId, period } = req.query;
@@ -170,6 +168,86 @@ const scoreUserController = {
     }
     try {
       const data = await scoreUserService.getActivityHeatmap(userId);
+      return res.status(200).json(data);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  },
+
+  // Kiểm tra chuỗi học
+  checkLearningStreak: async (req, res) => {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+    try {
+      const data = await scoreUserService.checkLearningStreak(userId);
+      return res.status(200).json(data);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  },
+
+  // Khôi phục chuỗi học
+  restoreLearningStreak: async (req, res) => {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+    try {
+      const data = await scoreUserService.restoreLearningStreak(userId);
+      return res.status(200).json(data);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  },
+
+  // Reset chuỗi
+  resetLearningStreak: async (req, res) => {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+    try {
+      const data = await scoreUserService.resetLearningStreak(userId);
+      return res.status(200).json(data);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  },
+
+  // Lấy chuỗi
+  getLearningStreak: async (req, res) => {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+    try {
+      const data = await scoreUserService.getLearningStreak(userId);
+      return res.status(200).json(data);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  },
+
+  // Lấy toàn bộ thành tích
+  getAllAchievements: async (req, res) => {
+    try {
+      const data = await scoreUserService.getAllAchievements();
+      return res.status(200).json(data);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  },
+
+  // Lấy thành tích của user
+  getUserAchievements: async (req, res) => {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+    try {
+      const data = await scoreUserService.getUserAchievements(userId);
       return res.status(200).json(data);
     } catch (err) {
       return res.status(500).json({ error: err.message });

@@ -33,8 +33,10 @@ export default function Listening() {
 
   const handleStart = () => {
     if (isReady) {
-      // navigation.navigate("ListeningList");
-      console.log('Navigate to ListeningList');
+      navigation.navigate("ListExercise", {
+        level: selectedLevel.slug,
+        topic: selectedTopic.slug,
+      });
     }
   };
 

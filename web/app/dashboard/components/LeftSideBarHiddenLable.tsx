@@ -24,7 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
@@ -36,7 +36,7 @@ import useAuth from "@/hooks/useAuth";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 
 const mainNavItems = [
-  { icon: Home, path: "/dashboard", label: "Trang chủ", active: true },
+  { icon: Home, path: "/dashboard", label: "Trang chủ" },
   { icon: Search, path: "/dashboard/search", label: "Tìm kiếm" },
   { icon: MessageCircle, path: "/dashboard/chat", label: "Tin nhắn", badge: 3 },
   {
@@ -54,7 +54,6 @@ const learningNavItems = [
     icon: PenTool,
     path: "/dashboard/writing",
     label: "Luyện viết tiếng Anh",
-    special: true,
   },
   {
     icon: AudioLines,
@@ -75,6 +74,7 @@ export function LeftSideBarHiddenLabel() {
   const { t, language, setLanguage } = useLanguage();
   const { user } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -200,6 +200,7 @@ export function LeftSideBarHiddenLabel() {
           <nav className="space-y-1">
             {mainNavItems.map((item) => {
               const isNotification = item.path === "/dashboard/notifications";
+              const isActive = pathname === item.path;
               const badge =
                 isNotification && notificationCount > 0
                   ? notificationCount
@@ -210,7 +211,7 @@ export function LeftSideBarHiddenLabel() {
                   key={item.label}
                   variant="ghost"
                   className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
-                    item.active
+                    isActive
                       ? "bg-gray-100 text-gray-900 font-medium"
                       : "text-gray-700 hover:bg-gray-50"
                   }`}
@@ -221,8 +222,6 @@ export function LeftSideBarHiddenLabel() {
                   }
                 >
                   <item.icon size={48} />
-
-                  {/* Badge hiển thị số thông báo */}
                   {badge && (
                     <span className="absolute top-2 right-2 flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-xs">
                       {badge}
@@ -237,20 +236,24 @@ export function LeftSideBarHiddenLabel() {
         {/* Learning Navigation */}
         <div className="border-t border-gray-100">
           <nav className="space-y-1">
-            {learningNavItems.map((item) => (
-              <Button
-                key={item.label}
-                variant="ghost"
-                className={`w-full justify-center h-14 px-3 hover:cursor-pointer ${
-                  item.special
-                    ? "bg-gray-100 text-gray-900 font-medium"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-                onClick={() => handleMenuClick(item.path)}
-              >
-                <item.icon size={48} />
-              </Button>
-            ))}
+            {learningNavItems.map((item) => {
+              const isActive = pathname === item.path;
+
+              return (
+                <Button
+                  key={item.label}
+                  variant="ghost"
+                  className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
+                    isActive
+                      ? "bg-gray-100 text-gray-900 font-medium"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                  onClick={() => handleMenuClick(item.path)}
+                >
+                  <item.icon size={48} />
+                </Button>
+              );
+            })}
           </nav>
         </div>
 

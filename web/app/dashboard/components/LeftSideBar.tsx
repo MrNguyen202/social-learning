@@ -134,7 +134,6 @@ export function LeftSidebar() {
       icon: PenTool,
       path: "/dashboard/writing",
       label: t("dashboard.writing"),
-      special: true,
     },
     {
       icon: AudioLines,
@@ -286,10 +285,8 @@ export function LeftSidebar() {
                   key={item.label}
                   variant="ghost"
                   className={`w-full justify-start h-12 px-3 hover:cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${
-                    item.special
-                      ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 hover:from-orange-100 hover:to-pink-100 border border-orange-200 shadow-sm"
-                      : pathname === item.path
-                      ? "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-900 font-medium shadow-sm"
+                    pathname === item.path
+                      ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
                       : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
                   }`}
                   style={{ animationDelay: `${(index + 6) * 100}ms` }}
@@ -297,15 +294,10 @@ export function LeftSidebar() {
                 >
                   <item.icon
                     className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${
-                      item.special ? "text-orange-600" : ""
+                      pathname === item.path ? "text-orange-600" : ""
                     }`}
                   />
                   <span className="text-base font-medium">{item.label}</span>
-                  {item.special && (
-                    <div className="ml-auto">
-                      <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full animate-pulse"></div>
-                    </div>
-                  )}
                 </Button>
               ))}
             </nav>

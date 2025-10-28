@@ -10,16 +10,13 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
-import {
-  getAchievements,
-  type Achievement,
-} from "@/app/apiClient/learning/score/score";
 import useAuth from "@/hooks/useAuth";
 import { Lock } from "lucide-react";
+import { getUserAchievements } from "@/app/apiClient/learning/score/score";
 
 export default function Achievements() {
   const { user } = useAuth();
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [achievements, setAchievements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,7 +27,7 @@ export default function Achievements() {
   const fetchAchievements = async () => {
     if (!user) return;
     try {
-      const data = await getAchievements(user.id);
+      const data = await getUserAchievements(user.id);
       setAchievements(data);
     } catch (error) {
       console.error("Error fetching achievements:", error);
@@ -85,25 +82,25 @@ export default function Achievements() {
                     achievement.unlocked ? "grayscale-0" : "grayscale"
                   } transition-all`}
                 >
-                  {achievement.icon}
+                  {achievement.learningAchievements.icon}
                 </div>
                 <div className="flex-1 space-y-2">
                   <h4 className="font-bold text-gray-900">
-                    {achievement.title}
+                    {achievement.learningAchievements.title}
                   </h4>
                   <p className="text-sm text-gray-600">
-                    {achievement.description}
+                    {achievement.learningAchievements.description}
                   </p>
                   {!achievement.unlocked && (
                     <div className="space-y-1">
                       <Progress
                         value={
-                          (achievement.progress / achievement.target) * 100
+                          (achievement.progress / achievement.learningAchievements.target) * 100
                         }
                         className="h-2"
                       />
                       <p className="text-xs text-gray-500">
-                        {achievement.progress}/{achievement.target}
+                        {achievement.progress}/{achievement.learningAchievements.target}
                       </p>
                     </div>
                   )}

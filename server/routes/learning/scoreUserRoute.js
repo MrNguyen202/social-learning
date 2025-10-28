@@ -23,4 +23,22 @@ router.get("/scoreStatisticsBySkill", scoreUserController.getScoreStatisticsBySk
 // Route to get active calendar days
 router.get("/getActivityHeatmap", scoreUserController.getActivityHeatmap); 
 
+// Route to check streak info
+router.get("/streak/checkLearningStreak", scoreUserController.checkLearningStreak);
+
+// Route to restore streak days
+router.get("/streak/restoreLearningStreak", scoreUserController.restoreLearningStreak);
+
+// Route reset daily streak
+router.post("/streak/resetLearningStreak", scoreUserController.resetLearningStreak);
+
+// Route to get streak
+router.get("/streak/getLearningStreak", scoreUserController.getLearningStreak);
+
+// Route to get all achievements
+router.get("/achievements/getAllAchievements", scoreUserController.getAllAchievements);
+
+// Route to get achievements
+router.get("/achievements/getUserAchievements", scoreUserController.getUserAchievements);
+
 module.exports = router;

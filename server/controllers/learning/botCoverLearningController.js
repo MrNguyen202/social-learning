@@ -5,16 +5,22 @@ const promptGenerateListening = require("../../utils/prompt/generateListening");
 const promptGenerateSpeaking = require("../../utils/prompt/generateSpeaking");
 const promptGeneratePersonalWord = require("../../utils/prompt/generateVocabulary");
 const promptGenerateConversationPractice = require("../../utils/prompt/generateConversationPractice");
+const promptGenerateWordsPractice = require("../../utils/prompt/generateWordsPractice");
 require("dotenv").config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { GoogleGenAI } = require("@google/genai");
 const writingService = require("../../services/learning/writingService");
 const promptGiveFeedbackWritingParagraph = require("../../utils/prompt/feedbackAIExParagraph");
 const scoreUserService = require("../../services/learning/scoreUserService");
-const { updatePersonalVocab } = require("../../services/learning/vocabularyService");
+const topicService = require("../../services/learning/topicService");
+const {
+  updatePersonalVocab,
+} = require("../../services/learning/vocabularyService");
 const fs = require("fs");
 const wav = require("wav");
-const { uploadAudioBufferToCloudinary } = require("../../services/cloudinaryService");
+const {
+  uploadAudioBufferToCloudinary,
+} = require("../../services/cloudinaryService");
 
 // Khởi tạo Gemini client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -22,21 +28,26 @@ const genAI2 = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // Giọng đọc Anh Mỹ (được đánh giá là rõ, tự nhiên, phổ thông)
 const americanVoices = [
-  "Kore",        // Firm - giọng Mỹ trung tính
-  "Fenrir",      // Excitable - sôi nổi
-  "Aoede",       // Breezy - nhẹ nhàng
-  "Umbriel",     // Easy-going - thân thiện
-  "Enceladus",   // Breathy - nhẹ
-  "Laomedeia",   // Upbeat - tươi vui
-  "Algieba",     // Smooth - tự nhiên
-  "Achird",      // Friendly - dễ nghe
-  "Gacrux",      // Mature - giọng người lớn, rõ
-  "Sulafat"      // Warm - ấm áp
+  "Kore", // Firm - giọng Mỹ trung tính
+  "Fenrir", // Excitable - sôi nổi
+  "Aoede", // Breezy - nhẹ nhàng
+  "Umbriel", // Easy-going - thân thiện
+  "Enceladus", // Breathy - nhẹ
+  "Laomedeia", // Upbeat - tươi vui
+  "Algieba", // Smooth - tự nhiên
+  "Achird", // Friendly - dễ nghe
+  "Gacrux", // Mature - giọng người lớn, rõ
+  "Sulafat", // Warm - ấm áp
 ];
 
-
 // Hàm lưu file WAV từ buffer
-async function saveWaveFile(filename, pcmData, channels = 1, rate = 24000, sampleWidth = 2) {
+async function saveWaveFile(
+  filename,
+  pcmData,
+  channels = 1,
+  rate = 24000,
+  sampleWidth = 2
+) {
   return new Promise((resolve, reject) => {
     const writer = new wav.FileWriter(filename, {
       channels,
@@ -51,7 +62,6 @@ async function saveWaveFile(filename, pcmData, channels = 1, rate = 24000, sampl
     writer.end();
   });
 }
-
 
 // CONTROLLER XỬ LÝ YÊU CẦU
 const botCoverLearningController = {
@@ -92,7 +102,7 @@ const botCoverLearningController = {
     );
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const result = await model.generateContent(prompt);
 
       const text = result.response.text();
@@ -156,7 +166,7 @@ const botCoverLearningController = {
     const prompt = promptGenerateListening(level.name_vi, topic.name_vi);
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const result = await model.generateContent(prompt);
 
       const text = result.response.text();
@@ -169,7 +179,8 @@ const botCoverLearningController = {
       }
       const json = JSON.parse(match[0]);
 
-      const randomVoice = americanVoices[Math.floor(Math.random() * americanVoices.length)];
+      const randomVoice =
+        americanVoices[Math.floor(Math.random() * americanVoices.length)];
 
       // gen audio từ text_en
       const audioResponse = await genAI2.models.generateContent({
@@ -183,17 +194,20 @@ const botCoverLearningController = {
             },
           },
         },
-      })
+      });
 
       // Lấy dữ liệu base64 audio
-      const dataAudio = audioResponse.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      const dataAudio =
+        audioResponse.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
 
       if (!dataAudio) {
-        return res.status(500).json({ error: "Lỗi khi tạo audio từ Gemini TTS" });
+        return res
+          .status(500)
+          .json({ error: "Lỗi khi tạo audio từ Gemini TTS" });
       }
 
       // Giai mã base64 và lưu file tạm thời
-      const audioBuffer = Buffer.from(dataAudio, 'base64');
+      const audioBuffer = Buffer.from(dataAudio, "base64");
       const tempFilePath = `./uploads/tss_${Date.now()}.wav`;
       await saveWaveFile(tempFilePath, audioBuffer);
 
@@ -207,7 +221,10 @@ const botCoverLearningController = {
       if (uploadResult.success) {
         fs.unlinkSync(tempFilePath);
       } else {
-        console.error("Lỗi khi upload audio lên Cloudinary:", uploadResult.error);
+        console.error(
+          "Lỗi khi upload audio lên Cloudinary:",
+          uploadResult.error
+        );
       }
 
       // Lưu bài tập nghe vào Supabase
@@ -219,8 +236,8 @@ const botCoverLearningController = {
         audio_url: uploadResult.url,
         word_hiddens: json.word_hiddens // Mảng các từ bị ẩn
           ? json.word_hiddens
-            .map((word) => word.trim())
-            .filter((word) => word.length > 0)
+              .map((word) => word.trim())
+              .filter((word) => word.length > 0)
           : [],
         level_id: level.id,
         topic_id: topic.id,
@@ -263,7 +280,7 @@ const botCoverLearningController = {
     );
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const result = await model.generateContent(prompt);
       const text = result.response.text();
       // Lọc JSON thuần từ Gemini
@@ -344,7 +361,7 @@ const botCoverLearningController = {
     const prompt = promptGeneratePersonalWord(word);
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const result = await model.generateContent(prompt);
 
       const text = result.response.text();
@@ -366,8 +383,10 @@ const botCoverLearningController = {
           .json({ error: "Lỗi phân tích JSON", raw: jsonMatch[1] });
       }
 
+      const data = json.words;
+
       // Lưu từ vựng cá nhân vào data
-      const data = json.map((item) => ({
+      const personalVocab = data.map((item) => ({
         id: item.id,
         word: item.word,
         word_vi: item.word_vi,
@@ -380,7 +399,11 @@ const botCoverLearningController = {
       }));
 
       // Lưu vào mảng jsonb của bảng personalVocab
-      const resultSaveVocab = await updatePersonalVocab(userId, word, data);
+      const resultSaveVocab = await updatePersonalVocab(
+        userId,
+        word,
+        personalVocab
+      );
 
       if (resultSaveVocab.error) {
         return res.status(500).json({ error: "Lỗi khi lưu từ vựng cá nhân" });
@@ -408,7 +431,7 @@ const botCoverLearningController = {
     const prompt = promptGenerateConversationPractice(level_slug, topic_slug);
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const result = await model.generateContent(prompt);
 
       const text = result.response.text();
@@ -436,12 +459,69 @@ const botCoverLearningController = {
         content: json.content,
       };
 
-      console.log("Data to be sent:", data);
-
       res.json({ message: "Tạo bài tập nói thành công", data });
     } catch (error) {
       console.error("Error generating content:", error);
       return res.status(500).json({ error: "Error generating content" });
+    }
+  },
+
+  createGenerateWordsPracticeByAI: async (req, res) => {
+    const { userId, words } = req.body;
+
+    if (!userId || !words) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Prompt để gọi Gemini
+    const prompt = promptGenerateWordsPractice(words);
+
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const result = await model.generateContent(prompt);
+
+      const text = result.response.text();
+      // Lọc JSON thuần từ Gemini
+      const jsonMatch = text.match(/```json\s*([\s\S]*?)```/i);
+      if (!jsonMatch) {
+        return res
+          .status(500)
+          .json({ error: "Gemini không trả JSON hợp lệ", raw: text });
+      }
+
+      let json;
+      try {
+        json = JSON.parse(jsonMatch[1]);
+      } catch (e) {
+        console.error("Lỗi parse JSON:", e);
+        return res
+          .status(500)
+          .json({ error: "Lỗi phân tích JSON", raw: jsonMatch[1] });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Tạo bài tập thành công",
+        data: json,
+      });
+    } catch (error) {
+      console.error("Error generating content:", error);
+      return res.status(500).json({ error: "Error generating content" });
+    }
+  },
+
+  generateTopicsForUser: async (req, res) => {
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+
+    try {
+      const result = await topicService.generateTopicsForUser(userId);
+      res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      console.error("Error generating topics:", error);
+      res.status(500).json({ error: error.message });
     }
   },
 };

@@ -133,6 +133,117 @@ const vocabularyController = {
       return res.status(500).json({ error: "Internal Server Error" });
     }
   },
+
+  async getSumPersonalVocabByMasteryScore(req, res) {
+    const { userId, from, to } = req.params;
+    if (!userId || from === undefined || to === undefined) {
+      return res.status(400).json({ error: "Missing or invalid parameters" });
+    }
+    try {
+      const { data, total, error } =
+        await vocabularyService.getSumPersonalVocabByMasteryScore(
+          userId,
+          parseInt(from),
+          parseInt(to)
+        );
+      if (error) {
+        return res
+          .status(500)
+          .json({ error: "Error fetching sum of personal vocabulary" });
+      }
+      return res.status(200).json({ success: true, data, total });
+    } catch (error) {
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
+  async getPersonalVocabAllTopic(req, res) {
+    const { userId } = req.params;
+    if (!userId) {
+      return res.status(400).json({ error: "Missing or invalid parameters" });
+    }
+    try {
+      const { data, error } = await vocabularyService.getPersonalVocabAllTopic(
+        userId
+      );
+      if (error) {
+        return res
+          .status(500)
+          .json({ error: "Error fetching personal vocabulary topics" });
+      }
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Error in getPersonalVocabAllTopic:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
+  async getPersonalVocabByTopic(req, res) {
+    const { userId, topic } = req.params;
+    if (!userId || !topic) {
+      return res.status(400).json({ error: "Missing or invalid parameters" });
+    }
+    try {
+      const { data, error } = await vocabularyService.getPersonalVocabByTopic(
+        userId,
+        topic
+      );
+      if (error) {
+        return res
+          .status(500)
+          .json({ error: "Error fetching personal vocabulary by topic" });
+      }
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Error in getPersonalVocabByTopic:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
+  async getUserTopics(req, res) {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ error: "Missing or invalid parameters" });
+    }
+
+    try {
+      const { data, error } = await vocabularyService.getUserTopics(userId);
+      if (error) {
+        return res
+          .status(500)
+          .json({ error: "Error fetching user vocabulary topics" });
+      }
+
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Error in getUserTopics:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
+  async getVocabByTopic(req, res) {
+    const { userId, topicId } = req.params;
+    
+    if (!userId || !topicId) {
+      return res.status(400).json({ error: "Missing or invalid parameters" });
+    }
+
+    try {
+      const { data, name_en, name_vi, error } = await vocabularyService.getVocabByTopic(
+        userId,
+        topicId
+      );
+      if (error) {
+        return res.status(500).json({ error: "Error fetching vocabulary by topic" });
+      }
+      
+      return res.status(200).json({ success: true, data, name_en, name_vi });
+    } catch (error) {
+      console.error("Error in getVocabByTopic:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
 };
 
 module.exports = vocabularyController;
