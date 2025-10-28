@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import { getUserTopics } from "@/app/apiClient/learning/vocabulary/vocabulary";
+import { useRouter } from "next/navigation";
 
 interface Props {
   user: any;
@@ -21,6 +22,7 @@ export default function TopicsTab({
   renderLoadingSkeleton,
   renderEmptyState,
 }: Props) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [topics, setTopics] = useState<any[]>([]);
   const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
@@ -190,6 +192,9 @@ export default function TopicsTab({
               >
                 {displayedTopics.map((topic, index) => (
                   <motion.div
+                    onClick={() =>
+                      router.push(`/dashboard/vocabulary/topic/${topic.id}`)
+                    }
                     key={topic.id}
                     layout
                     initial={{ opacity: 0, y: 20 }}

@@ -134,22 +134,44 @@ const vocabularyService = {
       .from("personalVocabTopics")
       .select(
         `
-        personal_vocab_id,
-        personalVocab:personal_vocab_id (
-          word,
-          related_words,
-          mastery_score
-        )
-        `
+      id,
+      personalVocab:personal_vocab_id (
+        id,
+        word,
+        related_words,
+        mastery_score,
+        userId
+      ),
+      topicsVocab:topic_vocab_id (
+        name_en,
+        name_vi
       )
-      .eq("topic_vocab_id", topicId)
-      .eq("personalVocab.userId", userId);
+    `
+      )
+      .eq("topic_vocab_id", topicId);
 
     if (error) throw error;
 
-    // map lại cho dễ dùng
-    const mappedData = data.map((item) => item.personalVocab);
-    return { data: mappedData, error };
+    // Lọc vocab đúng user
+    const filtered = data.filter(
+      (item) => item.personalVocab?.userId === userId
+    );
+
+    // Nếu không có dữ liệu thì return sớm
+    if (filtered.length === 0) return { data: [], error: null };
+
+    // Lấy topic info (giống nhau cho tất cả vì cùng topicId)
+    const { name_en, name_vi } = filtered[0].topicsVocab;
+
+    // Map danh sách vocab
+    const vocabList = filtered.map((item) => ({
+      id: item.personalVocab.id,
+      word: item.personalVocab.word,
+      related_words: item.personalVocab.related_words,
+      mastery_score: item.personalVocab.mastery_score,
+    }));
+
+    return { data: vocabList, name_en, name_vi, error };
   },
 };
 module.exports = vocabularyService;

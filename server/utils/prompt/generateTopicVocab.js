@@ -17,7 +17,7 @@ ${
 2. Nếu từ thuộc topic đã có trong danh sách "existingTopics" → sử dụng lại topic đó.
 3. Nếu chưa có topic phù hợp → tạo topic mới.
 4. Mỗi topic mới phải có:
-   - "name_en": tên topic bằng tiếng Anh, ngắn gọn, dễ hiểu (2–4 từ).
+   - "name_en": tên topic bằng tiếng Anh, ngắn gọn, dễ hiểu (1-2 từ).
    - "name_vi": bản dịch ngắn gọn bằng tiếng Việt, chính xác và tự nhiên.
 5. Không trùng lặp topic trong cùng một từ.
 6. Trả về **JSON chuẩn**, không chứa văn bản mô tả hoặc ký tự đặc biệt, chỉ gồm mảng đối tượng.
@@ -34,7 +34,8 @@ ${
   {
     "word": "apple",
     "topics": [
-      { "name_en": "Food and Drinks", "name_vi": "Đồ ăn và thức uống" }
+      { "name_en": "Food", "name_vi": "Thức ăn" }
+      { "name_en": "Fruits", "name_vi": "Trái cây" }
     ]
   },
 ]

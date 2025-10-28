@@ -63,7 +63,7 @@ export const getUserTopics = async ({ userId }: { userId: string }) => {
   return response.data;
 }
 
-export const getVocabByTopic = async ({ userId, topicId }: { userId: string; topicId: string }) => {
+export const getVocabByTopic = async ({ userId, topicId }: { userId: string; topicId: any }) => {
   const response = await api.get(`/api/learning/vocabulary/vocab_topic/${userId}/${topicId}`);
   return response.data;
 }

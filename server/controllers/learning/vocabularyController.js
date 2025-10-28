@@ -230,14 +230,15 @@ const vocabularyController = {
     }
 
     try {
-      const { data, error } = await vocabularyService.getVocabByTopic(
+      const { data, name_en, name_vi, error } = await vocabularyService.getVocabByTopic(
         userId,
         topicId
       );
       if (error) {
         return res.status(500).json({ error: "Error fetching vocabulary by topic" });
       }
-      return res.status(200).json({ success: true, data });
+      
+      return res.status(200).json({ success: true, data, name_en, name_vi });
     } catch (error) {
       console.error("Error in getVocabByTopic:", error);
       return res.status(500).json({ error: "Internal Server Error" });
