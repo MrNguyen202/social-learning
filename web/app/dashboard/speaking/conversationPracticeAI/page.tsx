@@ -1,35 +1,43 @@
 "use client";
-
-import { useState, useEffect, useRef, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useRef, useState, Suspense, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
 import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Sparkles, Trophy, Loader2 } from "lucide-react";
 import {
-  RotateCcw,
-  Volume2,
-  Mic,
-  ChevronRight,
-  ArrowLeft,
-  Sparkles,
-  Trophy,
-  User,
-  Bot,
-} from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import Confetti from "react-confetti";
-import { useWindowSize } from "react-use";
-import { Button } from "@/components/ui/button";
 import type { JSX } from "react/jsx-runtime";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 import { generateConversationPracticeByAI } from "@/app/apiClient/learning/speaking/speaking";
-import useAuth from "@/hooks/useAuth";
-import { supabase } from "@/lib/supabase";
-import { insertOrUpdateVocabularyErrors } from "@/app/apiClient/learning/vocabulary/vocabulary";
 import { addSkillScore } from "@/app/apiClient/learning/score/score";
+import useAuth from "@/hooks/useAuth";
+import { insertOrUpdateVocabularyErrors } from "@/app/apiClient/learning/vocabulary/vocabulary";
+import { supabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { useWindowSize } from "react-use";
+import RoleSelector from "./components/RoleSelector";
+import ConversationPreview from "./components/ConversationPreview";
+import ChatHistory from "./components/ChatHistory";
+import ConversationControls from "./components/ConversationControls";
+
+interface Line {
+  id: "A" | "B";
+  speaker: string;
+  content: string;
+}
 
 function ConversationPracticeContent() {
-  const { user } = useAuth();
   const router = useRouter();
+  const { user } = useAuth();
+  const { t } = useLanguage();
 
   const [dialogue, setDialogue] = useState<any[]>([]);
   const [description, setDescription] = useState("");
@@ -40,219 +48,288 @@ function ConversationPracticeContent() {
   const [result, setResult] = useState<JSX.Element | null>(null);
   const [canRetry, setCanRetry] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
-  const { width, height } = useWindowSize();
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [loading, setLoading] = useState(true);
+  const [showExerciseList, setShowExerciseList] = useState(false);
+  const [completedLessons, setCompletedLessons] = useState<Set<number>>(
+    new Set()
+  );
+  const [detailedResult, setDetailedResult] = useState<JSX.Element | null>(
+    null
+  );
 
   const { transcript, listening, resetTranscript } = useSpeechRecognition();
 
-  const finishDebounceRef = useRef<number | null>(null);
-  const lastCheckedTranscriptRef = useRef<string>("");
+  const [isClient, setIsClient] = useState(false);
+  const [browserSupports, setBrowserSupports] = useState(false);
+  const [sentenceComplete, setSentenceComplete] = useState(false);
+  const wasListeningRef = useRef(false);
+  const { width, height } = useWindowSize();
 
-  // Mock dialogue data - replace with API call based on level and topic
-  const getConversationPracticeByAI = async (
-    levelSlug: string,
-    topicSlug: string
-  ) => {
-    try {
-      setLoading(true);
-      const res = await generateConversationPracticeByAI(levelSlug, topicSlug);
-      setDialogue(res.data?.content || []);
-      setDescription(res.data?.description || "");
-      setLoading(false);
-    } catch (error) {
-      console.error("Error generating conversation practice:", error);
-      setLoading(false);
-      return [];
-    }
-  };
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [voiceForSentence, setVoiceForSentence] =
+    useState<SpeechSynthesisVoice | null>(null);
 
-  useEffect(() => {
-    const levelSlug = JSON.parse(localStorage.getItem("levelSlug") || "null");
-    const topicSlug = JSON.parse(localStorage.getItem("topicSlug") || "null");
+  const [isAISpeaking, setIsAISpeaking] = useState(false);
+  const [isAITyping, setIsAITyping] = useState(false);
 
-    if (levelSlug && topicSlug) {
-      getConversationPracticeByAI(levelSlug, topicSlug);
-    }
-  }, []);
+  const normalize = useCallback(
+    (s: string) =>
+      s
+        .toLowerCase()
+        .replace(/[^a-z0-9\s'-]/g, "")
+        .trim(),
+    []
+  );
 
-  const speak = (text: string) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US";
-    speechSynthesis.speak(utterance);
-  };
+  const update_mastery_on_success = useCallback(
+    async (userId: string, word: string) => {
+      // Chỉ cập nhật nếu từ hợp lệ (không phải số)
+      if (word && isNaN(Number(word))) {
+        await supabase.rpc("update_mastery_on_success", {
+          user_id: userId,
+          word_input: word,
+        });
+      }
+    },
+    []
+  );
 
-  const normalize = (text: string) =>
-    text
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, "")
-      .trim();
+  const speak = useCallback(
+    (text: string) => {
+      if (
+        !voiceForSentence ||
+        typeof window === "undefined" ||
+        !window.speechSynthesis
+      )
+        return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.voice = voiceForSentence;
+      utterance.rate = 0.95; // Tăng nhẹ tốc độ đọc
+      window.speechSynthesis.speak(utterance);
+    },
+    [voiceForSentence]
+  );
 
-  const update_mastery_on_success = async (userId: string, word: string) => {
-    await supabase.rpc("update_mastery_on_success", {
-      user_id: userId,
-      word_input: word,
-    });
-  };
-
-  const buildResultAndCheck = (): boolean => {
+  const buildResultAndCheck = useCallback((): boolean => {
     const current = dialogue[currentIndex];
     if (!current) return false;
-
     const sample = normalize(current.content);
-
     const spoken = normalize(transcript || "");
     const sampleWords = sample.split(" ");
     const spokenWords = spoken.split(" ");
-
     let correctCount = 0;
 
-    const compared = sampleWords.map((word, i) => {
-      const spokenWord = spokenWords[i];
-      const isCorrect = spokenWord === word;
-
-      if (isCorrect) {
-        // nếu đúng thì cập nhật mastery
-        if (user) {
-          update_mastery_on_success(user.id, word);
-        }
-        correctCount++;
-      } else {
-        // nếu sai thì lưu lỗi
-        insertOrUpdateVocabularyErrors({
-          userId: user.id,
-          vocabData: {
-            word: word,
-            error_type: "pronunciation",
-            skill: "speaking",
-          },
-        });
-      }
-
-      return (
-        <motion.span
-          key={i}
-          animate={{
-            color: isCorrect ? "#16a34a" : "#dc2626",
-            scale: isCorrect ? [1, 1.1, 1] : 1,
-          }}
-          transition={{ duration: 0.3 }}
-          className="font-semibold mx-1"
-        >
-          {spokenWord || "___"}
-        </motion.span>
-      );
-    });
-
-    const score = Math.round((correctCount / sampleWords.length) * 100);
-    setAccuracyScore(score);
-    setCanRetry(score < 80);
-
-    setResult(
-      <div className="mt-4 text-center">
-        <div className="flex flex-wrap justify-center items-center gap-1 bg-gray-50 p-4 rounded-xl">
-          {compared}
-        </div>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className={`mt-4 font-bold text-xl flex items-center justify-center gap-2 ${
-            score >= 80 ? "text-green-600" : "text-orange-600"
-          }`}
-        >
-          <Trophy className="w-6 h-6" />
-          Độ chính xác: {score}%
-        </motion.div>
+    const comparedJSX = (
+      <div className="flex flex-wrap justify-center items-center gap-1">
+        {sampleWords.map((word: string, i: number) => {
+          const spokenWord = spokenWords[i];
+          const isCorrect = spokenWord === word;
+          if (isCorrect) {
+            if (user?.id) {
+              update_mastery_on_success(user.id, word);
+            }
+            correctCount++;
+          } else {
+            if (user?.id && word && isNaN(Number(word))) {
+              insertOrUpdateVocabularyErrors({
+                userId: user.id,
+                vocabData: {
+                  word: word,
+                  error_type: "pronunciation",
+                  skill: "speaking",
+                },
+              });
+            }
+          }
+          return (
+            <motion.span
+              key={i}
+              animate={{
+                color: isCorrect ? "#16a34a" : "#dc2626",
+                scale: isCorrect ? [1, 1.1, 1] : 1,
+              }}
+              transition={{ duration: 0.3 }}
+              className="font-semibold mx-1"
+            >
+              {spokenWord || "___"}
+            </motion.span>
+          );
+        })}
+        {/* Handle extra words */}
+        {spokenWords.length > sampleWords.length &&
+          spokenWords
+            .slice(sampleWords.length)
+            .map((word: string, i: number) => (
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+                key={`extra-${i}`}
+                className="font-semibold mx-1 line-through text-red-600"
+              >
+                {word}
+              </motion.span>
+            ))}
       </div>
     );
 
-    return score >= 80;
-  };
+    const score =
+      sampleWords.length > 0
+        ? Math.round((correctCount / sampleWords.length) * 100)
+        : 0;
+    setAccuracyScore(score);
+    const canPass = score >= 80;
+    setCanRetry(!canPass);
+
+    setDetailedResult(comparedJSX);
+
+    setResult(
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className={`mt-2 font-bold text-lg flex items-center justify-center gap-2 ${
+          canPass ? "text-green-600" : "text-orange-600"
+        }`}
+        aria-live="assertive"
+      >
+        <Trophy className="w-5 h-5" /> Độ chính xác: {score}%
+      </motion.div>
+    );
+    return canPass;
+  }, [
+    dialogue,
+    currentIndex,
+    transcript,
+    user?.id,
+    normalize,
+    update_mastery_on_success,
+  ]);
 
   useEffect(() => {
-    if (!role || dialogue.length === 0 || !hasStarted) return;
-    const current = dialogue[currentIndex];
-    if (!current) return;
-
-    if (current.id === role) {
-      resetTranscript();
-      setAccuracyScore(null);
-      setResult(null);
-      setCanRetry(false);
-      SpeechRecognition.startListening({
-        continuous: true,
-        language: "en-US",
-      });
-    } else {
-      speak(current.content);
-    }
-  }, [currentIndex, role, dialogue, hasStarted]);
-
-  useEffect(() => {
-    if (!listening || dialogue[currentIndex]?.id !== role) return;
-    if (!transcript) return;
-    if (transcript === lastCheckedTranscriptRef.current) return;
-
-    if (finishDebounceRef.current) {
-      window.clearTimeout(finishDebounceRef.current);
-      finishDebounceRef.current = null;
-    }
-
-    finishDebounceRef.current = window.setTimeout(() => {
-      lastCheckedTranscriptRef.current = transcript;
-
-      const isCorrect = buildResultAndCheck();
-
-      SpeechRecognition.stopListening();
-
-      if (isCorrect) {
-        setTimeout(() => handleNext(), 1500);
-      }
-      // If not correct, canRetry will be true, showing the retry button
-    }, 2000);
-
-    return () => {
-      if (finishDebounceRef.current) {
-        window.clearTimeout(finishDebounceRef.current);
-        finishDebounceRef.current = null;
-      }
+    const synth = window.speechSynthesis;
+    const updateVoices = () => {
+      const availableVoices = synth
+        .getVoices()
+        .filter((v) => v.lang.startsWith("en-"));
+      setVoices(availableVoices);
+      // Chọn giọng đọc tốt hơn (ưu tiên Google, sau đó US, sau đó bất kỳ)
+      let bestVoice: SpeechSynthesisVoice | undefined = availableVoices.find(
+        (v) => v.name === "Google US English"
+      );
+      if (!bestVoice)
+        bestVoice = availableVoices.find((v) => v.lang === "en-US");
+      if (!bestVoice) bestVoice = availableVoices[0];
+      setVoiceForSentence(bestVoice || null);
     };
-  }, [transcript, listening, currentIndex, role]);
+    // Đảm bảo voices được load
+    if (synth.getVoices().length === 0) {
+      synth.onvoiceschanged = updateVoices;
+    } else {
+      updateVoices();
+    }
+    return () => {
+      synth.onvoiceschanged = null;
+    };
+  }, []);
 
-  const handleNext = () => {
+  useEffect(() => {
+    // useEffect setup client/browser
+    setIsClient(true);
+    setBrowserSupports(SpeechRecognition.browserSupportsSpeechRecognition());
+    setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    const handleResize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener("resize", handleResize);
+    const levelSlug = localStorage.getItem("levelSlug");
+    const topicSlug = localStorage.getItem("topicSlug");
+    if (levelSlug && topicSlug) {
+      getLessons(levelSlug, topicSlug);
+    } // Truyền slug
+    return () => window.removeEventListener("resize", handleResize);
+  }, []); // Chỉ chạy 1 lần
+
+  const getLessons = useCallback(
+    async (levelSlug: string, topicSlug: string) => {
+      setLoading(true);
+      try {
+        const res = await generateConversationPracticeByAI(
+          levelSlug,
+          topicSlug
+        ); // Dùng slug
+        setDialogue(res.data?.content || []);
+        setDescription(res.data?.description || "");
+        setCurrentIndex(0);
+        setCompletedLessons(new Set());
+        setRole(null); // Reset role khi load bài mới
+        setHasStarted(false);
+      } catch (error) {
+        console.error("Error fetching lessons:", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (listening) {
+      wasListeningRef.current = true;
+      setDetailedResult(null);
+    }
+    if (!listening && wasListeningRef.current && !loading && !showCelebration) {
+      wasListeningRef.current = false;
+      buildResultAndCheck();
+    }
+  }, [listening, loading, showCelebration, buildResultAndCheck]);
+
+  const handleNext = useCallback(() => {
     const isLastSentence = currentIndex + 1 >= dialogue.length;
+    setIsAISpeaking(false);
+    setIsAITyping(false); 
 
     if (isLastSentence) {
       setShowCelebration(true);
-      if (user) {
-        addSkillScore(user.id, "speaking", 10);
+      if (user?.id) addSkillScore(user.id, "speaking", 10);
+    } else {
+      resetTranscript();
+      setAccuracyScore(null);
+      setResult(null);
+      setDetailedResult(null);
+      setCanRetry(false);
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+
+      const nextLine = dialogue[nextIndex];
+      if (nextLine && nextLine.id !== role) {
+        setIsAITyping(true);
+        setTimeout(() => {
+          setIsAITyping(false);
+          speak(nextLine.content);
+        }, 700);
       }
     }
-    resetTranscript();
-    setAccuracyScore(null);
-    setResult(null);
-    setCanRetry(false);
-    setCurrentIndex((prev) => prev + 1);
-  };
+  }, [currentIndex, dialogue, role, user?.id, resetTranscript, speak]);
 
-  const handleReplay = () => {
+  const handleRetry = useCallback(() => {
+    resetTranscript();
+    setResult(null);
+    setDetailedResult(null);
+    setAccuracyScore(null);
+    setCanRetry(false);
+    SpeechRecognition.startListening({ continuous: false, language: "en-US" });
+  }, [resetTranscript]);
+
+  const handleReplay = useCallback(() => {
     const current = dialogue[currentIndex];
     if (current) {
       speak(current.content);
     }
-  };
+  }, [dialogue, currentIndex, speak]);
 
-  const handleRetry = () => {
-    resetTranscript();
-    setResult(null);
-    setAccuracyScore(null);
-    setCanRetry(false);
-    SpeechRecognition.startListening({
-      continuous: true,
-      language: "en-US",
-    });
-  };
-
-  if (loading) {
+  if (!isClient || loading) {
     return (
       <div className="flex-1 items-center justify-center">
         <div className="text-center">
@@ -270,454 +347,146 @@ function ConversationPracticeContent() {
       </div>
     );
   }
+  if (!browserSupports) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-red-50 border-2 border-red-200 rounded-2xl p-8 text-center max-w-md shadow-xl"
+        >
+          <p className="text-red-600 font-semibold text-lg">
+            {t("learning.browserNotSupported")}
+          </p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  const isUserTurn = dialogue[currentIndex]?.id === role;
 
   return (
-    <>
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-orange-300/30 to-pink-300/30 rounded-full blur-3xl hidden sm:block"
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 90, 0],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "linear",
-          }}
+    <div className="flex-1 py-6 px-4 sm:px-6 lg:px-8">
+      {showCelebration && (
+        <Confetti
+          width={width}
+          height={height}
+          recycle={false}
+          numberOfPieces={600}
+          gravity={0.2}
+          tweenDuration={5000}
         />
+      )}
+      <div className="max-w-4xl mx-auto relative z-10 flex flex-col h-[calc(100vh-100px)]">
         <motion.div
-          className="absolute -bottom-40 -left-20 w-96 h-96 bg-gradient-to-br from-pink-300/30 to-purple-300/30 rounded-full blur-3xl hidden sm:block"
-          animate={{
-            scale: [1.2, 1, 1.2],
-            rotate: [90, 0, 90],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "linear",
-          }}
-        />
-        <motion.div
-          className="absolute -bottom-20 -right-20 w-96 h-96 bg-gradient-to-br from-purple-600/30 to-orange-400/30 rounded-full blur-3xl hidden sm:block"
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 90, 0],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "linear",
-          }}
-        />
-      </div>
-      <div className="flex-1 py-10 px-4 sm:px-6 lg:px-8">
-        {showCelebration && (
-          <Confetti
-            width={width}
-            height={height}
-            recycle={false}
-            numberOfPieces={600}
-            gravity={0.2}
-            tweenDuration={5000}
-          />
-        )}
-        {/* Decorative background */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute w-40 h-40 bg-orange-200/30 rounded-full blur-3xl top-[10%] left-[5%] animate-pulse" />
-          <div className="absolute w-52 h-52 bg-pink-200/30 rounded-full blur-3xl top-[50%] right-[10%] animate-pulse delay-1000" />
-          <div className="absolute w-36 h-36 bg-purple-200/30 rounded-full blur-3xl bottom-[20%] left-[20%] animate-pulse delay-2000" />
-        </div>
-
-        <div className="max-w-4xl mx-auto relative z-10">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-between mb-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between mb-4 flex-shrink-0"
+        >
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+            className="flex items-center gap-2 cursor-pointer"
           >
-            <Button
-              variant="outline"
-              onClick={() => router.back()}
-              className="flex items-center gap-2"
+            <ArrowLeft className="w-4 h-4" /> Quay lại
+          </Button>
+          <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
+            <Sparkles className="w-5 h-5 text-orange-500" />
+            <span className="font-semibold text-gray-800">
+              Đàm thoại với AI
+            </span>
+          </div>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white/80 backdrop-blur-xl rounded-t-3xl shadow-xl border border-gray-200 flex flex-col flex-grow overflow-hidden" // Increased blur
+        >
+          {!role ? (
+            <RoleSelector onSelectRole={setRole} />
+          ) : !hasStarted ? (
+            <ConversationPreview
+              role={role}
+              description={description}
+              dialogue={dialogue}
+              onStart={() => {
+                setHasStarted(true);
+                if (dialogue[0]?.id !== role) {
+                  setIsAITyping(true);
+                  setTimeout(() => {
+                    setIsAITyping(false);
+                    speak(dialogue[0].content);
+                  }, 700);
+                }
+              }}
+            />
+          ) : (
+            <>
+              <ChatHistory
+                user={user}
+                dialogue={dialogue}
+                currentIndex={currentIndex}
+                role={role}
+                listening={listening}
+                isAISpeaking={isAISpeaking}
+                isAITyping={isAITyping}
+                detailedResult={detailedResult}
+              />
+              <ConversationControls
+                isUserTurn={isUserTurn}
+                listening={listening}
+                transcript={transcript}
+                result={result}
+                accuracyScore={accuracyScore}
+                canRetry={canRetry}
+                isAISpeaking={isAISpeaking}
+                onStartListening={() =>
+                  SpeechRecognition.startListening({
+                    continuous: false,
+                    language: "en-US",
+                  })
+                }
+                onRetry={handleRetry}
+                onNext={handleNext}
+                onReplay={handleReplay}
+              />
+            </>
+          )}
+        </motion.div>
+      </div>
+
+      <Dialog open={showCelebration} onOpenChange={setShowCelebration}>
+        <DialogContent className="max-w-lg rounded-3xl bg-gradient-to-br from-yellow-400 via-orange-500 to-pink-500 text-white shadow-2xl border-4 border-white">
+          <DialogHeader className="text-center">
+            <motion.div
+              animate={{ rotate: [0, 10, -10, 10, 0], scale: [1, 1.1, 1] }}
+              transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
+              className="inline-block mb-6"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Quay lại
-            </Button>
-            <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
-              <Sparkles className="w-5 h-5 text-orange-500" />
-              <span className="font-semibold text-gray-800">
-                Đàm thoại với AI
-              </span>
-            </div>
-          </motion.div>
+              <Trophy className="w-24 h-24 drop-shadow-2xl" />
+            </motion.div>
+            <DialogTitle className="text-4xl font-bold mb-3 drop-shadow-lg">
+              {t("learning.congratulations")}
+            </DialogTitle>
+            <DialogDescription className="text-2xl mb-8 font-semibold text-white/90">
+              {t("learning.completedAllSentences")}
+            </DialogDescription>
+          </DialogHeader>
 
-          {/* Main Content */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-6 md:p-8 border border-gray-200"
+          <motion.button
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              setShowCelebration(false);
+              router.back();
+            }}
+            className="mx-auto mt-4 px-10 py-4 rounded-xl bg-white text-purple-600 hover:bg-gray-50 transition-all font-bold text-xl shadow-2xl border-2 border-purple-200"
           >
-            {!role ? (
-              // Role Selection
-              <div className="text-center space-y-6">
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-pink-500 rounded-2xl flex items-center justify-center">
-                    <Sparkles className="w-10 h-10 text-white" />
-                  </div>
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
-                    Chọn vai trò của bạn
-                  </h1>
-                  <p className="text-gray-600">
-                    Bạn muốn đóng vai người A hay người B trong cuộc hội thoại?
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                  <motion.div
-                    whileHover={{ scale: 1.05, y: -4 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setRole("A")}
-                    className="bg-gradient-to-br from-blue-50 to-cyan-50 p-6 rounded-2xl border-2 border-blue-200 hover:border-blue-400 cursor-pointer transition-all"
-                  >
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
-                        <User className="w-8 h-8 text-white" />
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-800">
-                        Người A
-                      </h3>
-                      <p className="text-sm text-gray-600 text-center">
-                        Bắt đầu cuộc hội thoại
-                      </p>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    whileHover={{ scale: 1.05, y: -4 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setRole("B")}
-                    className="bg-gradient-to-br from-orange-50 to-pink-50 p-6 rounded-2xl border-2 border-orange-200 hover:border-orange-400 cursor-pointer transition-all"
-                  >
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center">
-                        <Bot className="w-8 h-8 text-white" />
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-800">
-                        Người B
-                      </h3>
-                      <p className="text-sm text-gray-600 text-center">
-                        Phản hồi cuộc hội thoại
-                      </p>
-                    </div>
-                  </motion.div>
-                </div>
-              </div>
-            ) : !hasStarted ? (
-              // Preview and Start Button
-              <div className="space-y-6">
-                <div className="text-center space-y-4">
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-pink-500 rounded-2xl flex items-center justify-center">
-                      {role === "A" ? (
-                        <User className="w-8 h-8 text-white" />
-                      ) : (
-                        <Bot className="w-8 h-8 text-white" />
-                      )}
-                    </div>
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-800">
-                    Bạn đã chọn vai trò:{" "}
-                    <span className="text-orange-600">Người {role}</span>
-                  </h2>
-                  <p className="text-gray-600">
-                    Xem trước bối cảnh cuộc hội thoại và nhấn "Bắt đầu" khi sẵn
-                    sàng
-                  </p>
-                  {description && (
-                    <p className="text-gray-500 italic">"{description}"</p>
-                  )}
-                </div>
-
-                {/* Preview Dialogue - No scroll, clean layout */}
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-2xl shadow-inner">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
-                      Nội dung hội thoại
-                    </h3>
-                    <span className="text-sm text-gray-500">
-                      {dialogue.length} câu
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {dialogue.slice(0, 4).map((line, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{
-                          opacity: 0,
-                          x: line.speaker === "A" ? -20 : 20,
-                        }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className={`flex ${
-                          line.id === "A" ? "justify-start" : "justify-end"
-                        }`}
-                      >
-                        <div
-                          className={`inline-block max-w-[80%] ${
-                            line.id === "A"
-                              ? "bg-blue-100 text-blue-900"
-                              : "bg-green-100 text-green-900"
-                          } px-4 py-3 rounded-2xl ${
-                            line.id === role ? "ring-2 ring-orange-400" : ""
-                          }`}
-                        >
-                          <p className="font-semibold text-xs mb-1 opacity-70">
-                            {line.id === "A"
-                              ? `Người A - ${line.speaker}`
-                              : `Người B - ${line.speaker}`}{" "}
-                            {line.id === role && " (Bạn)"}
-                          </p>
-                          <p className="text-md">{line.content}</p>
-                        </div>
-                      </motion.div>
-                    ))}
-                    {dialogue.length > 4 && (
-                      <p className="text-center text-sm text-gray-500 italic">
-                        ... và {dialogue.length - 4} câu nữa
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Start Button */}
-                <div className="flex justify-center pt-4">
-                  <Button
-                    onClick={() => setHasStarted(true)}
-                    size="lg"
-                    className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
-                  >
-                    <Sparkles className="w-5 h-5 mr-2" />
-                    Bắt đầu hội thoại
-                  </Button>
-                </div>
-              </div>
-            ) : currentIndex >= dialogue.length ? (
-              // Completion
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="text-center space-y-6 py-12"
-              >
-                <div className="flex justify-center">
-                  <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
-                    <Trophy className="w-12 h-12 text-white" />
-                  </div>
-                </div>
-                <h2 className="text-3xl font-bold text-gray-800">
-                  Hoàn thành xuất sắc!
-                </h2>
-                <p className="text-gray-600">
-                  Bạn đã hoàn thành cuộc hội thoại
-                </p>
-                <Button
-                  onClick={() => router.back()}
-                  className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600"
-                >
-                  Quay lại
-                </Button>
-              </motion.div>
-            ) : (
-              // Conversation
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-gray-800">
-                    Vai trò của bạn:{" "}
-                    <span className="text-orange-600">Người {role}</span>
-                  </h2>
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-32 bg-gray-200 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-gradient-to-r from-orange-500 to-pink-500"
-                        initial={{ width: 0 }}
-                        animate={{
-                          width: `${
-                            ((currentIndex + 1) / dialogue.length) * 100
-                          }%`,
-                        }}
-                        transition={{ duration: 0.5 }}
-                      />
-                    </div>
-                    <span className="text-sm text-gray-500 font-medium">
-                      {currentIndex + 1}/{dialogue.length}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Current Dialogue - Large, centered, no scroll */}
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-8 rounded-2xl shadow-inner min-h-[200px] flex flex-col justify-center">
-                  {/* Previous message (if exists) - small and faded */}
-                  {currentIndex > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 0.4, y: 0 }}
-                      className={`flex mb-4 ${
-                        dialogue[currentIndex - 1].id === "A"
-                          ? "justify-start"
-                          : "justify-end"
-                      }`}
-                    >
-                      <div
-                        className={`inline-block max-w-[70%] ${
-                          dialogue[currentIndex - 1].id === "A"
-                            ? "bg-blue-100 text-blue-900"
-                            : "bg-green-100 text-green-900"
-                        } px-3 py-2 rounded-xl text-sm`}
-                      >
-                        {dialogue[currentIndex - 1].content}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Current message - large and prominent */}
-                  <motion.div
-                    key={currentIndex}
-                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                    className={`flex ${
-                      dialogue[currentIndex].id === "A"
-                        ? "justify-start"
-                        : "justify-end"
-                    }`}
-                  >
-                    <div
-                      className={`inline-block max-w-[85%] ${
-                        dialogue[currentIndex].id === "A"
-                          ? "bg-blue-100 text-blue-900"
-                          : "bg-green-100 text-green-900"
-                      } px-6 py-4 rounded-2xl shadow-lg ${
-                        dialogue[currentIndex].id === role
-                          ? "ring-4 ring-orange-400"
-                          : ""
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        {dialogue[currentIndex].id === "A" ? (
-                          <User className="w-4 h-4" />
-                        ) : (
-                          <Bot className="w-4 h-4" />
-                        )}
-                        <p className="font-semibold text-sm">
-                          {dialogue[currentIndex].id === "A"
-                            ? `Người A - ${dialogue[currentIndex].speaker}`
-                            : `Người B - ${dialogue[currentIndex].speaker}`}
-                          {dialogue[currentIndex].id === role && " (Bạn)"}
-                        </p>
-                      </div>
-                      <p className="text-lg font-medium">
-                        {dialogue[currentIndex].content}
-                      </p>
-                    </div>
-                  </motion.div>
-                </div>
-
-                {/* Status Indicators */}
-                <AnimatePresence>
-                  {listening && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="flex items-center justify-center gap-3 bg-blue-50 p-4 rounded-xl border border-blue-200"
-                    >
-                      <motion.div
-                        animate={{ scale: [1, 1.2, 1] }}
-                        transition={{
-                          repeat: Number.POSITIVE_INFINITY,
-                          duration: 1.5,
-                        }}
-                      >
-                        <Mic className="w-6 h-6 text-blue-600" />
-                      </motion.div>
-                      <span className="text-blue-600 font-semibold">
-                        Đang lắng nghe...
-                      </span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {transcript && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="bg-gray-50 p-4 rounded-xl border border-gray-200"
-                  >
-                    <p className="text-sm text-gray-500 mb-1">Bạn đã nói:</p>
-                    <p className="text-gray-800 italic">"{transcript}"</p>
-                  </motion.div>
-                )}
-
-                {accuracyScore !== null && result}
-
-                {/* Action Buttons */}
-                <div className="flex justify-center gap-3 pt-4">
-                  {dialogue[currentIndex].id === role ? (
-                    <>
-                      {canRetry && (
-                        <>
-                          <Button
-                            onClick={handleReplay}
-                            variant="outline"
-                            className="flex items-center gap-2 bg-transparent"
-                          >
-                            <Volume2 className="w-4 h-4" />
-                            Nghe lại
-                          </Button>
-                          <Button
-                            onClick={handleRetry}
-                            variant="outline"
-                            className="flex items-center gap-2 border-orange-300 text-orange-600 hover:bg-orange-50 bg-transparent"
-                          >
-                            <RotateCcw className="w-4 h-4" />
-                            Thử lại
-                          </Button>
-                          <Button
-                            onClick={handleNext}
-                            className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600"
-                          >
-                            Tiếp theo
-                            <ChevronRight className="w-4 h-4" />
-                          </Button>
-                        </>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <Button
-                        onClick={handleReplay}
-                        variant="outline"
-                        className="flex items-center gap-2 bg-transparent"
-                      >
-                        <Volume2 className="w-4 h-4" />
-                        Nghe lại
-                      </Button>
-                      <Button
-                        onClick={handleNext}
-                        className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600"
-                      >
-                        Tiếp theo
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-          </motion.div>
-        </div>
-      </div>
-    </>
+            {t("learning.tryAnother")}
+          </motion.button>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
 
