@@ -253,6 +253,21 @@ const scoreUserController = {
       return res.status(500).json({ error: err.message });
     }
   },
+
+  // Snowflake điểm
+  deductSnowflakeFromUser: async (req, res) => {
+    const { userId, snowflakeToDeduct } = req.body;
+    if (!userId || typeof snowflakeToDeduct !== "number") {
+      return res.status(400).json({ error: "Missing or invalid parameters" });
+    }
+    try {
+      await scoreUserService.deductSnowflakeFromUser(userId, snowflakeToDeduct);
+      return res.json({ message: "Snowflake deducted successfully" });
+    } catch (error) {
+      console.error("Error in deductSnowflakeFromUser:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
 };
 
 module.exports = scoreUserController;

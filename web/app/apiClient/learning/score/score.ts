@@ -231,3 +231,15 @@ export async function getSkillsComparison(
 
   return data;
 }
+
+// Deduct snowflake from user
+export const deductSnowflakeFromUser = async (
+  userId: string,
+  snowflakeToDeduct: number
+) => {
+  const response = await api.post(
+    `/api/learning/score-user/snowflake/deduct`,
+    { userId, snowflakeToDeduct }
+  );
+  return response.data;
+};

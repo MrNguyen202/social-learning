@@ -1,21 +1,24 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { use, useEffect, useRef, useState } from "react"
 import { useParams } from "next/navigation"
 import { listeningService } from "@/app/apiClient/learning/listening/listening"
 import { useLanguage } from "@/components/contexts/LanguageContext"
-import { Activity, CircleEqual, Notebook, Snowflake } from "lucide-react"
-import { useScore } from "@/components/contexts/ScoreContext"
+import { CircleEqual, Notebook, Snowflake } from "lucide-react"
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from "recharts"
 import { motion, AnimatePresence } from "framer-motion"
 import useAuth from "@/hooks/useAuth"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import Confetti from "react-confetti";
+import { Dialog } from "@radix-ui/react-dialog"
+import { DialogContent, DialogDescription, DialogOverlay, DialogTitle } from "@/components/ui/dialog"
+import { deductSnowflakeFromUser, getScoreUserByUserId } from "@/app/apiClient/learning/score/score"
 
 export default function ListeningDetailPage() {
     const { user } = useAuth()
     const { t, language } = useLanguage()
     const { id } = useParams()
-    const { score } = useScore();
+    const [score, setScore] = useState<any>(null);
     const [exercise, setExercise] = useState<any>(null)
     const [answers, setAnswers] = useState<Record<number, string>>({})
     const [checkResult, setCheckResult] = useState<Record<number, boolean | null>>({})
@@ -23,8 +26,40 @@ export default function ListeningDetailPage() {
     const [progress, setProgress] = useState<any>(null)
     const [loadingSubmit, setLoadingSubmit] = useState(false)
     const [history, setHistory] = useState<any[]>([]);
+    const [showCelebration, setShowCelebration] = useState(false)
+    const [submitResult, setSubmitResult] = useState<any>(null)
+    const [showBuyModal, setShowBuyModal] = useState(false);
 
-    const [showSnowflakeAnim, setShowSnowflakeAnim] = useState<{ type: "check" | "hint" | null }>({ type: null })
+
+    const [windowSize, setWindowSize] = useState({
+        width: typeof window !== "undefined" ? window.innerWidth : 0,
+        height: typeof window !== "undefined" ? window.innerHeight : 0,
+    })
+
+    useEffect(() => {
+        if (typeof window === "undefined") return
+        const handleResize = () => {
+            setWindowSize({ width: window.innerWidth, height: window.innerHeight })
+        }
+        handleResize()
+        window.addEventListener("resize", handleResize)
+        return () => window.removeEventListener("resize", handleResize)
+    }, [])
+
+    const [showSnowflakeAnim, setShowSnowflakeAnim] = useState<{ type: 'hint' | 'check' | null; id: number }>({
+        type: null,
+        id: 0,
+    });
+
+    const triggerSnowflakeAnim = (type: 'hint' | 'check') => {
+        const animId = Date.now(); // Mỗi lần bấm tạo ID mới
+        setShowSnowflakeAnim({ type, id: animId });
+
+        setTimeout(() => {
+            setShowSnowflakeAnim({ type: null, id: 0 });
+        }, 1200); // Thời gian trùng với thời gian animation
+    };
+
     const snowflakeRef = useRef<HTMLDivElement | null>(null)
 
     useEffect(() => {
@@ -35,6 +70,9 @@ export default function ListeningDetailPage() {
                 if (user) {
                     const prog = await listeningService.getUserProgress(user.id, id as string)
                     setProgress(prog)
+
+                    const sc = await getScoreUserByUserId(user.id);
+                    setScore(sc.data);
 
                     const hist = await listeningService.getSubmissionHistory(user.id, data.id);
                     setHistory(hist);
@@ -66,27 +104,64 @@ export default function ListeningDetailPage() {
     const words = exercise.text_content.split(/\s+/)
 
     // Hàm kiểm tra đáp án
-    const handleCheckAnswers = () => {
-        const result: Record<number, boolean> = {}
+    const handleCheckAnswers = async () => {
+        if (score!.number_snowflake < 1) {
+            setShowBuyModal(true);
+            return;
+        }
+
+        const result: Record<number, boolean> = {};
         Object.keys(hiddenMap).forEach((pos) => {
-            const position = parseInt(pos)
-            const correct = hiddenMap[position].toLowerCase()
-            const userAns = (answers[position] || "").toLowerCase()
-            result[position] = userAns === correct
-        })
-        setCheckResult(result)
-    }
+            const position = parseInt(pos);
+            const correct = hiddenMap[position].toLowerCase();
+            const userAns = (answers[position] || "").toLowerCase();
+            result[position] = userAns === correct;
+        });
+        setCheckResult(result);
+
+        //  Gọi API trừ 1 bông tuyết
+        await deductSnowflakeFromUser(user!.id, -1);
+
+        //  Cập nhật điểm trong state
+        setScore((prev: any) => ({
+            ...prev,
+            number_snowflake: (prev?.number_snowflake ?? 0) - 1,
+        }));
+
+        //  Hiển thị animation
+        triggerSnowflakeAnim("check");
+    };
+
 
     // Hàm gợi ý
-    const handleSuggestHint = () => {
-        const unansweredPositions = Object.keys(hiddenMap).filter((pos) => !answers[parseInt(pos)]);
+    const handleSuggestHint = async () => {
+        if (score!.number_snowflake < 2) {
+            setShowBuyModal(true);
+            return;
+        }
+
+        const unansweredPositions = Object.keys(hiddenMap).filter(
+            (pos) => !answers[parseInt(pos)]
+        );
         if (unansweredPositions.length === 0) return;
 
         const randomPos = unansweredPositions[Math.floor(Math.random() * unansweredPositions.length)];
         const correctWord = hiddenMap[parseInt(randomPos)];
 
-        setAnswers(prev => ({ ...prev, [parseInt(randomPos)]: correctWord }));
-        setCheckResult(prev => ({ ...prev, [parseInt(randomPos)]: true }));
+        setAnswers((prev: Record<number, string>) => ({ ...prev, [parseInt(randomPos)]: correctWord }));
+        setCheckResult((prev: Record<number, boolean | null>) => ({ ...prev, [parseInt(randomPos)]: true }));
+
+        // Gọi API trừ bông tuyết
+        await deductSnowflakeFromUser(user!.id, -2);
+
+        // Cập nhật điểm
+        setScore((prev: any) => ({
+            ...prev,
+            number_snowflake: (prev?.number_snowflake ?? 0) - 2,
+        }));
+
+        //  Gọi animation
+        triggerSnowflakeAnim("hint");
     };
 
 
@@ -105,6 +180,8 @@ export default function ListeningDetailPage() {
 
         try {
             const res = await listeningService.submitListeningResults(user?.id, exercise?.id, wordAnswers)
+            setSubmitResult(res)
+            setShowCelebration(true)
             setLoadingSubmit(false)
 
             const newCheckResult: Record<number, boolean> = {};
@@ -150,6 +227,16 @@ export default function ListeningDetailPage() {
 
     return (
         <div className="flex-1 px-6 py-6 pb-36 grid grid-cols-3 gap-10">
+            {showCelebration && (
+                <Confetti
+                    width={windowSize.width}
+                    height={windowSize.height}
+                    recycle={false}
+                    numberOfPieces={500}
+                    gravity={0.3}
+                    style={{ zIndex: 9999 }}
+                />
+            )}
             <div className="col-span-2">
                 <div className="flex flex-col items-center justify-center text-center gap-2 mt-6">
                     <h2 className="text-3xl font-semibold">{exercise[`title_${language}`]}</h2>
@@ -249,21 +336,13 @@ export default function ListeningDetailPage() {
                     </button>
                     <div className="flex gap-4">
                         <button
-                            onClick={() => {
-                                handleSuggestHint()
-                                setShowSnowflakeAnim({ type: "hint" })
-                                setTimeout(() => setShowSnowflakeAnim({ type: null }), 1200)
-                            }}
+                            onClick={handleSuggestHint}
                             className="px-6 py-2 bg-yellow-600 text-white rounded-lg shadow-md hover:bg-yellow-700"
                         >
                             Gợi ý (-2)
                         </button>
                         <button
-                            onClick={() => {
-                                handleCheckAnswers()
-                                setShowSnowflakeAnim({ type: "check" })
-                                setTimeout(() => setShowSnowflakeAnim({ type: null }), 1200)
-                            }}
+                            onClick={handleCheckAnswers}
                             className="px-6 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700"
                         >
                             Kiểm tra (-1)
@@ -419,35 +498,134 @@ export default function ListeningDetailPage() {
                 </ul>
             </div>
             {/* Hiệu ứng trừ điểm ❄️ */}
-            <AnimatePresence>
-                {showSnowflakeAnim.type && snowflakeRef.current && (() => {
-                    const target = snowflakeRef.current.getBoundingClientRect()
-                    const targetX = target.left + target.width / 2 - window.innerWidth / 2
-                    const targetY = target.top + target.height / 2 - window.innerHeight / 2
+            {showSnowflakeAnim.type !== null && (
+                <AnimatePresence>
+                    {showSnowflakeAnim.type && snowflakeRef.current && (() => {
+                        const target = snowflakeRef.current.getBoundingClientRect()
+                        const targetX = target.left + target.width / 2 - window.innerWidth / 2
+                        const targetY = target.top + target.height / 2 - window.innerHeight / 2
 
-                    return (
-                        <motion.div
-                            initial={{ opacity: 1, scale: 1, x: 0, y: 150 }}
-                            animate={{
-                                opacity: 0,
-                                x: targetX,
-                                y: targetY,
-                                scale: 0.5,
-                            }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 1.2, ease: "easeInOut" }}
-                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl font-bold pointer-events-none"
-                            style={{
-                                color: showSnowflakeAnim.type === "check" ? "#16a34a" : "#eab308",
-                                textShadow: "0 0 10px rgba(255,255,255,0.9)",
-                            }}
-                        >
-                            {showSnowflakeAnim.type === "check" ? "-1 ❄️" : "-2 ❄️"}
-                        </motion.div>
-                    )
-                })()}
-            </AnimatePresence>
+                        return (
+                            <motion.div
+                                initial={{ opacity: 1, scale: 1, x: 0, y: 150 }}
+                                animate={{
+                                    opacity: 0,
+                                    x: targetX,
+                                    y: targetY,
+                                    scale: 0.5,
+                                }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 1.2, ease: "easeInOut" }}
+                                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl font-bold pointer-events-none"
+                                style={{
+                                    color: showSnowflakeAnim.type === "check" ? "#16a34a" : "#eab308",
+                                    textShadow: "0 0 10px rgba(255,255,255,0.9)",
+                                }}
+                            >
+                                {showSnowflakeAnim.type === "check" ? "-1 ❄️" : "-2 ❄️"}
+                            </motion.div>
+                        )
+                    })()}
+                </AnimatePresence>
+            )}
 
+            <Dialog open={showCelebration} onOpenChange={setShowCelebration}>
+                <DialogOverlay className="fixed inset-0 backdrop-blur-sm" />
+
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.3 }}
+                    className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                >
+                    <DialogContent className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white rounded-2xl shadow-2xl w-[380px] p-6 text-center">
+                        <div className="flex flex-col items-center">
+                            <div className="text-6xl mb-3 animate-bounce">🎧</div>
+                            <DialogTitle className="text-2xl font-bold mb-2">{submitResult?.correctCount === submitResult?.totalCount ? "Chúc mừng!" : "Cố gắng hơn nữa!"}</DialogTitle>
+                            <DialogDescription className="text-white/90 mb-5">
+                                {submitResult?.correctCount === submitResult?.totalCount ? "Bạn đã hoàn thành bài nghe!" : "Bạn đã nộp bài. Hãy xem kết quả dưới đây để cải thiện thêm nhé!"}
+                            </DialogDescription>
+
+                            {/* ✅ Kết quả tổng hợp */}
+                            <div className="flex flex-col items-center gap-3 bg-white/20 rounded-xl px-6 py-4 mb-5 w-full">
+                                <div className="flex items-center justify-between w-full text-lg font-semibold">
+                                    <span className="flex items-center gap-2">
+                                        <Notebook className="text-green-300 w-5 h-5" />
+                                        <span>Kết quả:</span>
+                                    </span>
+                                    <span className="font-bold text-green-100">
+                                        {submitResult?.correctCount ?? 0} / {submitResult?.totalCount ?? 0} từ đúng
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between w-full text-lg font-semibold">
+                                    <span className="flex items-center gap-2">
+                                        <CircleEqual className="text-yellow-300 w-5 h-5" />
+                                        <span>Điểm:</span>
+                                    </span>
+                                    <span className="font-bold text-yellow-100">+ {submitResult?.score ?? 0}</span>
+                                </div>
+                                <div className="flex items-center justify-between w-full text-lg font-semibold">
+                                    <span className="flex items-center gap-2">
+                                        <Snowflake className="text-blue-200 w-5 h-5" />
+                                        <span>Bông tuyết:</span>
+                                    </span>
+                                    <span className="font-bold text-blue-100">+ {submitResult?.snowflake ?? 0}</span>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => setShowCelebration(false)}
+                                className="px-5 py-2.5 bg-white text-purple-700 rounded-lg font-semibold shadow hover:bg-gray-100 transition-all"
+                            >
+                                Đóng
+                            </button>
+                        </div>
+                    </DialogContent>
+                </motion.div>
+            </Dialog>
+
+            <Dialog open={showBuyModal} onOpenChange={setShowBuyModal}>
+                <DialogOverlay className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.3 }}
+                    className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                >
+                    <DialogContent className="bg-white rounded-2xl shadow-2xl w-[380px] p-6 text-center">
+                        <div className="flex flex-col items-center">
+                            <Snowflake className="text-blue-400 w-12 h-12 mb-3 animate-pulse" />
+                            <DialogTitle className="text-xl font-bold text-gray-800 mb-2">
+                                Bạn đã hết bông tuyết!
+                            </DialogTitle>
+                            <DialogDescription className="text-gray-600 mb-5">
+                                Bạn cần thêm bông tuyết để sử dụng các chức năng gợi ý và kiểm tra đáp án.
+                            </DialogDescription>
+
+                            <div className="flex flex-col gap-3 w-full">
+                                <button
+                                    onClick={() => {
+                                        setShowBuyModal(false);
+                                        // Chuyển hướng sang trang mua
+                                        window.location.href = "/learning/store";
+                                    }}
+                                    className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-2 rounded-lg shadow hover:opacity-90 transition-all"
+                                >
+                                    Mua thêm bông tuyết
+                                </button>
+                                <button
+                                    onClick={() => setShowBuyModal(false)}
+                                    className="w-full bg-gray-100 text-gray-700 font-semibold py-2 rounded-lg shadow hover:bg-gray-200 transition-all"
+                                >
+                                    Đóng
+                                </button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </motion.div>
+            </Dialog>
         </div>
     )
 }  
