@@ -3,9 +3,14 @@
 import { Button } from "@/components/ui/button";
 import {
   AudioLines,
+  BarChart,
   BookOpen,
+  FileText,
+  Globe,
   Heart,
   Home,
+  LayoutDashboard,
+  Loader2,
   MenuIcon,
   MessageCircle,
   PenTool,
@@ -14,6 +19,7 @@ import {
   TrendingUp,
   Trophy,
   User,
+  Users,
   Volume2,
 } from "lucide-react";
 import {
@@ -35,44 +41,9 @@ import { NotificationsPanel } from "./Notifications";
 import useAuth from "@/hooks/useAuth";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 
-const mainNavItems = [
-  { icon: Home, path: "/dashboard", label: "Trang chủ" },
-  { icon: Search, path: "/dashboard/search", label: "Tìm kiếm" },
-  { icon: MessageCircle, path: "/dashboard/chat", label: "Tin nhắn", badge: 3 },
-  {
-    icon: Heart,
-    path: "/dashboard/notifications",
-    label: "Thông báo",
-    badge: 5,
-  },
-  { icon: PlusSquare, path: "/dashboard/create", label: "Tạo" },
-  { icon: User, path: "/dashboard/profile", label: "Trang cá nhân" },
-];
-
-const learningNavItems = [
-  {
-    icon: PenTool,
-    path: "/dashboard/writing",
-    label: "Luyện viết tiếng Anh",
-  },
-  {
-    icon: AudioLines,
-    path: "/dashboard/listening",
-    label: "Luyện nghe tiếng Anh",
-  },
-  { icon: Volume2, path: "/dashboard/speaking", label: "Luyện nói" },
-  { icon: BookOpen, path: "/dashboard/vocabulary", label: "Từ vựng của bạn" },
-  { icon: Trophy, path: "/dashboard/ranking", label: "Bảng xếp hạng" },
-  {
-    icon: TrendingUp,
-    path: "/dashboard/progress",
-    label: "Tiến trình của tôi",
-  },
-];
-
 export function LeftSideBarHiddenLabel() {
-  const { t, language, setLanguage } = useLanguage();
   const { user } = useAuth();
+  const { t, language, setLanguage } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -132,6 +103,65 @@ export function LeftSideBarHiddenLabel() {
       supabase.removeChannel(notificationLearningChannel);
     };
   }, [user]);
+
+  const mainNavItems = [
+    { icon: Home, path: "/dashboard", label: "Trang chủ" },
+    { icon: Search, path: "/dashboard/search", label: "Tìm kiếm" },
+    {
+      icon: MessageCircle,
+      path: "/dashboard/chat",
+      label: "Tin nhắn",
+      badge: 3,
+    },
+    {
+      icon: Heart,
+      path: "/dashboard/notifications",
+      label: "Thông báo",
+      badge: 5,
+    },
+    { icon: PlusSquare, path: "/dashboard/create", label: "Tạo" },
+    { icon: User, path: "/dashboard/profile", label: "Trang cá nhân" },
+  ];
+
+  const learningNavItems = [
+    {
+      icon: PenTool,
+      path: "/dashboard/writing",
+      label: "Luyện viết tiếng Anh",
+    },
+    {
+      icon: AudioLines,
+      path: "/dashboard/listening",
+      label: "Luyện nghe tiếng Anh",
+    },
+    { icon: Volume2, path: "/dashboard/speaking", label: "Luyện nói" },
+    { icon: BookOpen, path: "/dashboard/vocabulary", label: "Từ vựng của bạn" },
+    { icon: Trophy, path: "/dashboard/ranking", label: "Bảng xếp hạng" },
+    {
+      icon: TrendingUp,
+      path: "/dashboard/progress",
+      label: "Tiến trình của tôi",
+    },
+  ];
+
+  const adminNavItems = [
+    { icon: LayoutDashboard, path: "/dashboard", label: "Dashboard" },
+    { icon: Users, path: "/admin/dashboard/users", label: "Users" },
+    { icon: FileText, path: "/admin/dashboard/content", label: "Content" },
+    { icon: Globe, path: "/admin/dashboard/social", label: "Social" },
+    {
+      icon: BookOpen,
+      path: "/admin/dashboard/vocabulary",
+      label: "Vocabulary",
+    },
+    { icon: BarChart, path: "/admin/dashboard/analytics", label: "Analytics" },
+    {
+      icon: Trophy,
+      path: "/admin/dashboard/achievements",
+      label: "Achievements",
+    },
+    { icon: User, path: "/dashboard/profile", label: t("dashboard.profile") },
+  ];
 
   const openNotificationPanel = () => {
     setIsNotificationOpen(true);
@@ -197,65 +227,98 @@ export function LeftSideBarHiddenLabel() {
 
         {/* Main Navigation */}
         <div>
-          <nav className="space-y-1">
-            {mainNavItems.map((item) => {
-              const isNotification = item.path === "/dashboard/notifications";
-              const isActive = pathname === item.path;
-              const badge =
-                isNotification && notificationCount > 0
-                  ? notificationCount
-                  : null;
+          {!user ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+            </div>
+          ) : user.role === "admin" ? (
+            <nav className="space-y-1">
+              {adminNavItems.map((item) => {
+                const isActive = pathname === item.path;
+                return (
+                  <Button
+                    key={item.label}
+                    variant="ghost"
+                    className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
+                      isActive
+                        ? "bg-gray-100 text-gray-900 font-medium"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                    onClick={() => handleMenuClick(item.path)}
+                  >
+                    {/* FIX 3: Giảm kích thước icon về 24 (chuẩn) */}
+                    <item.icon size={24} />
+                  </Button>
+                );
+              })}
+            </nav>
+          ) : (
+            <>
+              <nav className="space-y-1">
+                {mainNavItems.map((item) => {
+                  const isNotification =
+                    item.path === "/dashboard/notifications";
+                  const isActive = pathname === item.path;
+                  const badge =
+                    isNotification && notificationCount > 0
+                      ? notificationCount
+                      : null;
 
-              return (
-                <Button
-                  key={item.label}
-                  variant="ghost"
-                  className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
-                    isActive
-                      ? "bg-gray-100 text-gray-900 font-medium"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                  onClick={() =>
-                    isNotification
-                      ? openNotificationPanel()
-                      : handleMenuClick(item.path)
-                  }
-                >
-                  <item.icon size={48} />
-                  {badge && (
-                    <span className="absolute top-2 right-2 flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-xs">
-                      {badge}
-                    </span>
-                  )}
-                </Button>
-              );
-            })}
-          </nav>
+                  return (
+                    <Button
+                      key={item.label}
+                      variant="ghost"
+                      className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
+                        isActive
+                          ? "bg-gray-100 text-gray-900 font-medium"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                      onClick={() =>
+                        isNotification
+                          ? openNotificationPanel()
+                          : handleMenuClick(item.path)
+                      }
+                    >
+                      {/* FIX 3: Giảm kích thước icon về 24 (chuẩn) */}
+                      <item.icon size={24} />
+                      {badge && (
+                        <span className="absolute top-2 right-2 flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-xs">
+                          {badge}
+                        </span>
+                      )}
+                    </Button>
+                  );
+                })}
+              </nav>
+            </>
+          )}
         </div>
 
         {/* Learning Navigation */}
-        <div className="border-t border-gray-100">
-          <nav className="space-y-1">
-            {learningNavItems.map((item) => {
-              const isActive = pathname === item.path;
+        {user && user.role !== "admin" && (
+          <div className="border-t border-gray-100">
+            <nav className="space-y-1">
+              {learningNavItems.map((item) => {
+                const isActive = pathname === item.path;
 
-              return (
-                <Button
-                  key={item.label}
-                  variant="ghost"
-                  className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
-                    isActive
-                      ? "bg-gray-100 text-gray-900 font-medium"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                  onClick={() => handleMenuClick(item.path)}
-                >
-                  <item.icon size={48} />
-                </Button>
-              );
-            })}
-          </nav>
-        </div>
+                return (
+                  <Button
+                    key={item.label}
+                    variant="ghost"
+                    className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
+                      isActive
+                        ? "bg-gray-100 text-gray-900 font-medium"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                    onClick={() => handleMenuClick(item.path)}
+                  >
+                    <item.icon size={24} />
+                  </Button>
+                );
+              })}
+            </nav>
+          </div>
+        )}
 
         <div className="mt-auto">
           <DropdownMenu>

@@ -38,37 +38,42 @@ export default function LoginPage() {
   const handleLogin = async () => {
     try {
       setIsLoading(true);
-      const res = await login({ email, password });
+      const res = await login({ email, password }); // API login của bạn
 
+      // 1. Kiểm tra lỗi
       if (!res.success || !res?.data?.session) {
         toast.error(t("auth.loginFailed"), { autoClose: 1000 });
         console.error("Login failed:", res.message || "No session data");
         return;
       }
 
-      const { error: setError } = await supabase.auth.setSession(
-        res.data.session
-      );
+      // 2. Lấy dữ liệu trả về
+      const { session, role } = res.data; // <-- Lấy session và role từ response
 
-      const { data, error } = await supabase.functions.invoke(
-        "update-last-seen",
-        {
-          body: { name: "Functions" },
-          method: "POST",
-          headers: { Authorization: `Bearer ${res.data.session.access_token}` },
-        }
-      );
-
-      if (error) console.error("Error updating last_seen:", error);
-      else console.log("Updated last_seen:", data);
+      // 3. Đặt phiên (session) cho Supabase client
+      const { error: setError } = await supabase.auth.setSession(session);
 
       if (setError) {
         toast.error(t("auth.sessionError"), { autoClose: 1000 });
         console.error("Lỗi khi đặt phiên:", setError.message);
         return;
       }
+
+      // 4. (Tùy chọn) Gọi hàm update last_seen
+      // Tốt hơn là truyền access_token từ session bạn vừa nhận được
+      supabase.functions
+        .invoke("update-last-seen", {
+          body: { name: "Functions" },
+          method: "POST",
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+        .then(console.log)
+        .catch(console.error);
+
+      // 5. ĐIỀU HƯỚNG DỰA TRÊN ROLE
       toast.success(t("auth.loginSuccess"), { autoClose: 1000 });
-      router.replace("/dashboard");
+
+      router.replace("/dashboard"); // Chuyển đến trang dashboard
     } catch (error: any) {
       toast.error(t("auth.loginFailedRetry"), { autoClose: 1000 });
     } finally {
@@ -97,7 +102,6 @@ export default function LoginPage() {
         <span className="text-3xl ml-2 mt-1 font-bold text-gray-900 hover:text-orange-600 transition-colors duration-300">
           <Link href="/">SocialLearning</Link>
         </span>
-
       </div>
 
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50 flex items-center justify-center p-4 relative overflow-hidden">
