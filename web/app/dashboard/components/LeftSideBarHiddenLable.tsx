@@ -7,6 +7,7 @@ import {
   BookOpen,
   FileText,
   Globe,
+  ChartSpline,
   Heart,
   Home,
   LayoutDashboard,
@@ -142,6 +143,11 @@ export function LeftSideBarHiddenLabel() {
       path: "/dashboard/progress",
       label: "Tiến trình của tôi",
     },
+    {
+    icon: ChartSpline,
+    path: "/dashboard/roadmap",
+    label: "Lộ trình học tập",
+  }
   ];
 
   const adminNavItems = [
