@@ -11,6 +11,7 @@ socketInit(server);
 
 const PORT = process.env.PORT || 5000;
 
+// --- ROUTES USER--- // 
 const authRoute = require("./routes/authRoute");
 const userRoute = require("./routes/userRoute");
 const imageRoute = require("./routes/imageRoute");
@@ -27,6 +28,15 @@ const speakingRoute = require("./routes/learning/speakingRoute");
 const scoreUserRoute = require("./routes/learning/scoreUserRoute");
 const vocabularyRoute = require("./routes/learning/vocabularyRoute");
 const rankingRoute = require("./routes/learning/rankingRoute");
+const roadMapRoute = require("./routes/learning/roadMapRoute");
+
+// --- ROUTES ADMIN --- //
+const adminUserRoute = require("./routes/admin/userRoute");
+const adminPostRoute = require("./routes/admin/postRoute");
+const achievementRoute = require("./routes/admin/achievementRoute");
+const dashboardRoute = require("./routes/admin/dashboardRoute");
+
+// --- API USER --- //
 
 app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
@@ -44,6 +54,13 @@ app.use("/api/learning/speaking", speakingRoute);
 app.use("/api/learning/score-user", scoreUserRoute);
 app.use("/api/learning/vocabulary", vocabularyRoute);
 app.use("/api/learning/ranking", rankingRoute);
+app.use("/api/learning/roadmap", roadMapRoute);
+
+// --- API ADMIN --- //
+app.use("/api/admin/users", adminUserRoute);
+app.use("/api/admin/posts", adminPostRoute);
+app.use("/api/admin/achievements", achievementRoute);
+app.use("/api/admin/dashboard", dashboardRoute);
 
 connectDB().then(() => {
   server.listen(PORT, () => {

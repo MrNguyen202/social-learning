@@ -41,4 +41,7 @@ router.get("/achievements/getAllAchievements", scoreUserController.getAllAchieve
 // Route to get achievements
 router.get("/achievements/getUserAchievements", scoreUserController.getUserAchievements);
 
+// Route to deduct snowflake from user
+router.post("/snowflake/deduct", scoreUserController.deductSnowflakeFromUser);
+
 module.exports = router;

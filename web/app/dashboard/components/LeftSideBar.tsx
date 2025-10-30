@@ -14,6 +14,13 @@ import {
   TrendingUp,
   Volume2,
   AudioLines,
+  LayoutDashboard,
+  Users,
+  FileText,
+  BarChart,
+  Globe,
+  Loader2,
+  ChartSpline,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -30,19 +37,19 @@ import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { SearchPanel } from "./Search";
 import { useConversation } from "@/components/contexts/ConversationContext";
-import { NotificationsPanel } from "./Notifications";
-import { CreateOrUpdatePostModal } from "./CreateOrUpdatePost";
 import useAuth from "@/hooks/useAuth";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { toast } from "react-toastify";
+import { SearchPanel } from "./Search";
+import { NotificationsPanel } from "./Notifications";
+import { CreateOrUpdatePostModal } from "./CreateOrUpdatePost";
 
 export function LeftSidebar() {
   const { user } = useAuth();
   const { t, language, setLanguage } = useLanguage();
   const router = useRouter();
-  const pathname = usePathname(); // Get the current path
+  const pathname = usePathname();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -50,7 +57,7 @@ export function LeftSidebar() {
   const [notificationCount, setNotificationCount] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
 
-  // Lắng nghe realtime Supabase
+  // Lắng nghe realtime supabase
   useEffect(() => {
     if (!user) return;
 
@@ -106,6 +113,7 @@ export function LeftSidebar() {
     setIsVisible(true);
   }, []);
 
+  // --- NAV ITEMS CỦA USER ---
   const mainNavItems = [
     { icon: Home, path: "/dashboard", label: t("dashboard.home") },
     { icon: Search, path: "/dashboard/search", label: t("dashboard.search") },
@@ -156,6 +164,31 @@ export function LeftSidebar() {
       path: "/dashboard/progress",
       label: t("dashboard.progress"),
     },
+    {
+      icon: ChartSpline,
+      path: "/dashboard/roadmap",
+      label: "Lộ trình học tập",
+    }
+  ];
+
+  // --- NAV ITEMS CỦA ADMIN ---
+  const adminNavItems = [
+    { icon: LayoutDashboard, path: "/dashboard", label: t("dashboard.dashboard") },
+    { icon: Users, path: "/admin/dashboard/users", label: t("dashboard.users") },
+    { icon: FileText, path: "/admin/dashboard/content", label: t("dashboard.content") },
+    { icon: Globe, path: "/admin/dashboard/social", label: t("dashboard.social") },
+    {
+      icon: BookOpen,
+      path: "/admin/dashboard/vocabulary",
+      label: t("dashboard.vocabularys"),
+    },
+    { icon: BarChart, path: "/admin/dashboard/analytics", label: t("dashboard.analytics") },
+    {
+      icon: Trophy,
+      path: "/admin/dashboard/achievements",
+      label: t("dashboard.achievements"),
+    },
+    { icon: User, path: "/dashboard/profile", label: t("dashboard.profile") },
   ];
 
   const openNotificationPanel = () => {
@@ -163,36 +196,33 @@ export function LeftSidebar() {
     setNotificationCount(0); // reset badge
   };
 
+  // Sửa handleMenuClick để xử lý mở các panel cho user
   const handleMenuClick = (path: string) => {
-    // Handle menu item click
-    if (path === "/dashboard/chat") {
-      if (selectedConversation) {
-        router.push(`/dashboard/chat/${selectedConversation.id}`);
+    if (user?.role !== "admin") {
+      if (path === "/dashboard/chat") {
+        if (selectedConversation) {
+          router.push(`/dashboard/chat/${selectedConversation.id}`);
+          return;
+        }
+      }
+      if (path === "/dashboard/search") {
+        setIsSearchOpen(true);
+        return;
+      }
+      if (path === "/dashboard/notifications") {
+        setIsNotificationOpen(true);
+        return;
+      }
+      if (path === "/dashboard/create") {
+        setIsCreateModalOpen(true);
         return;
       }
     }
-
-    if (path === "/dashboard/search") {
-      setIsSearchOpen(true);
-      return;
-    }
-
-    if (path === "/dashboard/notifications") {
-      setIsNotificationOpen(true);
-      return;
-    }
-
-    if (path === "/dashboard/create") {
-      setIsCreateModalOpen(true);
-      return;
-    }
-
     router.push(path);
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    // Xử lý sau khi đăng xuất
     localStorage.removeItem("selectedConversation");
     setSelectedConversation(null);
     toast.success(t("dashboard.logoutSuccess"), { autoClose: 1000 });
@@ -206,11 +236,10 @@ export function LeftSidebar() {
   return (
     <>
       <div
-        className={`fixed left-0 top-0 h-full w-70 bg-white border-r border-gray-200 flex flex-col transform transition-all duration-700 ease-out ${
-          isVisible
+        className={`fixed left-0 top-0 h-full w-70 bg-white border-r border-gray-200 flex flex-col transform transition-all duration-700 ease-out ${isVisible
             ? "translate-x-0 opacity-100"
             : "-translate-x-full opacity-0"
-        }`}
+          }`}
       >
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-br from-orange-100 to-pink-100 rounded-full opacity-30 animate-float"></div>
@@ -235,73 +264,112 @@ export function LeftSidebar() {
 
         {/* Main Navigation */}
         <div className="flex-1 py-4 relative z-10">
-          <nav className="space-y-1 px-3">
-            {mainNavItems.map((item, index) => {
-              const isNotification = item.path === "/dashboard/notifications";
-              return (
+          {!user ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+            </div>
+          ) : user.role === "admin" ? (
+            // --- GIAO DIỆN ADMIN ---
+            <nav className="space-y-1 px-3">
+              {adminNavItems.map((item, index) => (
                 <Button
                   key={item.label}
                   variant="ghost"
-                  className={`w-full justify-start h-12 px-3 hover:cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${
-                    pathname === item.path
+                  className={`w-full justify-start h-12 px-3 hover:cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${pathname === item.path
                       ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
                       : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
-                  }`}
+                    }`}
                   style={{ animationDelay: `${index * 100}ms` }}
-                  onClick={() =>
-                    isNotification
-                      ? openNotificationPanel()
-                      : handleMenuClick(item.path)
-                  }
-                >
-                  <div className="relative">
-                    <item.icon
-                      className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${
-                        pathname === item.path ? "text-orange-600" : ""
-                      }`}
-                    />
-                    {isNotification && notificationCount > 0 && (
-                      <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0 animate-pulse">
-                        {notificationCount}
-                      </Badge>
-                    )}
-                  </div>
-                  <span className="text-base font-medium">{item.label}</span>
-                </Button>
-              );
-            })}
-          </nav>
-
-          <Separator className="my-4 mx-3 opacity-50" />
-
-          {/* Learning Navigation */}
-          <div className="px-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3 animate-fade-in">
-              {t("dashboard.learningSection")}
-            </p>
-            <nav className="space-y-1">
-              {learningNavItems.map((item, index) => (
-                <Button
-                  key={item.label}
-                  variant="ghost"
-                  className={`w-full justify-start h-12 px-3 hover:cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${
-                    pathname === item.path
-                      ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
-                      : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
-                  }`}
-                  style={{ animationDelay: `${(index + 6) * 100}ms` }}
-                  onClick={() => handleMenuClick(item.path)}
+                  onClick={() => handleMenuClick(item.path)} // Admin chỉ cần push route
                 >
                   <item.icon
-                    className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${
-                      pathname === item.path ? "text-orange-600" : ""
-                    }`}
+                    className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${pathname === item.path ? "text-orange-600" : ""
+                      }`}
                   />
                   <span className="text-base font-medium">{item.label}</span>
                 </Button>
               ))}
             </nav>
-          </div>
+          ) : (
+            // --- GIAO DIỆN USER ---
+            <>
+              {/* Main Navigation */}
+              <nav className="space-y-1 px-3">
+                {mainNavItems.map((item, index) => {
+                  const isNotification =
+                    item.path === "/dashboard/notifications";
+                  return (
+                    <Button
+                      key={item.label}
+                      variant="ghost"
+                      className={`w-full justify-start h-12 px-3 hover:cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${
+                        pathname === item.path
+                          ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
+                          : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
+                      }`}
+                      style={{ animationDelay: `${index * 100}ms` }}
+                      onClick={() =>
+                        isNotification
+                          ? openNotificationPanel()
+                          : handleMenuClick(item.path)
+                      }
+                    >
+                      <div className="relative">
+                        <item.icon
+                          className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${
+                            pathname === item.path ? "text-orange-600" : ""
+                          }`}
+                        />
+                        {isNotification && notificationCount > 0 && (
+                          <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0 animate-pulse">
+                            {notificationCount}
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="text-base font-medium">
+                        {item.label}
+                      </span>
+                    </Button>
+                  );
+                })}
+              </nav>
+
+              <Separator className="my-4 mx-3 opacity-50" />
+
+              {/* Learning Navigation */}
+              {user && user.role !== "admin" && (
+                <div className="px-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3 animate-fade-in">
+                    {t("dashboard.learningSection")}
+                  </p>
+                  <nav className="space-y-1">
+                    {learningNavItems.map((item, index) => (
+                      <Button
+                        key={item.label}
+                        variant="ghost"
+                        className={`w-full justify-start h-12 px-3 hover:cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${
+                          pathname === item.path
+                            ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
+                            : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
+                        }`}
+                        style={{ animationDelay: `${(index + 6) * 100}ms` }}
+                        onClick={() => handleMenuClick(item.path)}
+                      >
+                        <item.icon
+                          className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${
+                            pathname === item.path ? "text-orange-600" : ""
+                          }`}
+                        />
+                        <span className="text-base font-medium">
+                          {item.label}
+                        </span>
+                      </Button>
+                    ))}
+                  </nav>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         {/* Info */}
@@ -345,12 +413,10 @@ export function LeftSidebar() {
           isOpen={isSearchOpen}
           onClose={() => setIsSearchOpen(false)}
         />
-
         <NotificationsPanel
           isOpen={isNotificationOpen}
           onClose={() => setIsNotificationOpen(false)}
         />
-
         <CreateOrUpdatePostModal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}

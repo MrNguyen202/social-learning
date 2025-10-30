@@ -119,7 +119,10 @@ const listeningController = {
                 await listeningService.createUserProgress(newProgressData);
             }
 
-            res.json({ message: "Listening results submitted successfully", score: scoreSubmit, snowflake: snowflakeScore });
+            const correctCount = wordAnswers.filter(w => w.is_correct).length;
+            const totalCount = wordAnswers.length;
+
+            res.json({ message: "Listening results submitted successfully", score: scoreSubmit, snowflake: snowflakeScore, correctCount, totalCount });
 
         } catch (error) {
             console.error("Error submitting listening results:", error);

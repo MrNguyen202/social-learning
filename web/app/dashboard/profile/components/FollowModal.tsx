@@ -83,8 +83,9 @@ export default function FollowModal({
 
   const filteredData = data.filter(
     (user) =>
-      user.name?.toLowerCase().includes(keyword.toLowerCase()) ||
-      user.nick_name?.toLowerCase().includes(keyword.toLowerCase())
+      user &&
+      (user.name?.toLowerCase().includes(keyword.toLowerCase()) ||
+        user.nick_name?.toLowerCase().includes(keyword.toLowerCase()))
   );
 
   const handleFollowBack = async (userId: string) => {
