@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   AudioLines,
   BookOpen,
+  ChartSpline,
   Heart,
   Home,
   MenuIcon,
@@ -68,6 +69,11 @@ const learningNavItems = [
     path: "/dashboard/progress",
     label: "Tiến trình của tôi",
   },
+  {
+    icon: ChartSpline,
+    path: "/dashboard/roadmap",
+    label: "Lộ trình học tập",
+  }
 ];
 
 export function LeftSideBarHiddenLabel() {
