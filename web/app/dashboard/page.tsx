@@ -12,6 +12,43 @@ import {
   restoreLearningStreak,
 } from "../apiClient/learning/score/score";
 import useAuth from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
+import { Dashboard } from "./admin/components/Dashboard";
+
+// ===================================================================
+// COMPONENT DASHBOARD CỦA ADMIN
+// ===================================================================
+function AdminDashboard() {
+  const { user } = useAuth();
+
+  return (
+    <div className="flex-1 sm:px-6 py-4">
+      <Dashboard user={user} />
+    </div>
+  );
+}
+
+// ===================================================================
+// COMPONENT DASHBOARD CỦA USER
+// ===================================================================
+function UserDashboard() {
+  return (
+    <>
+      {/* Main content */}
+      <div className="flex-1 sm:px-6 py-6">
+        <StreakStatusCard />
+        <MainContentArea />
+      </div>
+
+      {/* Sidebar */}
+      <div className="w-90 p-6 hidden xl:block">
+        <div className="sticky top-24">
+          <RightSidebar />
+        </div>
+      </div>
+    </>
+  );
+}
 
 function StreakStatusCard() {
   const { user } = useAuth();
@@ -116,7 +153,20 @@ function StreakStatusCard() {
   );
 }
 
+// ===================================================================
+// COMPONENT PAGE DASHBOARD CHÍNH
+// ===================================================================
 export default function DashboardPage() {
+  const { user, loading } = useAuth();
+
+  if (loading || !user) {
+    return (
+      <div className="flex-1 flex items-center justify-center h-full">
+        <Loader2 className="w-10 h-10 text-gray-400 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Hiệu ứng nền */}
@@ -133,18 +183,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 sm:px-6 py-6">
-        <StreakStatusCard />
-        <MainContentArea />
-      </div>
-
-      {/* Sidebar */}
-      <div className="w-90 p-6 hidden xl:block">
-        <div className="sticky top-24">
-          <RightSidebar />
-        </div>
-      </div>
+      {user.role === "admin" ? <AdminDashboard /> : <UserDashboard />}
     </>
   );
 }

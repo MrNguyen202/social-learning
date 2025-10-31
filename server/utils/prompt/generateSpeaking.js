@@ -44,6 +44,6 @@ Nếu level là "Advanced":
 10. Các câu nói phải mang ý tưởng khác nhau, tránh lặp lại cấu trúc hoặc nội dung quá giống nhau.
 11. Không sử dụng [email], [your name], [your country], [your favorite place] hoặc các cụm từ tương tự mà hãy hãy tạo tên bất kì.
 12. Không sử dụng kí tự đặc biệt như @, #, $, %, ^, &, *, (, ), -, +, =, v.v.
-
+13. Nếu câu có số là thời gian ( ví dụ: 7 am, 12 pm), hãy chuyển thành dạng 7:00 am, 12:00 pm
 Chỉ trả về một danh sách JSON thuần, không giải thích, không chèn text, không xuống dòng thừa.
 `;

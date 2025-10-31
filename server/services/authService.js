@@ -1,5 +1,3 @@
-const e = require("express");
-
 const supabase = require("../lib/supabase").supabase;
 
 const authService = {
@@ -16,18 +14,6 @@ const authService = {
 
     if (error) throw error;
 
-    const userId = data.user?.id;
-
-    if (userId) {
-      const { data: scoreData, error: scoreError } = await supabase
-        .from("score")
-        .insert({ userId: userId })
-        .select()
-        .single();
-
-      if (scoreError) throw scoreError;
-    }
-
     return { data, error };
   },
 
@@ -43,13 +29,42 @@ const authService = {
   },
 
   async login(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    // 1. Đăng nhập với Supabase Auth
+    const { data: loginData, error: loginError } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) throw error;
-    return { data, error };
+    if (loginError) throw loginError;
+
+    // 2. ĐÃ ĐĂNG NHẬP THÀNH CÔNG
+    // Bây giờ, lấy 'role' từ bảng 'users' của bạn
+    const { data: profileData, error: profileError } = await supabase
+      .from("users")
+      .select("role") // Chỉ cần lấy cột 'role'
+      .eq("id", loginData.user.id) // Dựa trên ID của user vừa đăng nhập
+      .single(); // Lấy 1 dòng duy nhất
+
+    if (profileError) {
+      // Lỗi này xảy ra nếu trigger của bạn bị lỗi
+      // hoặc user tồn tại trong 'auth.users' nhưng không có trong 'public.users'
+      console.error(
+        "Lỗi nghiêm trọng: Không tìm thấy profile cho user:",
+        loginData.user.id
+      );
+      throw new Error("Không tìm thấy thông tin hồ sơ người dùng.");
+    }
+
+    // 3. Gộp kết quả và trả về
+    return {
+      data: {
+        session: loginData.session,
+        user: loginData.user,
+        role: profileData.role, // <-- Đây là mấu chốt!
+      },
+      error: null,
+    };
   },
 
   async sendResetOtp(email) {

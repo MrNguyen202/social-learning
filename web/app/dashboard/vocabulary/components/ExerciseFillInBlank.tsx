@@ -93,7 +93,7 @@ export default function ExerciseFillInBlank({
         <button
           onClick={handleCheck}
           disabled={isChecking || !value}
-          className="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 font-bold text-lg disabled:bg-gray-300"
+          className="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 font-bold text-lg disabled:bg-gray-300 cursor-pointer"
         >
           Kiểm tra
         </button>

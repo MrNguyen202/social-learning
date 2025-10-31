@@ -32,8 +32,10 @@ interface User {
 
 export default function PhotoGridFollower({
   userSearch,
+  user,
 }: {
   userSearch: User | any;
+  user: User | any;
 }) {
   const { t } = useLanguage();
   const [posts, setPosts] = useState<Post[]>([]);
@@ -164,7 +166,7 @@ export default function PhotoGridFollower({
           onClose={() => setIsCommentModalOpen(false)}
           postId={selectedPost.id}
           post={selectedPost}
-          userId={userSearch?.id}
+          userId={user?.id}
           highlightCommentId={null}
         />
       )}

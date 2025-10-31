@@ -36,13 +36,13 @@ export default function OutOfLivesModal({ isOpen, onRefill, onGoBack, canRefill 
                 <>
                   <button
                     onClick={onRefill}
-                    className="w-full bg-blue-500 text-white py-3 rounded-xl hover:bg-blue-600 font-bold"
+                    className="w-full bg-blue-500 text-white py-3 rounded-xl hover:bg-blue-600 font-bold cursor-pointer"
                   >
                     Dùng 5 ❄️ mua 1 mạng
                   </button>
                   <button
                     onClick={onGoBack}
-                    className="w-full bg-transparent text-gray-700 py-3 rounded-xl hover:bg-gray-100 font-bold"
+                    className="w-full bg-transparent text-gray-700 py-3 rounded-xl hover:bg-gray-100 font-bold cursor-pointer"
                   >
                     Quay về
                   </button>
@@ -54,7 +54,7 @@ export default function OutOfLivesModal({ isOpen, onRefill, onGoBack, canRefill 
                   </p>
                   <button
                     onClick={onGoBack}
-                    className="w-full bg-gray-700 text-white py-3 rounded-xl hover:bg-gray-800 font-bold"
+                    className="w-full bg-gray-700 text-white py-3 rounded-xl hover:bg-gray-800 font-bold cursor-pointer"
                   >
                     Quay về
                   </button>

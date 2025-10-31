@@ -107,7 +107,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <PhotoGridFollower userSearch={userSearch} />
+        <PhotoGridFollower userSearch={userSearch} user={user} />
       </motion.div>
     </>
   );

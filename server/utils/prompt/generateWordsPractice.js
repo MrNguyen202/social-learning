@@ -114,4 +114,5 @@ Yêu cầu:
     - Thứ tự các ký tự được xáo trộn ngẫu nhiên.
     - "hint" là nghĩa tiếng Việt của từ "answer" để gợi ý.
 16. Mỗi từ trong danh sách chỉ được xuất hiện tối đa một lần trong loại "word_build".
+17. Nếu câu có số là thời gian ( ví dụ: 7 am, 12 pm), hãy chuyển thành dạng 7:00 am, 12:00 pm
 `;

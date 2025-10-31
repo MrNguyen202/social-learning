@@ -29,6 +29,7 @@ import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { CreateOrUpdatePostModal } from "./CreateOrUpdatePost";
+import { useRouter } from "next/navigation";
 
 interface PostCardProps {
   post: any;
@@ -36,6 +37,7 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, onDelete }: PostCardProps) {
+  const router = useRouter();
   const { user } = useAuth();
   const { t } = useLanguage();
   const [likes, setLikes] = useState<any[]>(() =>
@@ -127,12 +129,28 @@ export function PostCard({ post, onDelete }: PostCardProps) {
               whileHover={{ scale: 1.1 }}
               transition={{ duration: 0.2 }}
             >
-              <Avatar className="h-12 w-12">
+              <Avatar
+                className="h-12 w-12 cursor-pointer"
+                onClick={() => {
+                  if (user?.nick_name === post?.user?.nick_name) {
+                    router.push(`/dashboard/profile`);
+                  } else
+                    router.push(`/dashboard/profile/${post?.user?.nick_name}`);
+                }}
+              >
                 <AvatarImage src={getUserImageSrc(post?.user?.avatar)} />
               </Avatar>
             </motion.div>
             <div>
-              <p className="text-md font-semibold text-gray-900">
+              <p
+                className="text-md font-semibold text-gray-900 cursor-pointer"
+                onClick={() => {
+                  if (user?.nick_name === post?.user?.nick_name) {
+                    router.push(`/dashboard/profile`);
+                  } else
+                    router.push(`/dashboard/profile/${post?.user?.nick_name}`);
+                }}
+              >
                 {post?.user?.nick_name}
               </p>
               <p className="text-xs text-gray-500">
@@ -224,7 +242,7 @@ export function PostCard({ post, onDelete }: PostCardProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
-                <p className="text-[16px] text-gray-900">
+                <p className="text-[16px] text-gray-900 break-words whitespace-pre-line">
                   <span className="font-semibold">{post?.user?.nick_name}</span>{" "}
                   {post?.content}
                 </p>

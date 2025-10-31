@@ -108,9 +108,9 @@ const postController = {
         original_name: null,
         created_at: new Date().toISOString(),
       };
-
+      
       // Xử lý file nếu có
-      if (file.fileData.fileBase64) {
+      if (file.fileData && file.fileData.fileBase64) {
         const { fileBase64, fileName, mimeType } = file.fileData;
 
         // Xác định file type và folder
@@ -153,6 +153,7 @@ const postController = {
         data,
       });
     } catch (error) {
+      console.error("Error in updatePost:", error);
       return res.status(500).json({
         success: false,
         error: error.message,

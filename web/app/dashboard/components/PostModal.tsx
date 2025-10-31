@@ -23,6 +23,7 @@ import { convertToDate, formatTime } from "@/utils/formatTime";
 import { CreateOrUpdatePostModal } from "./CreateOrUpdatePost";
 import { createNotification } from "@/app/apiClient/notification/notification";
 import { useLanguage } from "@/components/contexts/LanguageContext";
+import { useRouter } from "next/navigation";
 
 interface PostModalProps {
   isOpen: boolean;
@@ -42,6 +43,7 @@ export function PostModal({
   highlightCommentId,
 }: PostModalProps) {
   const { t } = useLanguage();
+  const router = useRouter();
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [newComment, setNewComment] = useState("");
@@ -141,12 +143,14 @@ export function PostModal({
     try {
       const res = await deleteComment(commentId);
       if (res.success) {
-        toast.success(t("dashboard.deleteCommentSuccess"), { autoClose: 1000 });
+        toast.success(t("dashboard.deleteCommentSuccess"), {
+          autoClose: 1000,
+        });
         setComments((prevComments) =>
           prevComments.filter((comment) => comment.id !== commentId)
         );
       } else {
-        toast.error(t("dashboard.deleteCommentFailed"), { autoClose: 1000 });
+        toast.error(t("dashboard.cannotDeleteComment"), { autoClose: 1000 });
       }
     } catch (err) {
       toast.error(t("dashboard.deleteCommentError"), { autoClose: 1000 });
@@ -236,7 +240,10 @@ export function PostModal({
                 })()}
               {!post?.file && (
                 <div className="p-4">
-                  <p className="text-sm text-gray-500">{post?.content}</p>
+                  {/* <p className="text-sm text-gray-500"> */}
+                  <p className="text-sm break-all whitespace-pre-line">
+                    {post?.content}
+                  </p>
                 </div>
               )}
             </div>
@@ -278,15 +285,17 @@ export function PostModal({
                     <AvatarImage src={getUserImageSrc(post?.user?.avatar)} />
                   </Avatar>
                   <div className="flex-1">
-                    <p className="text-sm">
+                    <div className="flex items-center justify-between mb-2">
                       <span className="font-semibold">
                         {post?.user?.nick_name}
-                      </span>{" "}
+                      </span>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {convertToDate(post?.created_at)}{" "}
+                        {formatTime(post?.created_at)}
+                      </p>
+                    </div>
+                    <p className="text-sm break-all whitespace-pre-line">
                       {post?.content}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {convertToDate(post?.created_at)}{" "}
-                      {formatTime(post?.created_at)}
                     </p>
                   </div>
                 </div>
@@ -306,14 +315,34 @@ export function PostModal({
     `}
                     id={`comment-${comment.id}`}
                   >
-                    <Avatar className="h-8 w-8">
+                    <Avatar
+                      className="h-8 w-8 cursor-pointer"
+                      onClick={() => {
+                        if (userId === comment?.user?.id) {
+                          router.push(`/dashboard/profile`);
+                        } else
+                          router.push(
+                            `/dashboard/profile/${comment?.user?.nick_name}`
+                          );
+                      }}
+                    >
                       <AvatarImage
                         src={getUserImageSrc(comment?.user?.avatar)}
                       />
                     </Avatar>
                     <div className="flex-1">
                       <p className="text-sm">
-                        <span className="font-semibold">
+                        <span
+                          className="font-semibold cursor-pointer"
+                          onClick={() => {
+                            if (userId === comment?.user?.id) {
+                              router.push(`/dashboard/profile`);
+                            } else
+                              router.push(
+                                `/dashboard/profile/${comment?.user?.nick_name}`
+                              );
+                          }}
+                        >
                           {comment?.user?.nick_name}
                         </span>{" "}
                         <span className="text-xs text-gray-500 ml-2">

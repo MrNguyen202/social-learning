@@ -71,7 +71,7 @@ export default function ExerciseMultipleChoice({
         <button
           onClick={handleCheckClick}
           disabled={selected === null || isChecking}
-          className="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 font-bold text-lg disabled:bg-gray-300"
+          className="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 font-bold text-lg disabled:bg-gray-300 cursor-pointer"
         >
           Kiểm tra
         </button>

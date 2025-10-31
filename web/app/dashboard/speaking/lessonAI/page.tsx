@@ -371,6 +371,7 @@ function LessonAIContent() {
           height={windowSize.height}
           recycle={false}
           numberOfPieces={500}
+          style={{ zIndex: 9999 }}
           gravity={0.3}
         />
       )}

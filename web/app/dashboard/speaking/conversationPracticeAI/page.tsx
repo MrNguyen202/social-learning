@@ -374,6 +374,7 @@ function ConversationPracticeContent() {
           recycle={false}
           numberOfPieces={600}
           gravity={0.2}
+          style={{ zIndex: 9999 }}
           tweenDuration={5000}
         />
       )}
