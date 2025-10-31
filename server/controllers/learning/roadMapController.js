@@ -21,10 +21,10 @@ const roadMapController = {
     },
 
     // Get roadmap and lessons by userId
-    getRoadmapAndLessonsByUserId: async (req, res) => {
+    getRoadmapAndLessonsById: async (req, res) => {
         try {
-            const { userId } = req.params;
-            const roadmap = await roadmapService.getRoadmapAndLessonsByUserId(userId);
+            const { roadmapId } = req.params;
+            const roadmap = await roadmapService.getRoadmapAndLessonsById(roadmapId);
             return res.json(roadmap);
         } catch (error) {
             console.error("❌ Lỗi khi lấy lộ trình và bài học:", error);
@@ -85,12 +85,32 @@ const roadMapController = {
             // TODO: lưu json xuống DB
             const savedRoadmap = await roadmapService.createRoadmapForUser(userId, {
                 totalWeeks: json.totalWeeks,
-                focus: json.focus,
+                field: input.field,
+                goal: input.goal,
+                targetSkills: input.targetSkills,
+                pathName: input.pathName,
+                studyPlan: input.studyPlan.minutesPerDay
             });
 
-            for (const lesson of json.lessons) {
-                await roadmapService.createLessonRoadmap(savedRoadmap[0].id, lesson);
+            // Lưu weeks
+            for (const week of json.weeks) {
+                const savedWeek = await roadmapService.createWeekRoadmaps(savedRoadmap[0].id, {
+                    week: week.week,
+                    focus: week.focus,
+                });
+
+                // Lưu lessons
+                for (const lesson of week.lessons) {
+                    await roadmapService.createLessonRoadmap(savedWeek[0].id, {
+                        type: lesson.type,
+                        level: lesson.level,
+                        topic: lesson.topic,
+                        description: lesson.description,
+                        quantity: lesson.quantity,
+                    });
+                }
             }
+
 
             return res.json({ message: "Tạo lộ trình thành công", roadmap: json });
 

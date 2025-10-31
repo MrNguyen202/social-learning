@@ -3,42 +3,83 @@ const supabase = require("../../lib/supabase").supabase;
 const roadmapService = {
     // Lấy lộ trình học tập theo userId
     getRoadmapByUserId: async (userId) => {
-        const { data, error } = await supabase
-            .from("roadmap")
-            .select("*")
-            .eq("user_id", userId)
-            .maybeSingle();
+        const { data, error } = await supabase.rpc('get_current_week', { user_id_input: userId }).maybeSingle();
         if (error) {
             throw new Error("Lỗi khi lấy lộ trình học tập: " + error.message);
         }
         return data;
     },
 
-    // Lấy lộ trình học tập theo userId include roadmap data và lessonRoadmap data
-    getRoadmapAndLessonsByUserId: async (userId) => {
-        const { data, error } = await supabase
+    // Lấy lộ trình học tập theo roadmapId (kèm tuần & bài học)
+    getRoadmapAndLessonsById: async (roadmapId) => {
+        // Lấy roadmap chi tiết theo id
+        const { data: roadmap, error: roadmapError } = await supabase
             .from("roadmap")
             .select(`
-                *,
-                lessonRoadmap(*) as weeks
-            `)
-            .eq("user_id", userId)
+            id,
+            totalWeeks,
+            weekRoadMaps (
+                id,
+                week,
+                focus,
+                lessonRoadmap (
+                    id,
+                    type,
+                    level,
+                    topic,
+                    description,
+                    quantity,
+                    completedCount,
+                    isCompleted
+                )
+            )
+        `)
+            .eq("id", roadmapId)
+            .order("week", { ascending: true, foreignTable: "weekRoadMaps" })
             .single();
-        if (error) {
-            throw new Error("Lỗi khi lấy lộ trình học tập: " + error.message);
+
+        if (roadmapError) {
+            throw new Error("Lỗi khi lấy lộ trình học tập: " + roadmapError.message);
         }
-        return data;
+
+        if (!roadmap) {
+            return null;
+        }
+
+        // Chuyển dữ liệu từ DB sang format giống localData
+        const formattedData = {
+            totalWeeks: roadmap.totalWeeks,
+            weeks: roadmap.weekRoadMaps.map((week) => ({
+                week: week.week,
+                focus: week.focus,
+                lessons: week.lessonRoadmap.map((lesson) => ({
+                    type: lesson.type,
+                    level: lesson.level,
+                    topic: lesson.topic,
+                    description: lesson.description,
+                    quantity: lesson.quantity,
+                    completedCount: lesson.completedCount || 0,
+                    isCompleted: lesson.isCompleted || false,
+                })),
+            })),
+        };
+
+        return formattedData;
     },
 
     // Tạo mới lộ trình học tập cho userId
     createRoadmapForUser: async (userId, roadmapData) => {
         const { data, error } = await supabase
             .from("roadmap")
-            .insert([{
+            .insert({
                 user_id: userId,
                 totalWeeks: roadmapData.totalWeeks,
-                focus: roadmapData.focus,
-            }])
+                field: roadmapData.field,
+                goal: roadmapData.goal,
+                targetSkills: roadmapData.targetSkills,
+                pathName: roadmapData.pathName,
+                studyPlan: roadmapData.studyPlan,
+            })
             .select();
         if (error) {
             throw new Error("Lỗi khi lưu lộ trình học tập: " + error.message);
@@ -46,19 +87,36 @@ const roadmapService = {
         return data;
     },
 
+    // createWeekRoadmaps
+    createWeekRoadmaps: async (roadmapId, weeksData) => {
+        const { data, error } = await supabase
+            .from("weekRoadMaps")
+            .insert({
+                roadmap_id: roadmapId,
+                week: weeksData.week,
+                focus: weeksData.focus,
+            })
+            .select();
+        if (error) {
+            throw new Error("Lỗi khi lưu tuần lộ trình học tập: " + error.message);
+        }
+        return data;
+    },
+
     // createLessonRoadmap
-    createLessonRoadmap: async (roadmapId, lessonData) => {
+    createLessonRoadmap: async (weekRoadMap_id, lessonData) => {
         const { data, error } = await supabase
             .from("lessonRoadmap")
-            .insert([{
-                roadmap_id: roadmapId,
-                week: lessonData.week,
+            .insert({
+                week_roadmap_id: weekRoadMap_id,
                 type: lessonData.type,
                 level: lessonData.level,
                 topic: lessonData.topic,
-                
-
-            }]);
+                description: lessonData.description,
+                quantity: lessonData.quantity,
+                isCompleted: false,
+            })
+            .select();
         if (error) {
             throw new Error("Lỗi khi lưu bài học vào lộ trình: " + error.message);
         }

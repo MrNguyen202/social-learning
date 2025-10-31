@@ -7,7 +7,10 @@ Hãy tự ước lượng tổng thời gian (số tuần cần thiết) để �
 - Mức độ cam kết của học viên
 - Số lượng bài học cần hoàn thành hàng tuần
 
-Từ đó, hãy tạo **lộ trình học cá nhân hóa** với Writing, Listening, Speaking.
+Từ đó, hãy tạo lộ trình học cá nhân hóa chỉ cho các kỹ năng mà học viên chọn sau: ${inputUser.targetSkills.join(", ")}.
+- Mỗi tuần có một “focus” là **mục tiêu tổng quan tuần đó**, có thể kết hợp nhiều kỹ năng.  
+- Các bài học tuần đó được chọn từ kỹ năng học viên chọn.  
+- Không để focus chỉ là tên kỹ năng.
 
 Dữ liệu đầu vào:
 ${JSON.stringify(profileUser, null, 2)}
@@ -24,7 +27,7 @@ Kết quả mong muốn (JSON):
   "weeks": [
     {
       "week": 1,
-      "focus": "Listening",
+      "focus": "Improving Basic Communication Skills",
       "lessons": [
         {
           "type": "Listening",
