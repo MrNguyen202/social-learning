@@ -73,7 +73,7 @@ export default function RoadmapZigzagPage() {
                     <div key={week.week} className="grid grid-cols-3 items-center gap-4 relative">
                         {week.week % 2 !== 0 ? (
                             <>
-                                <div className="flex justify-end pr-6">
+                                <div className="flex justify-start pr-6">
                                     <WeekCard
                                         week={week}
                                         expandedWeeks={expandedWeeks}
