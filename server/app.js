@@ -7,27 +7,7 @@ const loggerMiddleware = require("./middlewares/loggerMiddleware");
 const app = express();
 
 // Middleware
-// app.use(cors());
-const allowedOrigins = [
-  "https://www.socialonlinelearning.tech",
-  "http://localhost:3000", // để test local vẫn ok
-];
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Cho phép request không có origin (như Postman, mobile app)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      } else {
-        return callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
-  })
-);
+app.use(cors());
 
 // app.use(express.json());
 app.use(morgan("dev"));
