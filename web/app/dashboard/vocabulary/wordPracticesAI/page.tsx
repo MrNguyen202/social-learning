@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import useAuth from "@/hooks/useAuth";
-import { generateExerciseByVocabList } from "@/app/apiClient/learning/vocabulary/vocabulary";
+import {
+  generateExerciseByVocabList,
+  updateMasteryScoreRPC,
+} from "@/app/apiClient/learning/vocabulary/vocabulary";
 import { ProgressBar } from "../components/ProgressBar";
 import ExerciseItem from "../components/ExerciseItem";
 import Confetti from "react-confetti";
@@ -22,7 +25,6 @@ import { useLanguage } from "@/components/contexts/LanguageContext";
 import LivesIndicator from "../components/LivesIndicator";
 import OutOfLivesModal from "../components/OutOfLivesModal";
 import { toast } from "react-toastify";
-import { supabase } from "@/lib/supabase";
 
 const shuffle = (array: any[]) => {
   let currentIndex = array.length,
@@ -66,10 +68,7 @@ export default function WordPracticeAI() {
   const [stored, setStored] = useState<string | null>(null);
 
   const update_mastery_on_success = async (userId: string, word: string) => {
-    await supabase.rpc("update_mastery_on_success", {
-      user_id: userId,
-      word_input: word,
-    });
+    await updateMasteryScoreRPC({ userId, word });
   };
   // Load từ
   useEffect(() => {
@@ -299,8 +298,9 @@ export default function WordPracticeAI() {
         />
       )}
       <div
-        className={`flex flex-col flex-1 mx-auto mt-10 relative transition-all overflow-hidden ${showOutOfLivesModal ? "blur-sm" : ""
-          }`}
+        className={`flex flex-col flex-1 mx-auto mt-10 relative transition-all overflow-hidden ${
+          showOutOfLivesModal ? "blur-sm" : ""
+        }`}
       >
         <div className="p-6 md:p-12 pb-0">
           {/* Thanh Header mới bao gồm Progress và Lives */}

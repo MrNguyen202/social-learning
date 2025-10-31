@@ -1,4 +1,5 @@
 "use client";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Search, Volume2, X } from "lucide-react";
@@ -262,7 +263,7 @@ export default function MasteredTab({
                             e.stopPropagation();
                             speakWord(vocab.word);
                           }}
-                          className="w-6 h-6 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="w-6 h-6 text-orange-400 group-hover:opacity-100 transition-opacity"
                         />
                       </div>
                       <div className="flex items-center justify-between">

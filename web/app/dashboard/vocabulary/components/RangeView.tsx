@@ -402,7 +402,7 @@ export default function OverviewRangeView({
                         e.stopPropagation();
                         speakWord(v.word);
                       }}
-                      className="w-6 h-6 text-orange-300 opacity-0 group-hover:opacity-100 transition-opacity hover:text-orange-500 cursor-pointer"
+                      className="w-6 h-6 text-orange-300 group-hover:opacity-100 transition-opacity hover:text-orange-500 cursor-pointer"
                     />
                   </div>
                   <div className="flex items-center justify-between mb-2">

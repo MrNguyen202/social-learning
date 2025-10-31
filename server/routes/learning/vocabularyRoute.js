@@ -53,4 +53,7 @@ router.get("/user_topics/:userId", vocabularyController.getUserTopics);
 // Route to get vocab by topic
 router.get("/vocab_topic/:userId/:topicId", vocabularyController.getVocabByTopic);
 
+// Route to update mastery score via RPC
+router.post("/update_mastery_score_rpc", vocabularyController.updateMasteryScoreRPC);
+
 module.exports = router;

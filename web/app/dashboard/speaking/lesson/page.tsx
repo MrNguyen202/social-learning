@@ -40,8 +40,10 @@ import {
   getScoreUserByUserId,
 } from "@/app/apiClient/learning/score/score";
 import useAuth from "@/hooks/useAuth";
-import { insertOrUpdateVocabularyErrors } from "@/app/apiClient/learning/vocabulary/vocabulary";
-import { supabase } from "@/lib/supabase";
+import {
+  insertOrUpdateVocabularyErrors,
+  updateMasteryScoreRPC,
+} from "@/app/apiClient/learning/vocabulary/vocabulary";
 import ClickToSpeak from "../../vocabulary/components/ClickToSpeak";
 
 interface Lesson {
@@ -89,10 +91,7 @@ function LessonContent() {
   const update_mastery_on_success = useCallback(
     async (userId: string, word: string) => {
       if (word && isNaN(Number(word))) {
-        await supabase.rpc("update_mastery_on_success", {
-          user_id: userId,
-          word_input: word,
-        });
+        await updateMasteryScoreRPC({ userId, word });
       }
     },
     []
@@ -185,15 +184,15 @@ function LessonContent() {
     [voiceForSentence]
   );
 
-const jumpToLesson = useCallback(
-  (index: number) => {
-    if (index <= completedSentences) {
-      setCurrentLessonIndex(index);
-      setShowExerciseList(false);
-    }
-  },
-  [completedSentences]
-);
+  const jumpToLesson = useCallback(
+    (index: number) => {
+      if (index <= completedSentences) {
+        setCurrentLessonIndex(index);
+        setShowExerciseList(false);
+      }
+    },
+    [completedSentences]
+  );
 
   const clickableSentence = useMemo(() => {
     if (!currentSentence) return t("learning.loadingSentence");
@@ -203,117 +202,117 @@ const jumpToLesson = useCallback(
     });
   }, [currentSentence, t]);
 
-useEffect(() => {
-  const synth = window.speechSynthesis;
-  const updateVoices = () => {
-    const availableVoices = synth
-      .getVoices()
-      .filter((v) => v.lang.startsWith("en-"));
-    setVoices(availableVoices);
-  };
-  synth.onvoiceschanged = updateVoices;
-  updateVoices();
-  // Cleanup function để hủy đăng ký event listener
-  return () => {
-    synth.onvoiceschanged = null;
-  };
-}, []); // Chỉ chạy 1 lần
+  useEffect(() => {
+    const synth = window.speechSynthesis;
+    const updateVoices = () => {
+      const availableVoices = synth
+        .getVoices()
+        .filter((v) => v.lang.startsWith("en-"));
+      setVoices(availableVoices);
+    };
+    synth.onvoiceschanged = updateVoices;
+    updateVoices();
+    // Cleanup function để hủy đăng ký event listener
+    return () => {
+      synth.onvoiceschanged = null;
+    };
+  }, []); // Chỉ chạy 1 lần
 
-useEffect(() => {
-  if (voices.length > 0) {
-    const randomVoice = voices[Math.floor(Math.random() * voices.length)];
-    setVoiceForSentence(randomVoice);
-  }
-}, [voices]); // Chạy lại khi voices thay đổi
-
-useEffect(() => {
-  setIsClient(true);
-  setBrowserSupports(SpeechRecognition.browserSupportsSpeechRecognition());
-  setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-  const handleResize = () => {
-    setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-  };
-  window.addEventListener("resize", handleResize);
-  const levelId = localStorage.getItem("levelId");
-  const topicId = localStorage.getItem("topicId");
-  if (levelId && topicId) {
-    getLessons(Number(levelId), Number(topicId));
-  }
-  return () => window.removeEventListener("resize", handleResize);
-}, []); // Chỉ chạy 1 lần
-
-useEffect(() => {
-  if (lessons.length > 0 && currentLessonIndex < lessons.length) {
-    // Thêm kiểm tra currentLessonIndex
-    setCurrentSentence(lessons[currentLessonIndex].content);
-    resetTranscript();
-    setResult(null);
-    setSentenceComplete(false);
-    wasListeningRef.current = false; // Reset ref khi chuyển câu
-  }
-}, [lessons, currentLessonIndex, resetTranscript]);
-
-useEffect(() => {
-  if (listening) {
-    wasListeningRef.current = true;
-  }
-  if (!listening && wasListeningRef.current && !showCelebration) {
-    wasListeningRef.current = false;
-    const correct = buildResultAndCheck();
-    if (correct) {
-      setSentenceComplete(true);
-      setCompletedSentences((prev) => prev + 1);
-      setCompletedLessons((prev) => new Set(prev).add(currentLessonIndex));
-      setTimeout(() => {
-        if (currentLessonIndex < lessons.length - 1) {
-          setCurrentLessonIndex((idx) => idx + 1);
-        } else {
-          setShowCelebration(true);
-          if (user) {
-            addSkillScore(user.id, "speaking", 10).then(async () => {
-              const res = await getScoreUserByUserId(user.id);
-              const totalScore = res?.data?.practice_score ?? 0;
-              setResult(
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="mt-2 text-green-600 font-bold text-xl flex flex-col items-center gap-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <Trophy className="w-6 h-6" />
-                    {t("learning.allComplete")}
-                  </div>
-                  <div className="text-blue-600">
-                    🎉 {t("learning.pointsEarned")}
-                  </div>
-                  <div className="text-purple-600">
-                    🏆 {t("learning.totalPoints")} <b>{totalScore}</b>
-                  </div>
-                </motion.div>
-              );
-            });
-          }
-        }
-      }, 1500);
-    } else {
-      setTimeout(() => {
-        checkPronunciation();
-        resetTranscript();
-        setResult(null);
-      }, 1200);
+  useEffect(() => {
+    if (voices.length > 0) {
+      const randomVoice = voices[Math.floor(Math.random() * voices.length)];
+      setVoiceForSentence(randomVoice);
     }
-  }
-}, [
-  listening,
-  showCelebration,
-  currentLessonIndex,
-  lessons,
-  user,
-  t,
-  buildResultAndCheck,
-  checkPronunciation,
-  resetTranscript,
-]);
+  }, [voices]); // Chạy lại khi voices thay đổi
+
+  useEffect(() => {
+    setIsClient(true);
+    setBrowserSupports(SpeechRecognition.browserSupportsSpeechRecognition());
+    setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    const handleResize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener("resize", handleResize);
+    const levelId = localStorage.getItem("levelId");
+    const topicId = localStorage.getItem("topicId");
+    if (levelId && topicId) {
+      getLessons(Number(levelId), Number(topicId));
+    }
+    return () => window.removeEventListener("resize", handleResize);
+  }, []); // Chỉ chạy 1 lần
+
+  useEffect(() => {
+    if (lessons.length > 0 && currentLessonIndex < lessons.length) {
+      // Thêm kiểm tra currentLessonIndex
+      setCurrentSentence(lessons[currentLessonIndex].content);
+      resetTranscript();
+      setResult(null);
+      setSentenceComplete(false);
+      wasListeningRef.current = false; // Reset ref khi chuyển câu
+    }
+  }, [lessons, currentLessonIndex, resetTranscript]);
+
+  useEffect(() => {
+    if (listening) {
+      wasListeningRef.current = true;
+    }
+    if (!listening && wasListeningRef.current && !showCelebration) {
+      wasListeningRef.current = false;
+      const correct = buildResultAndCheck();
+      if (correct) {
+        setSentenceComplete(true);
+        setCompletedSentences((prev) => prev + 1);
+        setCompletedLessons((prev) => new Set(prev).add(currentLessonIndex));
+        setTimeout(() => {
+          if (currentLessonIndex < lessons.length - 1) {
+            setCurrentLessonIndex((idx) => idx + 1);
+          } else {
+            setShowCelebration(true);
+            if (user) {
+              addSkillScore(user.id, "speaking", 10).then(async () => {
+                const res = await getScoreUserByUserId(user.id);
+                const totalScore = res?.data?.practice_score ?? 0;
+                setResult(
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="mt-2 text-green-600 font-bold text-xl flex flex-col items-center gap-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Trophy className="w-6 h-6" />
+                      {t("learning.allComplete")}
+                    </div>
+                    <div className="text-blue-600">
+                      🎉 {t("learning.pointsEarned")}
+                    </div>
+                    <div className="text-purple-600">
+                      🏆 {t("learning.totalPoints")} <b>{totalScore}</b>
+                    </div>
+                  </motion.div>
+                );
+              });
+            }
+          }
+        }, 1500);
+      } else {
+        setTimeout(() => {
+          checkPronunciation();
+          resetTranscript();
+          setResult(null);
+        }, 1200);
+      }
+    }
+  }, [
+    listening,
+    showCelebration,
+    currentLessonIndex,
+    lessons,
+    user,
+    t,
+    buildResultAndCheck,
+    checkPronunciation,
+    resetTranscript,
+  ]);
 
   const getLessons = async (levelId: number, topicId: number) => {
     try {

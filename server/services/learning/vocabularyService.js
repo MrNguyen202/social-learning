@@ -173,5 +173,17 @@ const vocabularyService = {
 
     return { data: vocabList, name_en, name_vi, error };
   },
+
+  // Cập nhật điểm mastery_score cho từ vựng cá nhân bằng rpc
+  async updateMasteryScoreRPC(userId, word) {
+    const { data, error } = await supabase.rpc("update_mastery_on_success", {
+      user_id: userId,
+      word_input: word,
+    });
+
+    if (error) throw error;
+
+    return { data, error };
+  },
 };
 module.exports = vocabularyService;

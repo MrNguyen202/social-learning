@@ -55,7 +55,6 @@ export default function PageExerciseDetail() {
 
     const feedbackRef = useRef<HTMLDivElement | null>(null);
 
-
     // Lấy thông tin bài tập theo id
     useEffect(() => {
         const fetchExerciseDetail = async () => {

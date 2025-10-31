@@ -76,3 +76,11 @@ export const generateExerciseByVocabList = async ({ userId, words }: { userId: s
   });
   return response.data;
 }
+
+export const updateMasteryScoreRPC = async ({ userId, word }: { userId: string; word: string }) => {
+  const response = await api.post(`/api/learning/vocabulary/update_mastery_score_rpc`, {
+    userId,
+    word
+  });
+  return response.data;
+}

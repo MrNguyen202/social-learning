@@ -39,8 +39,7 @@ import {
   getScoreUserByUserId,
 } from "@/app/apiClient/learning/score/score";
 import useAuth from "@/hooks/useAuth";
-import { insertOrUpdateVocabularyErrors } from "@/app/apiClient/learning/vocabulary/vocabulary";
-import { supabase } from "@/lib/supabase";
+import { insertOrUpdateVocabularyErrors, updateMasteryScoreRPC } from "@/app/apiClient/learning/vocabulary/vocabulary";
 import ClickToSpeak from "../../vocabulary/components/ClickToSpeak";
 import { generateSpeakingExerciseByAI } from "@/app/apiClient/learning/speaking/speaking";
 
@@ -89,10 +88,7 @@ function LessonAIContent() {
   const update_mastery_on_success = useCallback(
     async (userId: string, word: string) => {
       if (word && isNaN(Number(word))) {
-        await supabase.rpc("update_mastery_on_success", {
-          user_id: userId,
-          word_input: word,
-        });
+        await updateMasteryScoreRPC({ userId, word });
       }
     },
     []

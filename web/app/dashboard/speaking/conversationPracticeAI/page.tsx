@@ -19,8 +19,10 @@ import { useLanguage } from "@/components/contexts/LanguageContext";
 import { generateConversationPracticeByAI } from "@/app/apiClient/learning/speaking/speaking";
 import { addSkillScore } from "@/app/apiClient/learning/score/score";
 import useAuth from "@/hooks/useAuth";
-import { insertOrUpdateVocabularyErrors } from "@/app/apiClient/learning/vocabulary/vocabulary";
-import { supabase } from "@/lib/supabase";
+import {
+  insertOrUpdateVocabularyErrors,
+  updateMasteryScoreRPC,
+} from "@/app/apiClient/learning/vocabulary/vocabulary";
 import { Button } from "@/components/ui/button";
 import { useWindowSize } from "react-use";
 import RoleSelector from "./components/RoleSelector";
@@ -50,7 +52,6 @@ function ConversationPracticeContent() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [loading, setLoading] = useState(true);
-  const [showExerciseList, setShowExerciseList] = useState(false);
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(
     new Set()
   );
@@ -86,10 +87,7 @@ function ConversationPracticeContent() {
     async (userId: string, word: string) => {
       // Chỉ cập nhật nếu từ hợp lệ (không phải số)
       if (word && isNaN(Number(word))) {
-        await supabase.rpc("update_mastery_on_success", {
-          user_id: userId,
-          word_input: word,
-        });
+        await updateMasteryScoreRPC({ userId, word });
       }
     },
     []
@@ -288,7 +286,7 @@ function ConversationPracticeContent() {
   const handleNext = useCallback(() => {
     const isLastSentence = currentIndex + 1 >= dialogue.length;
     setIsAISpeaking(false);
-    setIsAITyping(false); 
+    setIsAITyping(false);
 
     if (isLastSentence) {
       setShowCelebration(true);

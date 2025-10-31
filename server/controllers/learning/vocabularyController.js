@@ -224,23 +224,46 @@ const vocabularyController = {
 
   async getVocabByTopic(req, res) {
     const { userId, topicId } = req.params;
-    
+
     if (!userId || !topicId) {
       return res.status(400).json({ error: "Missing or invalid parameters" });
     }
 
     try {
-      const { data, name_en, name_vi, error } = await vocabularyService.getVocabByTopic(
-        userId,
-        topicId
-      );
+      const { data, name_en, name_vi, error } =
+        await vocabularyService.getVocabByTopic(userId, topicId);
       if (error) {
-        return res.status(500).json({ error: "Error fetching vocabulary by topic" });
+        return res
+          .status(500)
+          .json({ error: "Error fetching vocabulary by topic" });
       }
-      
+
       return res.status(200).json({ success: true, data, name_en, name_vi });
     } catch (error) {
       console.error("Error in getVocabByTopic:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
+  async updateMasteryScoreRPC(req, res) {
+    const { userId, word } = req.body;
+
+    if (!userId || !word) {
+      return res.status(400).json({ error: "Missing or invalid parameters" });
+    }
+    try {
+      const { data, error } = await vocabularyService.updateMasteryScoreRPC(
+        userId,
+        word
+      );
+      if (error) {
+        return res
+          .status(500)
+          .json({ error: "Error updating mastery score via RPC" });
+      }
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Error in updateMasteryScoreRPC:", error);
       return res.status(500).json({ error: "Internal Server Error" });
     }
   },

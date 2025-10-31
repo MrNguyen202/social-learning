@@ -401,9 +401,9 @@ export default function VocabsTopicPage() {
           }`}
         >
           <AnimatePresence mode="popLayout">
-            {displayedVocabs.map((v) => (
+            {displayedVocabs.map((v:any, index:number) => (
               <motion.div
-                key={v.id}
+                key={index}
                 whileHover={{ scale: 1.02, y: -4 }}
                 className="bg-white/80 rounded-2xl p-6 shadow-lg border border-gray-100 cursor-pointer hover:shadow-xl relative overflow-hidden group"
                 section-break
@@ -429,7 +429,7 @@ export default function VocabsTopicPage() {
                         e.stopPropagation();
                         speakWord(v.word);
                       }}
-                      className="w-6 h-6 text-orange-300 opacity-0 group-hover:opacity-100 transition-opacity hover:text-orange-500 cursor-pointer"
+                      className="w-6 h-6 transition-opacity text-orange-300 hover:text-orange-500 cursor-pointer"
                     />
                   </div>
                   <div className="flex items-center justify-between mb-2">

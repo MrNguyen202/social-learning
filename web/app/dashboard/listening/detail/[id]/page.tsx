@@ -100,7 +100,6 @@ export default function ListeningDetailPage() {
     exercise.wordHidden?.forEach((wh: any) => {
         hiddenMap[wh.position] = wh.answer
     })
-
     const words = exercise.text_content.split(/\s+/)
 
     // Hàm kiểm tra đáp án
@@ -164,7 +163,6 @@ export default function ListeningDetailPage() {
         triggerSnowflakeAnim("hint");
     };
 
-
     // Hàm nộp bài
     const handleSubmit = async () => {
         // Tạo mảng wordAnswers từ object answers
@@ -172,11 +170,14 @@ export default function ListeningDetailPage() {
         const wordAnswers = exercise.wordHidden.map((wh: any) => ({
             word_hidden_id: wh.id,
             position: wh.position,
+            answer: wh.answer,
             answer_input: answers[wh.position] || "",
             is_correct: (
                 (answers[wh.position] || "").trim().toLowerCase() === wh.answer.trim().toLowerCase()
             ),
         }))
+
+        wordAnswers
 
         try {
             const res = await listeningService.submitListeningResults(user?.id, exercise?.id, wordAnswers)
