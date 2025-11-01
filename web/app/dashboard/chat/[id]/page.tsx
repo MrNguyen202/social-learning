@@ -1,6 +1,6 @@
 "use client";
 import useAuth from "@/hooks/useAuth";
-import { Paperclip, Smile } from "lucide-react";
+import { Info, Paperclip, Phone, Smile, Video } from "lucide-react";
 import { useEffect, useState } from "react";
 import MessageSender from "./components/MessageSender";
 import MessageReceiver from "./components/MessageReceiver";
@@ -176,6 +176,20 @@ export default function ChatDetail() {
                 .join(", ")}
             </h2>
           )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button className="p-2 hover:cursor-pointer hover:bg-gray-200 rounded-full">
+            <Phone className="w-6 h-6 text-gray-500 hover:text-black" />
+          </button>
+          <button className="p-2 hover:cursor-pointer hover:bg-gray-200 rounded-full">
+            <Video className="w-6 h-6 text-gray-500 hover:text-black" />
+          </button>
+          <button
+            onClick={() => console.log("Options clicked")}
+            className="p-2 hover:cursor-pointer hover:bg-gray-200 rounded-full"
+          >
+            <Info className="w-6 h-6 text-gray-500 hover:text-black" />
+          </button>
         </div>
       </div>
 
