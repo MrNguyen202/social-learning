@@ -65,7 +65,6 @@ export default function WordPracticeAI() {
   const [wrongPile, setWrongPile] = useState<any[]>([]);
   // State cho SRS (lưu các từ đã từng làm sai)
   const [implicitlyHardWords, setImplicitlyHardWords] = useState<string[]>([]);
-  const [stored, setStored] = useState<string | null>(null);
 
   const update_mastery_on_success = async (userId: string, word: string) => {
     await updateMasteryScoreRPC({ userId, word });
@@ -74,7 +73,7 @@ export default function WordPracticeAI() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const data = sessionStorage.getItem("practiceWords");
-      setStored(data);
+      setWords(data ? JSON.parse(data) : []);
     }
   }, []);
 
@@ -276,6 +275,7 @@ export default function WordPracticeAI() {
     );
   if (error)
     return <div className="p-10 text-center text-red-500">{error}</div>;
+
   if (exercises.length === 0)
     return (
       <div className="p-10 text-center text-gray-500">
