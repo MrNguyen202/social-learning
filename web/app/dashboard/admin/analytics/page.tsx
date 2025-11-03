@@ -3,12 +3,22 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow }  from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "react-toastify";
-import { loadAnalyticOverview, loadLeaderboard, loadSkillBreakdown } from "@/app/apiClient/admin/analytic";
-
+import {
+  loadAnalyticOverview,
+  loadLeaderboard,
+  loadSkillBreakdown,
+} from "@/app/apiClient/admin/analytic";
 
 // 2. Định nghĩa Type cho dữ liệu
 type AnalyticsData = {
@@ -24,8 +34,9 @@ type SkillData = {
 
 type LeaderboardEntry = {
   rank: number;
-  user: { // API trả về object lồng nhau
-    name: string; 
+  user: {
+    // API trả về object lồng nhau
+    name: string;
     avatar: string; // Service của bạn cũng trả về avatar
   } | null; // User có thể là null nếu bị xóa
   leaderboard_type: string;
@@ -40,7 +51,9 @@ export default function page() {
   // State cho Data
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData[]>([]);
   const [skillData, setSkillData] = useState<SkillData[]>([]);
-  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>(
+    []
+  );
 
   // State cho Loading
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
@@ -113,7 +126,7 @@ export default function page() {
   }, [fetchAnalytics]); // fetchAnalytics đã bao gồm fromDate, toDate
 
   return (
-    <div className="flex-1 px-6 py-3 space-y-6">
+    <div className="flex-1 pr-6 py-4 pl-12 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Learning Analytics & Reports</CardTitle>
@@ -184,7 +197,9 @@ export default function page() {
                 {skillLoading ? (
                   <Skeleton className="h-64 w-full" />
                 ) : skillData.length === 0 ? (
-                  <p className="text-center py-8 text-gray-500">No skill data</p>
+                  <p className="text-center py-8 text-gray-500">
+                    No skill data
+                  </p>
                 ) : (
                   <Table>
                     <TableHeader>

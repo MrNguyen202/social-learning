@@ -29,7 +29,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { deleteListeningParagraph, loadLevels, loadListeningParagraphs, loadTopics } from "@/app/apiClient/admin/content";
+import {
+  deleteListeningParagraph,
+  loadLevels,
+  loadListeningParagraphs,
+  loadTopics,
+} from "@/app/apiClient/admin/content";
 import { ListeningParagraphDialog } from "./ListeningParagraphDialog";
 
 type ListeningParagraph = {
@@ -48,7 +53,7 @@ type ListeningParagraph = {
   avg_score: number;
 };
 
-export function ListeningParagraphs() {
+export function ListeningParagraphs({ t }: { t: (key: string) => string }) {
   const [levelId, setLevelId] = useState<string | null>(null);
   const [topicId, setTopicId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -134,7 +139,7 @@ export function ListeningParagraphs() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Listening Paragraphs</CardTitle>
-          <Button onClick={handleCreate}>
+          <Button onClick={handleCreate} className="cursor-pointer">
             <Plus className="w-4 h-4 mr-2" />
             Create New
           </Button>
@@ -239,6 +244,7 @@ export function ListeningParagraphs() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleEdit(paragraph)}
+                              className="cursor-pointer hover:bg-gray-200"
                             >
                               <Pencil className="w-4 h-4" />
                             </Button>
@@ -246,6 +252,7 @@ export function ListeningParagraphs() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteClick(paragraph.id)}
+                              className="cursor-pointer hover:bg-gray-200"
                             >
                               <Trash2 className="w-4 h-4 text-red-500" />
                             </Button>

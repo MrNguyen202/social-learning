@@ -2,12 +2,29 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "react-toastify";
-import { loadDifficultWords, loadVocabularyOverview, loadVocabularyTopics } from "@/app/apiClient/admin/analytic";
+import {
+  loadDifficultWords,
+  loadVocabularyOverview,
+  loadVocabularyTopics,
+} from "@/app/apiClient/admin/analytic";
 import { Pagination } from "./components/Pagination";
 
 // Định nghĩa Type cho dữ liệu
@@ -135,7 +152,7 @@ export default function Vocabulary() {
   const totalTopicsPages = Math.ceil(topics.length / ITEMS_PER_PAGE);
 
   return (
-    <div className="flex-1 px-6 py-3 space-y-6">
+    <div className="flex-1 pr-6 py-4 pl-12 space-y-6">
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
@@ -144,7 +161,9 @@ export default function Vocabulary() {
               <Skeleton className="h-16 w-full" />
             ) : (
               <>
-                <p className="text-sm text-gray-600">Total Vocabulary Entries</p>
+                <p className="text-sm text-gray-600">
+                  Total Vocabulary Entries
+                </p>
                 <p className="text-3xl font-bold mt-2">
                   {overview?.total_vocab_entries ?? 0}
                 </p>
@@ -208,16 +227,39 @@ export default function Vocabulary() {
                   <SelectItem value="reading">Reading</SelectItem>
                 </SelectContent>
               </Select>
-              {/* ... (Select cho ErrorType giữ nguyên) ... */}
+              <Select
+                value={errorType ?? "all"}
+                onValueChange={(val) =>
+                  setErrorType(val === "all" ? null : val)
+                }
+              >
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Filter by Error Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Error Types</SelectItem>
+                  <SelectItem value="spelling">Spelling</SelectItem>
+                  <SelectItem value="grammar">Grammar</SelectItem>
+                  <SelectItem value="pronunciation">Pronunciation</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Bảng Difficult Words (Giữ nguyên JSX) */}
+            {/* Bảng Difficult Words  */}
             <div className="rounded-md border">
               <Table>
-                <TableHeader>{/* ... (JSX TableHeader) ... */}</TableHeader>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Word</TableHead>
+                    <TableHead>Error Type</TableHead>
+                    <TableHead>Skill</TableHead>
+                    <TableHead>Total Errors</TableHead>
+                    <TableHead>Affected Users</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {wordsLoading ? (
-                   Array.from({ length: 5 }).map((_, i) => (
+                    Array.from({ length: 5 }).map((_, i) => (
                       <TableRow key={i}>
                         {Array.from({ length: 5 }).map((_, j) => (
                           <TableCell key={j}>
@@ -227,19 +269,26 @@ export default function Vocabulary() {
                       </TableRow>
                     ))
                   ) : paginatedWords.length === 0 ? (
-                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="text-center py-8 text-gray-500"
+                      >
                         No difficult words found
                       </TableCell>
                     </TableRow>
                   ) : (
                     paginatedWords.map((word, i) => (
                       <TableRow key={i}>
-                        <TableCell className="font-medium">{word.word}</TableCell>
+                        <TableCell className="font-medium">
+                          {word.word}
+                        </TableCell>
                         <TableCell>
                           <Badge variant="destructive">{word.error_type}</Badge>
                         </TableCell>
-                        <TableCell className="capitalize">{word.skill}</TableCell>
+                        <TableCell className="capitalize">
+                          {word.skill}
+                        </TableCell>
                         <TableCell>{word.total_errors}</TableCell>
                         <TableCell>{word.affected_users}</TableCell>
                       </TableRow>
@@ -268,15 +317,27 @@ export default function Vocabulary() {
           {topicsLoading ? (
             <Skeleton className="h-64 w-full" />
           ) : paginatedTopics.length === 0 ? (
-           <p className="text-center py-8 text-gray-500">No vocabulary topics found</p>
+            <p className="text-center py-8 text-gray-500">
+              No vocabulary topics found
+            </p>
           ) : (
             <>
               <Table>
-                <TableHeader>{/* ... (JSX TableHeader) ... */}</TableHeader>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Topic (English)</TableHead>
+                    <TableHead>Topic (Vietnamese)</TableHead>
+                    <TableHead>Total Vocab</TableHead>
+                    <TableHead>Created By</TableHead>
+                    <TableHead>Created</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {paginatedTopics.map((topic) => (
                     <TableRow key={topic.id}>
-                      <TableCell className="font-medium">{topic.name_en}</TableCell>
+                      <TableCell className="font-medium">
+                        {topic.name_en}
+                      </TableCell>
                       <TableCell>{topic.name_vi}</TableCell>
                       <TableCell>
                         <Badge>{topic.total_vocab}</Badge>

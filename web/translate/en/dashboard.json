@@ -12,6 +12,7 @@
   "vocabularys": "Vocabulary",
   "analytics": "Analytics",
   "achievements": "Achievements",
+  "learningPath": "Learning Path",
   "writing": "English Writing Practice",
   "listening": "English Listening Practice",
   "speaking": "Speaking Practice",
@@ -112,6 +113,7 @@
 
   "selectTextType": "Select Text Type",
 
+  "comments": "Comments",
   "addComment": "Add comment...",
   "commentSuccess": "Comment successful",
   "commentFailed": "Comment failed",
@@ -218,5 +220,31 @@
   "recipient": "Enter recipient name...",
   "recommendations": "Recommendations",
   "you": "You",
-  "unsupportedContent": "Unsupported content"
+  "unsupportedContent": "Unsupported content",
+
+  "totalUsers": "Total Users",
+  "activeLearnersToday": "Active Learners Today",
+  "totalContent": "Total Content",
+  "engagementRate": "Engagement Rate",
+  "newUsers": "New Users (Last 30 Days)",
+  "activeUsers": "Daily Active Users (Last 30 Days)",
+  "newUser": "New User",
+  "activeUser": "Active User",
+  "recentActivity": "Recent Activity",
+  "pendingApproval": "Pending Approval",
+  "noPendingPosts": "No pending posts",
+
+  "userManagement": "User Management",
+  "userSearch": "Search by name, email or nickname...",
+  "allLevels": "All levels",
+  "lastSeen": "Last seen",
+  "joined": "Joined",
+  "actions": "Actions",
+  "view": "View",
+  "userDetails": "User Details",
+  "noUsersFound": "No users found",
+
+  "listeningParagraphs": "Listening Exercises",
+  "speakingLessons": "Speaking Lessons",
+  "writingExercises": "Writing Exercises"
 }

@@ -167,7 +167,7 @@ export function LeftSidebar() {
     {
       icon: ChartSpline,
       path: "/dashboard/roadmap",
-      label: "Lộ trình học tập",
+      label: t("dashboard.learningPath"),
     }
   ];
 

@@ -28,6 +28,7 @@ import {
   loadUserVocabularies,
 } from "@/app/apiClient/admin/user";
 import { getUserImageSrc } from "@/app/apiClient/image/image";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 type UserDetailDialogProps = {
   userId: string | null;
@@ -40,24 +41,25 @@ export function UserDetailDialog({
   open,
   onOpenChange,
 }: UserDetailDialogProps) {
+  const { t } = useLanguage();
   if (!userId) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="xl:max-w-6xl xl:h-[80vh] lg:max-w-5xl lg:h-[70vh] md:max-w-4xl md:h-[70vh] sm:max-w-2xl sm:h-[70vh] max-w-xl h-[70vh] p-0 overflow-y-auto">
         <DialogHeader className="flex flex-row items-center justify-between px-6 py-4 border-b">
-          <DialogTitle>Chi tiết người dùng</DialogTitle>
+          <DialogTitle>{t("dashboard.userDetails")}</DialogTitle>
         </DialogHeader>
 
         <div className="px-6 py-4">
-          <UserDetailContent userId={userId} />
+          <UserDetailContent userId={userId} t={t} />
         </div>
       </DialogContent>
     </Dialog>
   );
 }
 
-function UserDetailContent({ userId }: { userId: string }) {
+function UserDetailContent({ userId, t }: { userId: string; t: any }) {
   // State cho dữ liệu
   const [user, setUser] = useState<any>(null);
   const [scores, setScores] = useState<any[]>([]);
@@ -146,7 +148,11 @@ function UserDetailContent({ userId }: { userId: string }) {
   }
 
   if (!user) {
-    return <div className="text-center py-8 text-gray-500">User not found</div>;
+    return (
+      <div className="text-center py-8 text-gray-500">
+        {t("dashboard.noUsersFound")}
+      </div>
+    );
   }
 
   return (

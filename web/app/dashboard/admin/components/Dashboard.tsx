@@ -27,6 +27,7 @@ import {
 } from "@/app/apiClient/admin/user";
 import { getUserImageSrc } from "@/app/apiClient/image/image";
 import { convertToDate, formatTime } from "@/utils/formatTime";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 type DashboardMetrics = {
   total_users: number;
@@ -52,6 +53,7 @@ type PendingPost = {
 };
 
 export function Dashboard({ user }: { user: any }) {
+  const { t } = useLanguage();
   const [metricsData, setMetricsData] = useState<DashboardMetrics | null>(null);
   const [metricsLoading, setMetricsLoading] = useState(true);
 
@@ -162,25 +164,25 @@ export function Dashboard({ user }: { user: any }) {
   const metricCards = useMemo(
     () => [
       {
-        title: "Tổng số người dùng",
+        title: `${t("dashboard.totalUsers")}`,
         value: metricsData?.total_users ?? 0,
         icon: <Users className="w-5 h-5 text-blue-600" />,
         color: "bg-blue-50",
       },
       {
-        title: "Học viên tích cực hôm nay",
+        title: `${t("dashboard.activeLearnersToday")}`,
         value: metricsData?.active_learners_today ?? 0,
         icon: <Activity className="w-5 h-5 text-green-600" />,
         color: "bg-green-50",
       },
       {
-        title: "Tổng số nội dung",
+        title: `${t("dashboard.totalContent")}`,
         value: metricsData?.total_content_items ?? 0,
         icon: <BookOpen className="w-5 h-5 text-purple-600" />,
         color: "bg-purple-50",
       },
       {
-        title: "Tỷ lệ tương tác",
+        title: `${t("dashboard.engagementRate")}`,
         value: `${metricsData?.engagement_rate ?? 0}%`,
         icon: <TrendingUp className="w-5 h-5 text-orange-600" />,
         color: "bg-orange-50",
@@ -190,13 +192,11 @@ export function Dashboard({ user }: { user: any }) {
   );
 
   return (
-    <div className="space-y-6 sm:ml-6 px-4">
+    <div className="space-y-6 md:pl-16 lg:pl-8 xl:pl-6 px-4 pl-14">
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {metricCards.map((card, index) => (
           <Card key={index}>
-            {" "}
-            {/* key={index} ở đây là an toàn vì mảng metricCards là cố định */}
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -223,13 +223,13 @@ export function Dashboard({ user }: { user: any }) {
         {/* User Growth */}
         <Card>
           <CardHeader>
-            <CardTitle>Người dùng đăng kí (30 ngày qua)</CardTitle>
+            <CardTitle>{t("dashboard.newUsers")}</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             {userGrowthLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : chartUserGrowth.length === 0 ? (
-              <p className="text-center py-8 text-gray-500">Không có dữ liệu</p>
+              <p className="text-center py-8 text-gray-500">{t("dashboard.noData")}</p>
             ) : (
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={chartUserGrowth}>
@@ -242,13 +242,13 @@ export function Dashboard({ user }: { user: any }) {
                     type="monotone"
                     dataKey="newUsers"
                     stroke="#8884d8"
-                    name="Người dùng mới"
+                    name={t("dashboard.newUser")}
                   />
                   <Line
                     type="monotone"
                     dataKey="totalUsers"
                     stroke="#82ca9d"
-                    name="Tổng Users"
+                    name={t("dashboard.totalUsers")}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -259,13 +259,13 @@ export function Dashboard({ user }: { user: any }) {
         {/* Active Users */}
         <Card>
           <CardHeader>
-            <CardTitle>Người dùng hoạt động hàng ngày (30 ngày qua)</CardTitle>
+            <CardTitle>{t("dashboard.activeUsers")}</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             {activeUsersLoading ? (
               <Skeleton className="h-64 w-full" />
             ) : chartActiveUsers.length === 0 ? (
-              <p className="text-center py-8 text-gray-500">Không có dữ liệu</p>
+              <p className="text-center py-8 text-gray-500">{t("dashboard.noData")}</p>
             ) : (
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={chartActiveUsers}>
@@ -278,7 +278,7 @@ export function Dashboard({ user }: { user: any }) {
                     type="monotone"
                     dataKey="activeUsers"
                     stroke="#ff7300"
-                    name="Người dùng hoạt động"
+                    name={t("dashboard.activeUser")}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -292,7 +292,7 @@ export function Dashboard({ user }: { user: any }) {
         {/* Recent Activities */}
         <Card>
           <CardHeader>
-            <CardTitle>Hoạt động gần đây</CardTitle>
+            <CardTitle>{t("dashboard.recentActivities")}</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             {activitiesLoading ? (
@@ -309,10 +309,10 @@ export function Dashboard({ user }: { user: any }) {
               </div>
             ) : activitiesData.length === 0 ? (
               <p className="text-gray-500 text-center py-4">
-                Không có hoạt động gần đây
+                {t("dashboard.noData")}
               </p>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-8">
                 {activitiesData.map((activity: RecentActivity) => (
                   <div key={activity.id} className="flex items-center gap-3">
                     <Avatar className="w-10 h-10 cursor-pointer hover:ring-2 hover:ring-orange-500 transition-all duration-300 hover:scale-110">
@@ -346,7 +346,7 @@ export function Dashboard({ user }: { user: any }) {
         {/* Pending Moderation */}
         <Card>
           <CardHeader>
-            <CardTitle>Đang chờ kiểm duyệt</CardTitle>
+            <CardTitle>{t("dashboard.pendingApproval")}</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             {moderationLoading ? (
@@ -360,11 +360,10 @@ export function Dashboard({ user }: { user: any }) {
               </div>
             ) : moderationData.length === 0 ? (
               <p className="text-gray-500 text-center py-4">
-                Không có bài viết nào đang chờ kiểm duyệt
+                {t("dashboard.noPendingPosts")}
               </p>
             ) : (
               <div className="space-y-4">
-                {/* ✅ FIX: Sử dụng key={post.id} và type PendingPost */}
                 {moderationData.map((post: PendingPost) => (
                   <div key={post.id} className="border-b pb-3 last:border-0">
                     <p className="text-sm line-clamp-2">{post?.content}</p>
@@ -374,7 +373,7 @@ export function Dashboard({ user }: { user: any }) {
                       </span>
                       <span className="text-xs text-gray-400">•</span>
                       <span className="text-xs text-gray-500">
-                        {post?.comment_count} bình luận
+                        {post?.comment_count} {t("dashboard.comments")}
                       </span>
                     </div>
                   </div>

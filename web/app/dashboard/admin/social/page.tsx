@@ -31,9 +31,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Search, Eye, Trash2, Heart, MessageCircle } from "lucide-react";
 import { toast } from "react-toastify";
-import { deleteComment, deletePostByAdmin, loadPost, loadPostComments } from "@/app/apiClient/admin/post";
+import {
+  deleteComment,
+  deletePostByAdmin,
+  loadPost,
+  loadPostComments,
+} from "@/app/apiClient/admin/post";
+import { getSupabaseFileUrl } from "@/app/apiClient/image/image";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
-// 2. Định nghĩa Type cho dữ liệu (để code sạch hơn)
 type Post = {
   id: number;
   content: string;
@@ -41,12 +47,11 @@ type Post = {
   original_name?: string;
   created_at: string;
   user: {
-    // Thay vì user_name
     name: string;
     id: string;
   };
-  likes_count: number;
-  comments_count: number;
+  likes_count: any;
+  comments_count: any;
 };
 
 type Comment = {
@@ -54,13 +59,13 @@ type Comment = {
   content: string;
   created_at: string;
   user: {
-    // Thay vì user_name
     name: string;
     id: string;
   };
 };
 
 export default function Social() {
+  const { t } = useLanguage();
   // State cho Filters
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState<string | null>(null);
@@ -83,7 +88,7 @@ export default function Social() {
   const [deletingPost, setDeletingPost] = useState(false);
   const [deletingComment, setDeletingComment] = useState(false);
 
-  // 3. Hàm Fetch Posts (thay thế useLoadAction)
+  // 3. Hàm Fetch Posts
   const fetchPosts = useCallback(async () => {
     setPostsLoading(true);
     try {
@@ -100,7 +105,7 @@ export default function Social() {
     }
   }, [search, fromDate, toDate]); // Chỉ chạy lại khi filter thay đổi
 
-  // 4. Hàm Fetch Comments (thay thế useLoadAction)
+  // 4. Hàm Fetch Comments
   const fetchComments = useCallback(async () => {
     if (!selectedPost) return; // Không fetch nếu không có post nào được chọn
 
@@ -200,14 +205,14 @@ export default function Social() {
   };
 
   return (
-    <div className="flex-1 px-6 py-3">
+    <div className="flex-1 pr-6 py-4 pl-12">
       <Card>
         <CardHeader>
-          <CardTitle>Social Content Moderation</CardTitle>
+          <CardTitle className="text-3xl">Social Content Moderation</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="space-y-4">
-            {/* Filters (Giữ nguyên JSX) */}
+            {/* Filters */}
             <div className="flex gap-4">
               <div className="flex-1 flex gap-2">
                 <Input
@@ -235,10 +240,18 @@ export default function Social() {
               />
             </div>
 
-            {/* Bảng dữ liệu (Cập nhật logic mapping) */}
+            {/* Bảng dữ liệu */}
             <div className="rounded-md border">
               <Table>
-                <TableHeader>{/* ... (Giữ nguyên JSX) ... */}</TableHeader>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Content</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead>Engagement</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {postsLoading ? (
                     Array.from({ length: 5 }).map((_, i) => (
@@ -265,17 +278,16 @@ export default function Social() {
                         <TableCell className="max-w-md">
                           <p className="line-clamp-2">{post.content}</p>
                         </TableCell>
-                        {/* 8. Sửa lại cách truy cập tên user */}
-                        <TableCell>{post.user?.name || "N/A"}</TableCell>
+                        <TableCell>{post.user?.name}</TableCell>
                         <TableCell>
                           <div className="flex gap-3 text-sm">
                             <span className="flex items-center gap-1">
                               <Heart className="w-4 h-4" />
-                              {/* {post.likes_count} */}
+                              {post.likes_count[0]?.count}
                             </span>
                             <span className="flex items-center gap-1">
                               <MessageCircle className="w-4 h-4" />
-                              {/* {post.comments_count} */}
+                              {post.comments_count[0]?.count}
                             </span>
                           </div>
                         </TableCell>
@@ -288,6 +300,7 @@ export default function Social() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleViewPost(post)}
+                              className="cursor-pointer hover:bg-gray-200"
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
@@ -295,6 +308,7 @@ export default function Social() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeletePostClick(post.id)}
+                              className="cursor-pointer hover:bg-gray-200"
                             >
                               <Trash2 className="w-4 h-4 text-red-500" />
                             </Button>
@@ -310,7 +324,7 @@ export default function Social() {
         </CardContent>
       </Card>
 
-      {/* Post Detail Dialog (Cập nhật logic mapping) */}
+      {/* Post Detail Dialog */}
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -323,15 +337,51 @@ export default function Social() {
                   Posted by {selectedPost.user?.name || "N/A"}
                 </p>
                 <p className="text-base">{selectedPost.content}</p>
-                {selectedPost.file && (
-                  <div className="mt-4">
-                    <img
-                      src={selectedPost.file} // <-- Cần đảm bảo đây là URL hợp lệ
-                      alt={selectedPost.original_name}
-                      className="rounded-lg max-h-96 object-cover"
-                    />
-                  </div>
-                )}
+
+                {selectedPost?.file &&
+                  (() => {
+                    const fileUrl = getSupabaseFileUrl(selectedPost.file);
+                    const ext = selectedPost.file
+                      .split(".")
+                      .pop()
+                      ?.toLowerCase();
+
+                    if (!fileUrl) return null;
+
+                    if (["png", "jpg", "jpeg", "gif"].includes(ext!)) {
+                      return (
+                        <img
+                          src={fileUrl}
+                          alt="Post Image"
+                          className="w-full h-auto max-h-full object-cover"
+                        />
+                      );
+                    }
+
+                    if (["mp4", "webm", "ogg"].includes(ext!)) {
+                      return (
+                        <video controls className="w-full max-h-160">
+                          <source src={fileUrl} type={`video/${ext}`} />
+                          {t("dashboard.videoNotSupported")}
+                        </video>
+                      );
+                    }
+
+                    // Các loại file khác (pdf, docx, xlsx...)
+                    return (
+                      <div className="flex items-center space-x-3 p-3 border rounded-md bg-gray-50">
+                        <span className="text-2xl">📄</span>
+                        <a
+                          href={fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline text-sm"
+                        >
+                          {selectedPost?.original_name}
+                        </a>
+                      </div>
+                    );
+                  })()}
               </div>
 
               <div>

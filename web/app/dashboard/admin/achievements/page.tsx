@@ -63,11 +63,11 @@ export default function page() {
   };
 
   return (
-    <div className="flex-1 px-6 py-3">
+    <div className="flex-1 pr-6 py-4 pl-12 space-y-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Achievements & Gamification</CardTitle>
-          <Button onClick={handleCreate}>
+          <CardTitle className="text-3xl">Achievements & Gamification</CardTitle>
+          <Button onClick={handleCreate} className="cursor-pointer">
             <Plus className="w-4 h-4 mr-2" />
             Create New
           </Button>
@@ -102,8 +102,8 @@ export default function page() {
                   <SelectItem value="listening">Listening</SelectItem>
                   <SelectItem value="writing">Writing</SelectItem>
                   <SelectItem value="speaking">Speaking</SelectItem>
-                  <SelectItem value='streak'>Streak</SelectItem>
-                  <SelectItem value='total_score'>Total Score</SelectItem>
+                  <SelectItem value="streak">Streak</SelectItem>
+                  <SelectItem value="total_score">Total Score</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -169,6 +169,7 @@ export default function page() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleEdit(achievement)}
+                            className="cursor-pointer hover:bg-gray-200"
                           >
                             <Pencil className="w-4 h-4" />
                           </Button>

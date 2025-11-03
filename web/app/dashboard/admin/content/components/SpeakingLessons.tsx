@@ -54,7 +54,7 @@ type SpeakingLesson = {
 type Level = { id: number; name_en: string; [key: string]: any };
 type Topic = { id: number; name_en: string; [key: string]: any };
 
-export function SpeakingLessons() {
+export function SpeakingLessons({ t }: { t: (key: string) => string }) {
   // State cho bộ lọc
   const [levelId, setLevelId] = useState<string | null>(null);
   const [topicId, setTopicId] = useState<string | null>(null);
@@ -137,7 +137,7 @@ export function SpeakingLessons() {
         const response = await deleteSpeakingLesson(lessonToDelete);
         if (response.success) {
           toast.success("Lesson deleted successfully!");
-          refreshLessons(); // Tải lại danh sách
+          refreshLessons();
         } else {
           toast.error(response.message || "Failed to delete");
         }
@@ -156,7 +156,7 @@ export function SpeakingLessons() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Speaking Lessons</CardTitle>
-          <Button onClick={handleCreate}>
+          <Button onClick={handleCreate} className="cursor-pointer">
             <Plus className="w-4 h-4 mr-2" />
             Create New
           </Button>
@@ -234,17 +234,13 @@ export function SpeakingLessons() {
                     </TableRow>
                   ) : (
                     lessons.map((lesson: any) => {
-                      // 1. TÌM TÊN DỰA TRÊN ID
-                      // Tìm trong mảng 'levels' (đã có trong state)
                       const level = levels.find(
                         (l) => l.id === lesson.level_id
                       );
-                      // Tìm trong mảng 'topics' (đã có trong state)
                       const topic = topics.find(
                         (t) => t.id === lesson.topic_id
                       );
 
-                      // 2. Lấy tên (hoặc 'N/A' nếu không tìm thấy)
                       const levelName = level?.name_en || "N/A";
                       const topicName = topic?.name_en || "N/A";
 
@@ -254,11 +250,9 @@ export function SpeakingLessons() {
                             <p className="line-clamp-2">{lesson.content}</p>
                           </TableCell>
                           <TableCell>
-                            {/* 3. SỬ DỤNG TÊN ĐÃ TÌM ĐƯỢC */}
                             <Badge variant="secondary">{levelName}</Badge>
                           </TableCell>
                           <TableCell>
-                            {/* 3. SỬ DỤNG TÊN ĐÃ TÌM ĐƯỢC */}
                             <Badge variant="outline">{topicName}</Badge>
                           </TableCell>
                           <TableCell>
@@ -269,6 +263,7 @@ export function SpeakingLessons() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteClick(lesson.id)}
+                              className="cursor-pointer hover:bg-gray-200"
                             >
                               <Trash2 className="w-4 h-4 text-red-500" />
                             </Button>

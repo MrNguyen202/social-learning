@@ -12,6 +12,7 @@
   "vocabulary": "Từ vựng của bạn",
   "ranking": "Bảng xếp hạng",
   "progress": "Tiến trình của tôi",
+  "learningPath": "Lộ trình học tập",
   "learningSection": "Học tập và phát triển",
   "seeMore": "Xem thêm",
   "myAccount": "Tài khoản của tôi",
@@ -112,6 +113,7 @@
 
   "selectTextType": "Chọn loại văn bản",
 
+  "comments": "bình luận",
   "addComment": "Thêm bình luận...",
   "commentSuccess": "Bình luận thành công",
   "commentFailed": "Bình luận thất bại",
@@ -219,5 +221,33 @@
   "recipient": "Nhập tên người nhận...",
   "recommendations": "Gợi ý",
   "you": "Bạn",
-  "unsupportedContent": "Nội dung không được hỗ trợ"
+  "unsupportedContent": "Nội dung không được hỗ trợ",
+
+  "noData": "Không có dữ liệu",
+
+  "totalUsers": "Tổng số người dùng",
+  "activeLearnersToday": "Học viên tích cực hôm nay",
+  "totalContent": "Tổng số nội dung",
+  "engagementRate": "Tỷ lệ tương tác",
+  "newUsers": "Người dùng đăng kí (30 ngày qua)",
+  "activeUsers": "Người dùng hoạt động hàng ngày (30 ngày qua)",
+  "newUser": "Người dùng mới",
+  "activeUser": "Người dùng hoạt động",
+  "recentActivity": "Hoạt động gần đây",
+  "pendingApproval": "Đang chờ kiểm duyệt",
+  "noPendingPosts": "Không có bài viết nào đang chờ kiểm duyệt",
+
+  "userManagement": "Quản lý người dùng",
+  "userSearch": "Tìm kiếm theo tên, email hoặc biệt danh...",
+  "allLevels": "Tất cả cấp độ",
+  "lastSeen": "Lần cuối truy cập",
+  "joined": "Đã tham gia vào",
+  "actions": "Hành động",
+  "view": "Xem",
+  "userDetails": "Chi tiết người dùng",
+  "noUsersFound": "Không tìm thấy người dùng",
+
+  "listeningParagraphs": "Bài tập nghe",
+  "speakingLessons": "Bài nói",
+  "writingExercises": "Bài tập viết"
 }

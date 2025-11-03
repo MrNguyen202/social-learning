@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Search } from "lucide-react";
 import { loadUsers } from "@/app/apiClient/admin/user";
 import { UserDetailDialog } from "./components/UserDetailDialog";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 type User = {
   id: string;
@@ -36,6 +37,7 @@ type User = {
 };
 
 export default function Users() {
+  const { t } = useLanguage();
   const [search, setSearch] = useState("");
   const [level, setLevel] = useState<number | null>(null);
   const [fromDate, setFromDate] = useState<string | null>(null);
@@ -83,10 +85,12 @@ export default function Users() {
   const LEVELS = Array.from({ length: 10 }, (_, i) => i + 1);
 
   return (
-    <div className="flex-1 px-6 py-3">
+    <div className="flex-1 pr-6 py-4 pl-12">
       <Card>
         <CardHeader>
-          <CardTitle>User Management</CardTitle>
+          <CardTitle className="text-3xl">
+            {t("dashboard.userManagement")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="space-y-4">
@@ -94,7 +98,7 @@ export default function Users() {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 flex gap-2">
                 <Input
-                  placeholder="Search by name, email, or nickname..."
+                  placeholder={t("dashboard.userSearch")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -113,13 +117,15 @@ export default function Users() {
                   }
                 >
                   <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Level" />
+                    <SelectValue placeholder={t("dashboard.allLevels")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Levels</SelectItem>
+                    <SelectItem value="all">
+                      {t("dashboard.allLevels")}
+                    </SelectItem>
                     {LEVELS.map((lvl) => (
                       <SelectItem key={lvl} value={lvl.toString()}>
-                        Level {lvl}
+                        {t("dashboard.level")} {lvl}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -146,13 +152,13 @@ export default function Users() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Nickname</TableHead>
-                    <TableHead>Level</TableHead>
-                    <TableHead>Last Seen</TableHead>
-                    <TableHead>Joined</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("dashboard.name")}</TableHead>
+                    <TableHead>{t("dashboard.email")}</TableHead>
+                    <TableHead>{t("dashboard.nickname")}</TableHead>
+                    <TableHead>{t("dashboard.level")}</TableHead>
+                    <TableHead>{t("dashboard.lastSeen")}</TableHead>
+                    <TableHead>{t("dashboard.joined")}</TableHead>
+                    <TableHead>{t("dashboard.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -172,7 +178,7 @@ export default function Users() {
                         colSpan={7}
                         className="text-center py-8 text-gray-500"
                       >
-                        No users found
+                        {t("dashboard.noUsersFound")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -199,7 +205,7 @@ export default function Users() {
                             onClick={() => handleViewUser(user.id)}
                             className="cursor-pointer hover:bg-black hover:text-white"
                           >
-                            View
+                            {t("dashboard.view")}
                           </Button>
                         </TableCell>
                       </TableRow>

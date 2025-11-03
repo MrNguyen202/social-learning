@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from "react-toastify"; // Thêm toast
+import { toast } from "react-toastify";
 import {
   deleteWritingExercise,
   loadLevels,
@@ -42,7 +42,6 @@ import {
 } from "@/app/apiClient/admin/content";
 import { WritingExerciseDialog } from "./WritingExerciseDialog";
 
-// Định nghĩa kiểu dữ liệu
 type WritingExercise = {
   id: number;
   title: string;
@@ -51,7 +50,7 @@ type WritingExercise = {
   topic_name: string;
   number_sentence: number;
   submission_count: number;
-  [key: string]: any; // Thêm index signature
+  [key: string]: any;
 };
 
 type Level = { id: number; name_en: string; [key: string]: any };
@@ -59,7 +58,7 @@ type Topic = { id: number; name_en: string; [key: string]: any };
 type TypeExercise = { id: number; title_en: string; [key: string]: any };
 type TypeParagraph = { id: number; name_en: string; [key: string]: any };
 
-export function WritingExercises() {
+export function WritingExercises({ t }: { t: (key: string) => string }) {
   // State cho bộ lọc
   const [levelId, setLevelId] = useState<string | null>(null);
   const [topicId, setTopicId] = useState<string | null>(null);
@@ -102,9 +101,8 @@ export function WritingExercises() {
     } finally {
       setExercisesLoading(false);
     }
-  }, [levelId, topicId, typeExerciseId, typeParagraphId]); // Phụ thuộc vào filters
+  }, [levelId, topicId, typeExerciseId, typeParagraphId]);
 
-  // Tải tất cả dropdowns khi component mount
   useEffect(() => {
     const fetchDropdowns = async () => {
       try {
@@ -173,7 +171,7 @@ export function WritingExercises() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Writing Exercises</CardTitle>
-          <Button onClick={handleCreate}>
+          <Button onClick={handleCreate} className="cursor-pointer">
             <Plus className="w-4 h-4 mr-2" />
             Create New
           </Button>
@@ -311,6 +309,7 @@ export function WritingExercises() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDeleteClick(exercise.id)}
+                            className="cursor-pointer hover:bg-gray-200"
                           >
                             <Trash2 className="w-4 h-4 text-red-500" />
                           </Button>

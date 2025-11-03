@@ -5,12 +5,15 @@ import { useRouter, usePathname } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 import { LeftSidebar } from "./components/LeftSideBar";
 import { LeftSideBarHiddenLabel } from "./components/LeftSideBarHiddenLable";
+import { LeftSidebarMobile } from "./components/LeftSideBarMobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  const isMobile = useIsMobile();
 
   const compact = pathname.startsWith("/dashboard/chat");
   const compactWriting =
@@ -20,7 +23,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 1024);
+      if (window.innerWidth < 1024 && window.innerWidth >= 768) {
+        setIsTablet(true);
+      } else {
+        setIsTablet(false);
+      }
     };
 
     handleResize();
@@ -33,10 +40,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Left Sidebar */}
-      {compactWriting || isMobile ? (
+      {compactWriting || isTablet ? (
         <LeftSideBarHiddenLabel />
       ) : compact ? (
         <LeftSideBarHiddenLabel />
+      ) : isMobile ? (
+        <LeftSidebarMobile />
       ) : (
         <LeftSidebar />
       )}
@@ -46,8 +55,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         className={`flex flex-col flex-1 ${
           compactWriting
             ? "ml-0"
+            : isTablet
+            ? "ml-0"
             : isMobile
-            ? "ml-14"
+            ? "ml-5"
             : compact
             ? "ml-20"
             : "ml-64"
