@@ -4,7 +4,7 @@ const userService = {
   /**
    * Tải danh sách người dùng với bộ lọc
    */
-  async loadUsers({ search, fromDate, toDate }) {
+  async loadUsers({ search, level, fromDate, toDate }) {
     let query = supabase
       .from("users")
       .select(
@@ -23,6 +23,9 @@ const userService = {
           `email.ilike.${searchTerm},` +
           `nick_name.ilike.${searchTerm}`
       );
+    }
+    if (level) {
+      query = query.eq("level", level);
     }
     if (fromDate) {
       query = query.gte("created_at", fromDate);

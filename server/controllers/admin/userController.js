@@ -6,9 +6,10 @@ const userController = {
    */
   async loadUsers(req, res) {
     try {
-      const { search, fromDate, toDate } = req.query;
+      const { search, level, fromDate, toDate } = req.query;
       const { data, error } = await userService.loadUsers({
         search,
+        level,
         fromDate,
         toDate,
       });

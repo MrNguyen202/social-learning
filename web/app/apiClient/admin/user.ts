@@ -1,9 +1,10 @@
 import api from "@/lib/api";
 
-export const loadUsers = async ({ search, fromDate, toDate }: any) => {
+export const loadUsers = async ({ search, level, fromDate, toDate }: any) => {
   const response = await api.get("/api/admin/users", {
     params: {
       search,
+      level,
       fromDate,
       toDate,
     },

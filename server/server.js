@@ -35,9 +35,12 @@ const adminUserRoute = require("./routes/admin/userRoute");
 const adminPostRoute = require("./routes/admin/postRoute");
 const achievementRoute = require("./routes/admin/achievementRoute");
 const dashboardRoute = require("./routes/admin/dashboardRoute");
+const contentRoute = require("./routes/admin/contentRoute");
+const analyticsRoute = require("./routes/admin/analyticsRoute");
 
 // --- API USER --- //
 
+    console.log(`Server running on port ${PORT}`);
 app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/images", imageRoute);
@@ -61,9 +64,10 @@ app.use("/api/admin/users", adminUserRoute);
 app.use("/api/admin/posts", adminPostRoute);
 app.use("/api/admin/achievements", achievementRoute);
 app.use("/api/admin/dashboard", dashboardRoute);
+app.use("/api/admin/content", contentRoute);
+app.use("/api/admin/analytics", analyticsRoute);
 
 connectDB().then(() => {
   server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
   });
 });

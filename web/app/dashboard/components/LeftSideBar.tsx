@@ -174,18 +174,18 @@ export function LeftSidebar() {
   // --- NAV ITEMS CỦA ADMIN ---
   const adminNavItems = [
     { icon: LayoutDashboard, path: "/dashboard", label: t("dashboard.dashboard") },
-    { icon: Users, path: "/admin/dashboard/users", label: t("dashboard.users") },
-    { icon: FileText, path: "/admin/dashboard/content", label: t("dashboard.content") },
-    { icon: Globe, path: "/admin/dashboard/social", label: t("dashboard.social") },
+    { icon: Users, path: "/dashboard/admin/users", label: t("dashboard.users") },
+    { icon: FileText, path: "/dashboard/admin/content", label: t("dashboard.content") },
+    { icon: Globe, path: "/dashboard/admin/social", label: t("dashboard.social") },
     {
       icon: BookOpen,
-      path: "/admin/dashboard/vocabulary",
+      path: "/dashboard/admin/vocabulary",
       label: t("dashboard.vocabularys"),
     },
-    { icon: BarChart, path: "/admin/dashboard/analytics", label: t("dashboard.analytics") },
+    { icon: BarChart, path: "/dashboard/admin/analytics", label: t("dashboard.analytics") },
     {
       icon: Trophy,
-      path: "/admin/dashboard/achievements",
+      path: "/dashboard/admin/achievements",
       label: t("dashboard.achievements"),
     },
     { icon: User, path: "/dashboard/profile", label: t("dashboard.profile") },
