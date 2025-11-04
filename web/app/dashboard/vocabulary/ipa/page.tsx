@@ -30,7 +30,7 @@ export default function IPAPage() {
               className="group hover:bg-gray-200 cursor-pointer"
             >
               <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-              Quay lại
+              {t("learning.back")}
             </Button>
           </motion.div>
         </div>

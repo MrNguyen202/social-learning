@@ -39,7 +39,12 @@
   "noPosts": "No posts available",
   "loadMore": "Load more",
   "noMorePosts": "No more posts",
-
+  "currentLearningPath": "Current Learning Path",
+  "keepYourPath": "Keep your streak by completing a lesson today!",
+  "restore": "Restore",
+  "no": "No, reset streak",
+  "startLearning": "Start learning today to create a new streak!",
+  
   "yourAchievements": "Your Achievements",
   "practiceScore": "Practice Score",
   "testScore": "Test Score",
@@ -233,6 +238,16 @@
   "recentActivity": "Recent Activity",
   "pendingApproval": "Pending Approval",
   "noPendingPosts": "No pending posts",
+  "reminder": "🔥 Don't forget to complete today's lesson to keep your streak going!",
+  "restoreSuccess": "Streak restored successfully!",
+  "restoreFailed": "Failed to restore streak",
+  "resetSuccess": "Streak reset successfully!",
+  "resetFailed": "Failed to reset streak",
+  "noLearningToday": "📚 You haven't learned today! Complete a lesson to keep your streak 🔥",
+  "noStreak": "You don't have any learning streak.",
+  "streakReset": "❌ Your learning streak has been reset.",
+
+  "noData": "No data available",
 
   "userManagement": "User Management",
   "userSearch": "Search by name, email or nickname...",

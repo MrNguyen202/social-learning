@@ -3,13 +3,20 @@
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
+  t: (key: string) => string;
   isOpen: boolean;
   onRefill: () => void;
   onGoBack: () => void;
   canRefill: boolean; // Chỉ cho phép refill 1 lần
 }
 
-export default function OutOfLivesModal({ isOpen, onRefill, onGoBack, canRefill }: Props) {
+export default function OutOfLivesModal({
+  t,
+  isOpen,
+  onRefill,
+  onGoBack,
+  canRefill,
+}: Props) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -25,10 +32,10 @@ export default function OutOfLivesModal({ isOpen, onRefill, onGoBack, canRefill 
             exit={{ opacity: 0, scale: 0.8 }}
             className="bg-white rounded-2xl p-6 shadow-xl w-full max-w-sm text-center"
           >
-            <span className="text-6xl">😢</span>
-            <h2 className="text-2xl font-bold mt-4">Bạn đã hết mạng!</h2>
+            <span className="text-6xl">😢{t("learning.outOfLives")}</span>
+            <h2 className="text-2xl font-bold mt-4"></h2>
             <p className="text-gray-600 mt-2">
-              Bạn đã mất hết ❄️ của mình.
+              {t("learning.youMissSnowflake")}
             </p>
 
             <div className="flex flex-col gap-3 mt-6">
@@ -38,25 +45,25 @@ export default function OutOfLivesModal({ isOpen, onRefill, onGoBack, canRefill 
                     onClick={onRefill}
                     className="w-full bg-blue-500 text-white py-3 rounded-xl hover:bg-blue-600 font-bold cursor-pointer"
                   >
-                    Dùng 5 ❄️ mua 1 mạng
+                    {t("learning.useSnowflake")}
                   </button>
                   <button
                     onClick={onGoBack}
                     className="w-full bg-transparent text-gray-700 py-3 rounded-xl hover:bg-gray-100 font-bold cursor-pointer"
                   >
-                    Quay về
+                    {t("learning.back")}
                   </button>
                 </>
               ) : (
                 <>
                   <p className="text-red-500 text-sm">
-                    Bạn đã dùng quyền trợ giúp. Luyện tập thất bại.
+                    {t("learning.outOfLivesDescription")}
                   </p>
                   <button
                     onClick={onGoBack}
                     className="w-full bg-gray-700 text-white py-3 rounded-xl hover:bg-gray-800 font-bold cursor-pointer"
                   >
-                    Quay về
+                    {t("learning.back")}
                   </button>
                 </>
               )}

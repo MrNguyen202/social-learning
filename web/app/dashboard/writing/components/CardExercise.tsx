@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
 interface CardWritingExerciseProps {
+    t: (key: string) => string;
     title: string;
     content_vi: string;
     label: string;
@@ -11,7 +12,7 @@ interface CardWritingExerciseProps {
     handleStart: () => void;
 }
 
-export default function CardWritingExercise({ title, content_vi, label, progress, handleStart }: CardWritingExerciseProps) {
+export default function CardWritingExercise({ t, title, content_vi, label, progress, handleStart }: CardWritingExerciseProps) {
     return (
         <div className="p-4 flex flex-col rounded-lg shadow-sm hover:shadow-lg hover:border-orange-500 border-2 transition-all duration-300 hover:-translate-y-1 gap-3">
             {/* Title */}
@@ -25,7 +26,7 @@ export default function CardWritingExercise({ title, content_vi, label, progress
                 <span className="text-sm text-gray-500">{progress}%</span>
             </div>
             <div className="flex justify-end">
-                <Button variant={"default"} className="hover:cursor-pointer" onClick={handleStart}>Bắt đầu</Button>
+                <Button variant={"default"} className="hover:cursor-pointer" onClick={handleStart}>{t("learning.start")}</Button>
             </div>
         </div>
     );

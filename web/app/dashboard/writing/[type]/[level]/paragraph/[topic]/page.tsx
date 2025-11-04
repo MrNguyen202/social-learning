@@ -148,7 +148,7 @@ export default function Page() {
                 </div>
                 <div className='w-full py-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
                     {writingExercises.map((exercise) => (
-                        <CardWritingExercise key={exercise.id} title={exercise.title} content_vi={exercise.content_vi} label={exercise.label} progress={70} handleStart={() => handleStartWritingExercise(exercise.id)} />
+                        <CardWritingExercise t={t} key={exercise.id} title={exercise.title} content_vi={exercise.content_vi} label={exercise.label} progress={70} handleStart={() => handleStartWritingExercise(exercise.id)} />
                     ))}
                 </div>
             </div>

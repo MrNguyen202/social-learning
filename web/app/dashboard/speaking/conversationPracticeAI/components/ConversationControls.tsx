@@ -1,11 +1,12 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Mic, RotateCcw, ChevronRight, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { JSX } from "react/jsx-runtime";
 
 interface Props {
+  t: (key: string) => string;
   isUserTurn: boolean;
   listening: boolean;
   transcript: string;
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export default function ConversationControls({
+  t,
   isUserTurn,
   listening,
   transcript,
@@ -52,10 +54,12 @@ export default function ConversationControls({
           </motion.div>
         )}
         {!listening && !result && !transcript && isUserTurn && (
-          <p className="text-sm text-gray-400 italic">Nhấn nút mic để nói</p>
+          <p className="text-sm text-gray-400 italic">
+            {t("learning.pressMic")}
+          </p>
         )}
         {!listening && !result && !isUserTurn && (
-          <p className="text-sm text-gray-400 italic">Đến lượt AI</p>
+          <p className="text-sm text-gray-400 italic">{t("learning.aiTurn")}</p>
         )}
       </div>
 
@@ -79,7 +83,7 @@ export default function ConversationControls({
             {listening && (
               <div className="flex items-center justify-center gap-2 text-gray-500 p-4">
                 <Mic className="w-6 h-6 text-blue-500 animate-pulse" />
-                <span className="font-semibold">Đang nghe...</span>
+                <span className="font-semibold">{t("learning.listening")}</span>
               </div>
             )}
 
@@ -91,14 +95,14 @@ export default function ConversationControls({
                     variant="outline"
                     className="gap-2 border-orange-300 text-orange-600 hover:bg-orange-50 cursor-pointer"
                   >
-                    <RotateCcw className="w-4 h-4" /> Thử lại
+                    <RotateCcw className="w-4 h-4" /> {t("learning.reTry")}
                   </Button>
                 )}
                 <Button
                   onClick={onNext}
                   className="gap-2 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer"
                 >
-                  Tiếp theo <ChevronRight className="w-4 h-4" />
+                  {t("learning.next")} <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
             )}
@@ -111,14 +115,14 @@ export default function ConversationControls({
               className="gap-2 cursor-pointer"
               disabled={isAISpeaking}
             >
-              <Volume2 className="w-4 h-4" /> Nghe lại
+              <Volume2 className="w-4 h-4" /> {t("learning.replay")}
             </Button>
             <Button
               onClick={onNext}
               className="gap-2 cursor-pointer"
               disabled={isAISpeaking}
             >
-              Tiếp theo <ChevronRight className="w-4 h-4" />
+              {t("learning.next")} <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
         )}

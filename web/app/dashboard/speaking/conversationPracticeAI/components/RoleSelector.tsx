@@ -5,9 +5,10 @@ import { User, Bot, Sparkles } from "lucide-react";
 
 interface Props {
   onSelectRole: (role: "A" | "B") => void;
+  t: (key: string) => string;
 }
 
-export default function RoleSelector({ onSelectRole }: Props) {
+export default function RoleSelector({ onSelectRole, t }: Props) {
   return (
     <div className="flex-grow flex items-center justify-center p-6 md:p-8">
       <div className="text-center space-y-6 w-full max-w-md">
@@ -16,10 +17,10 @@ export default function RoleSelector({ onSelectRole }: Props) {
             <Sparkles className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
-            Chọn vai trò của bạn
+            {t("learning.roleSelection")}
           </h1>
           <p className="text-gray-600">
-            Bạn muốn đóng vai người A hay người B trong cuộc hội thoại?
+            {t("learning.role")}
           </p>
         </div>
 
@@ -35,9 +36,9 @@ export default function RoleSelector({ onSelectRole }: Props) {
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow">
                 <User className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800">Người A</h3>
+              <h3 className="text-xl font-bold text-gray-800">{t("learning.roleA")}</h3>
               <p className="text-sm text-gray-600 text-center">
-                Bắt đầu cuộc hội thoại
+                {t("learning.startConversation")}
               </p>
             </div>
           </motion.div>
@@ -53,9 +54,9 @@ export default function RoleSelector({ onSelectRole }: Props) {
               <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center shadow">
                 <User className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800">Người B</h3>
+              <h3 className="text-xl font-bold text-gray-800">{t("learning.roleB")}</h3>
               <p className="text-sm text-gray-600 text-center">
-                Phản hồi cuộc hội thoại
+                {t("learning.replyConversation")}
               </p>
             </div>
           </motion.div>

@@ -10,6 +10,7 @@ interface Line {
   content: string;
 }
 interface Props {
+  t: (key: string) => string;
   role: "A" | "B";
   description: string;
   dialogue: Line[];
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function ConversationPreview({
+  t,
   role,
   description,
   dialogue,
@@ -27,11 +29,11 @@ export default function ConversationPreview({
       <div className="space-y-6">
         <div className="text-center space-y-4">
           <h2 className="text-2xl font-bold text-gray-800">
-            Bạn đã chọn vai trò:{" "}
-            <span className="text-orange-600">Người {role}</span>
+            {t("learning.roleSelected")}{" "}
+            <span className="text-orange-600">{t('learning.person')} {role}</span>
           </h2>
           <p className="text-gray-600 max-w-xl mx-auto">
-            Xem trước bối cảnh cuộc hội thoại và nhấn "Bắt đầu" khi sẵn sàng.
+            {t("learning.preview")}
           </p>
           {description && (
             <p className="text-gray-500 italic">"{description}"</p>
@@ -41,7 +43,7 @@ export default function ConversationPreview({
         <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-2xl shadow-inner max-h-[500px] overflow-hidden">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
-              Nội dung hội thoại
+              {t("learning.dialogueContent")}
             </h3>
             <span className="text-sm text-gray-500">{dialogue.length} câu</span>
           </div>
@@ -67,9 +69,9 @@ export default function ConversationPreview({
                 >
                   <p className="font-semibold text-xs mb-1 opacity-70">
                     {line.id === "A"
-                      ? `Người A - ${line.speaker}`
-                      : `Người B - ${line.speaker}`}{" "}
-                    {line.id === role && " (Bạn)"}
+                      ? `${t("learning.roleA")} - ${line.speaker}`
+                      : `${t("learning.roleB")} - ${line.speaker}`}{" "}
+                    {line.id === role && `(${t("learning.you")})`}
                   </p>
                   <p className="text-md">{line.content}</p>
                 </div>
@@ -77,7 +79,7 @@ export default function ConversationPreview({
             ))}
             {dialogue.length > 4 && (
               <p className="text-center text-sm text-gray-500 italic mt-3">
-                ... và {dialogue.length - 4} câu nữa
+                ... {t("learning.and")} {dialogue.length - 4} {t("learning.moreSentences")}
               </p>
             )}
           </div>
@@ -90,7 +92,7 @@ export default function ConversationPreview({
             size="lg"
             className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-3xl cursor-pointer"
           >
-            Bắt đầu
+            {t("learning.start")}
           </Button>
         </div>
       </div>

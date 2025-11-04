@@ -192,7 +192,7 @@ function ConversationPracticeContent() {
         }`}
         aria-live="assertive"
       >
-        <Trophy className="w-5 h-5" /> Độ chính xác: {score}%
+        <Trophy className="w-5 h-5" /> {t("learning.accuracy")} {score}%
       </motion.div>
     );
     return canPass;
@@ -340,7 +340,7 @@ function ConversationPracticeContent() {
             }}
             className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mx-auto"
           />
-          <p className="mt-4 text-gray-600">Đang tải hội thoại...</p>
+          <p className="mt-4 text-gray-600">{t("learning.loadingSpeaking")}</p>
         </div>
       </div>
     );
@@ -387,12 +387,12 @@ function ConversationPracticeContent() {
             onClick={() => router.back()}
             className="flex items-center gap-2 cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4" /> Quay lại
+            <ArrowLeft className="w-4 h-4" /> {t("learning.back")}
           </Button>
           <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
             <Sparkles className="w-5 h-5 text-orange-500" />
             <span className="font-semibold text-gray-800">
-              Đàm thoại với AI
+              {t("learning.conversationAI")}
             </span>
           </div>
         </motion.div>
@@ -402,9 +402,10 @@ function ConversationPracticeContent() {
           className="bg-white/80 backdrop-blur-xl rounded-t-3xl shadow-xl border border-gray-200 flex flex-col flex-grow overflow-hidden" // Increased blur
         >
           {!role ? (
-            <RoleSelector onSelectRole={setRole} />
+            <RoleSelector onSelectRole={setRole} t={t} />
           ) : !hasStarted ? (
             <ConversationPreview
+              t={t}
               role={role}
               description={description}
               dialogue={dialogue}
@@ -422,6 +423,7 @@ function ConversationPracticeContent() {
           ) : (
             <>
               <ChatHistory
+                t={t}
                 user={user}
                 dialogue={dialogue}
                 currentIndex={currentIndex}
@@ -432,6 +434,7 @@ function ConversationPracticeContent() {
                 detailedResult={detailedResult}
               />
               <ConversationControls
+                t={t}
                 isUserTurn={isUserTurn}
                 listening={listening}
                 transcript={transcript}
@@ -496,7 +499,7 @@ export default function ConversationPracticePage() {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="mt-4 text-gray-600">Đang tải...</p>
+            <p className="mt-4 text-gray-600">Loading...</p>
           </div>
         </div>
       }

@@ -39,6 +39,11 @@
   "noPosts": "Chưa có bài viết nào",
   "loadMore": "Tải thêm",
   "noMorePosts": "Không còn bài viết nào",
+  "currentLearningPath": "Chuỗi học hiện tại",
+  "keepYourPath": "Giữ chuỗi của bạn bằng cách hoàn thành một bài học hôm nay nhé!",
+  "restore": "Khôi phục",
+  "no": "Không, reset chuỗi",
+  "startLearning": "Bắt đầu học hôm nay để tạo chuỗi học mới!",
 
   "yourAchievements": "Thành tích của bạn",
   "practiceScore": "Điểm luyện tập",
@@ -222,6 +227,14 @@
   "recommendations": "Gợi ý",
   "you": "Bạn",
   "unsupportedContent": "Nội dung không được hỗ trợ",
+  "reminder": "🔥 Đừng quên hoàn thành bài học hôm nay để giữ chuỗi nha!",
+  "restoreSuccess": "Khôi phục chuỗi thành công!",
+  "restoreFailed": "Khôi phục chuỗi thất bại",
+  "resetSuccess": "Reset chuỗi thành công!",
+  "resetFailed": "Reset chuỗi thất bại",
+  "noLearningToday": "📚 Hôm nay bạn chưa học bài nào! Hoàn thành một bài học để giữ chuỗi học nhé 🔥",
+  "noStreak": "Bạn chưa có chuỗi học nào.",
+  "streakReset": "❌ Chuỗi học của bạn đã bị reset.",
 
   "noData": "Không có dữ liệu",
 

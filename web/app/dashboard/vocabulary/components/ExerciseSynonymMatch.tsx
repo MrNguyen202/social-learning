@@ -22,6 +22,7 @@ type Pair = { a: string; b: string };
 type Selected = { side: "a" | "b"; value: string } | null;
 
 export default function ExerciseSynonymMatch({
+  t,
   exercise,
   onCheck,
   isChecking,
@@ -135,7 +136,7 @@ export default function ExerciseSynonymMatch({
           disabled={!isCompleted || isChecking}
           className="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 font-bold text-lg disabled:bg-gray-300 cursor-pointer"
         >
-          Kiểm tra
+          {t("learning.check")}
         </button>
       </div>
     </div>

@@ -3,11 +3,12 @@
 import { getUserImageSrc } from "@/app/apiClient/image/image";
 import ClickToSpeak from "@/app/dashboard/vocabulary/components/ClickToSpeak";
 import { motion } from "framer-motion";
-import { User, Bot } from "lucide-react";
+import { Bot } from "lucide-react";
 import { useMemo } from "react";
 import type { JSX } from "react/jsx-runtime";
 
 interface Props {
+  t: (key: string) => string;
   user: any;
   line: { id: "A" | "B"; speaker: string; content: string };
   isUser: boolean;
@@ -29,6 +30,7 @@ const createClickableSentence = (content: string) => {
 };
 
 export default function ChatBubble({
+  t,
   user,
   line,
   isUser,
@@ -80,7 +82,7 @@ export default function ChatBubble({
             isUser ? "text-orange-700" : "text-gray-500"
           }`}
         >
-          {line.speaker} {isUser ? "(Bạn)" : ""}
+          {line.speaker} {isUser ? `${t("learning.you")}` : ""}
         </p>
 
         <div className="text-md leading-relaxed">

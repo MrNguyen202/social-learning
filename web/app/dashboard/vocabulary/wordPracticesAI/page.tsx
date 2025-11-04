@@ -92,7 +92,7 @@ export default function WordPracticeAI() {
         sessionStorage.removeItem("practiceWords");
       } catch (err) {
         console.error(err);
-        setError("Không thể tạo bài tập. Vui lòng thử lại!");
+        setError(`${t("learning.createExerciseError")}`);
       } finally {
         setLoading(false);
       }
@@ -262,7 +262,7 @@ export default function WordPracticeAI() {
               </motion.div>
               <div className="flex flex-col items-center gap-2">
                 <span className="text-gray-800 font-semibold text-base md:text-lg text-center">
-                  Đang tạo bài tập...
+                  {t("learning.creatingExercise")}
                 </span>
                 <span className="text-gray-500 text-xs md:text-sm text-center">
                   {t("learning.pleaseWait")}
@@ -279,7 +279,7 @@ export default function WordPracticeAI() {
   if (exercises.length === 0)
     return (
       <div className="p-10 text-center text-gray-500">
-        Không có bài tập nào.
+        {t("learning.noExercise")}
       </div>
     );
 
@@ -325,6 +325,7 @@ export default function WordPracticeAI() {
               className="mt-6 min-h-[350px]"
             >
               <ExerciseItem
+                t={t}
                 exercise={currentExercise}
                 onCheck={handleCheck}
                 // Cập nhật isChecking
@@ -337,7 +338,7 @@ export default function WordPracticeAI() {
         {/* Render Footer */}
         <ExerciseFooter feedback={feedbackStatus} />
 
-        {/* Dialog chúc mừng (Giữ nguyên) */}
+        {/* Dialog chúc mừng */}
         <Dialog open={showCelebration} onOpenChange={setShowCelebration}>
           <DialogContent className="max-w-lg rounded-3xl bg-gradient-to-br from-yellow-400 via-orange-500 to-pink-500 text-white shadow-2xl border-4 border-white">
             <DialogHeader className="text-center">
@@ -365,7 +366,7 @@ export default function WordPracticeAI() {
               }}
               className="mx-auto mt-4 px-10 py-4 rounded-xl bg-white text-purple-600 hover:bg-gray-50 transition-all font-bold text-xl shadow-2xl border-2 border-purple-200"
             >
-              Luyện tập từ mới
+              {t("learning.practiceNewWords")}
             </motion.button>
           </DialogContent>
         </Dialog>
@@ -373,6 +374,7 @@ export default function WordPracticeAI() {
 
       {/* Render Modal (nằm ngoài vùng blur) */}
       <OutOfLivesModal
+        t={t}
         isOpen={showOutOfLivesModal}
         onRefill={handleRefillLives}
         onGoBack={handleGoBack}

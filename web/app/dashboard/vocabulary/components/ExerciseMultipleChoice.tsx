@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
 export default function ExerciseMultipleChoice({
+  t,
   exercise,
   onCheck,
   isChecking,
@@ -73,7 +74,7 @@ export default function ExerciseMultipleChoice({
           disabled={selected === null || isChecking}
           className="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 font-bold text-lg disabled:bg-gray-300 cursor-pointer"
         >
-          Kiểm tra
+          {t("learning.check")}
         </button>
       </div>
     </>

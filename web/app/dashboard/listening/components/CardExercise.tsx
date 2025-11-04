@@ -34,11 +34,11 @@ export default function CardExercise({ exercise, handleStart }: { exercise: List
                 </div>
             ) :(
                 <div className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-sm font-semibold rounded-lg">
-                    Mới
+                    {t("learning.new")}
                 </div>
             )}
             <div className="flex justify-start">
-                <Button variant={"default"} className="hover:cursor-pointer" onClick={handleStart}>Bắt đầu</Button>
+                <Button variant={"default"} className="hover:cursor-pointer" onClick={handleStart}>{t("learning.start")}</Button>
             </div>
         </div>
     )

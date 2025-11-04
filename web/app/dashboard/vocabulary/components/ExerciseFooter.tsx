@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/components/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 export type FeedbackStatus = {
@@ -12,8 +13,9 @@ interface Props {
 }
 
 export default function ExerciseFooter({ feedback }: Props) {
+  const { t } = useLanguage();
   const isCorrect = feedback?.status === "correct";
-  const title = isCorrect ? "Chính xác!" : "Không chính xác!";
+  const title = isCorrect ? t("learning.correct") : t("learning.incorrect");
   const bgColor = isCorrect ? "bg-green-100" : "bg-red-100";
   const textColor = isCorrect ? "text-green-600" : "text-red-600";
   const buttonColor = isCorrect
@@ -33,7 +35,7 @@ export default function ExerciseFooter({ feedback }: Props) {
           <h3 className={`text-xl font-bold ${textColor}`}>{title}</h3>
           {!isCorrect && (
             <p className="mt-2 text-gray-700">
-              Đáp án đúng:{" "}
+              {t("learning.correctAnswer")}:{" "}
               <span className="font-bold">{feedback.correctAnswer}</span>
             </p>
           )}

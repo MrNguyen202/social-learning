@@ -308,7 +308,7 @@ export default function VocabularyPage() {
             {selectedTopic ? (
               <OverviewRangeView
                 t={t}
-                title={selectedTopic}
+                topicKey={selectedTopic}
                 listPersonalVocab={listPersonalVocab}
                 speakWord={speakWord}
                 onBack={() => setSelectedTopic(null)}
@@ -320,19 +320,22 @@ export default function VocabularyPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
                   {
-                    title: "Cần ôn gấp",
+                    key: "low",
+                    title: `${t("learning.urgentReview")}`,
                     count: lowCount,
                     bg: "from-red-500/20 to-pink-500/20",
                     icon: AlertCircle,
                   },
                   {
-                    title: "Đang tiến bộ",
+                    key: "mid",
+                    title: `${t("learning.inProgress")}`,
                     count: midCount,
                     bg: "from-yellow-500/20 to-orange-500/20",
                     icon: TrendingUp,
                   },
                   {
-                    title: "Sắp thành thạo",
+                    key: "high",
+                    title: `${t("learning.wellMastered")}`,
                     count: highCount,
                     bg: "from-green-500/20 to-emerald-500/20",
                     icon: BookOpen,
@@ -341,9 +344,9 @@ export default function VocabularyPage() {
                   const Icon = card.icon;
                   return (
                     <motion.div
-                      key={card.title}
+                      key={card.key}
                       whileHover={{ scale: 1.03, y: -6 }}
-                      onClick={() => setSelectedTopic(card.title)}
+                      onClick={() => setSelectedTopic(card.key)}
                       className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100 cursor-pointer hover:shadow-xl transition-all relative overflow-hidden group"
                     >
                       <div

@@ -13,6 +13,7 @@ interface Line {
   content: string;
 }
 interface Props {
+  t: (key: string) => string;
   user: any;
   dialogue: Line[];
   currentIndex: number;
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export default function ChatHistory({
+  t,
   user,
   dialogue,
   currentIndex,
@@ -53,6 +55,7 @@ export default function ChatHistory({
       <AnimatePresence initial={false}>
         {dialogue.slice(0, currentIndex + 1).map((line, index) => (
           <ChatBubble
+            t={t}
             user={user}
             key={index}
             line={line}
@@ -79,7 +82,7 @@ export default function ChatHistory({
           >
             <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
             <span className="text-xs text-gray-400 italic">
-              AI đang chuẩn bị...
+              {t("learning.aiTyping")}
             </span>
           </motion.div>
         )}
@@ -92,7 +95,9 @@ export default function ChatHistory({
           className="flex items-center justify-start gap-2 pl-10"
         >
           <Loader2 className="w-4 h-4 text-gray-500 animate-spin" />
-          <span className="text-xs text-gray-500 italic">AI đang nói...</span>
+          <span className="text-xs text-gray-500 italic">
+            {t("learning.aiSpeak")}
+          </span>
         </motion.div>
       )}
     </div>

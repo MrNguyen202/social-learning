@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import ClickToSpeak from "./ClickToSpeak"; // ✨ Import component của bạn
+import ClickToSpeak from "./ClickToSpeak";
 
-// ✨ Hàm helper để kiểm tra từ
+// Hàm helper để kiểm tra từ
 const isEnglishWord = (word: string) => {
   return /^[a-zA-Z'’-]+$/.test(word.replace(/[.,!?;:]/g, ""));
 };
 
 export default function ExerciseFillInBlank({
+  t,
   exercise,
   onCheck,
   isChecking,
@@ -44,7 +45,7 @@ export default function ExerciseFillInBlank({
       : "border-red-500 bg-red-50";
   };
 
-  // ✨ Phân tích câu để render
+  // Phân tích câu để render
   const sentenceParts = useMemo(() => {
     // Tách câu, giữ lại cả khoảng trắng và dấu ___
     const parts = sentence_template.split(/(\s+|___)/g).filter(Boolean);
@@ -82,20 +83,18 @@ export default function ExerciseFillInBlank({
       <h2 className="text-xl font-semibold mb-4">{exercise.question}</h2>
       <p className="text-gray-500 mb-6 italic text-center">"{sentence_vi}"</p>
 
-      {/* ✨ Render câu đã được phân tích */}
+      {/* Render câu đã được phân tích */}
       <div className="text-center text-lg md:text-xl p-4 bg-gray-50 rounded-lg border border-gray-200 leading-loose">
         {sentenceParts}
       </div>
 
       <div className="mt-auto pt-6">
-        {" "}
-        {/* Thêm pt-6 để đảm bảo có khoảng cách */}
         <button
           onClick={handleCheck}
           disabled={isChecking || !value}
           className="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 font-bold text-lg disabled:bg-gray-300 cursor-pointer"
         >
-          Kiểm tra
+          {t("learning.check")}
         </button>
       </div>
     </div>

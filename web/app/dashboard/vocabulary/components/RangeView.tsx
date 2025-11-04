@@ -25,7 +25,7 @@ interface VocabItem {
 
 interface Props {
   t: (key: string) => string;
-  title: string;
+  topicKey: string;
   listPersonalVocab: VocabItem[];
   speakWord: (text: string) => void;
   onBack: () => void;
@@ -34,19 +34,25 @@ interface Props {
 
 export default function OverviewRangeView({
   t,
-  title,
+  topicKey,
   listPersonalVocab = [],
   speakWord,
   onBack,
   onSelectWord,
 }: Props) {
   const ranges: Record<string, [number, number]> = {
-    "Cần ôn gấp": [0, 29],
-    "Đang tiến bộ": [30, 69],
-    "Sắp thành thạo": [70, 99],
+    low: [0, 29],
+    mid: [30, 69],
+    high: [70, 99],
   };
   const router = useRouter();
-  const [min, max] = ranges[title] ?? [0, 100];
+  const [min, max] = ranges[topicKey] ?? [0, 100];
+  const title =
+    topicKey === "low"
+      ? t("learning.urgentReview")
+      : topicKey === "mid"
+      ? t("learning.inProgress")
+      : t("learning.wellMastered");
 
   const [vocabs, setVocabs] = useState<VocabItem[]>([]);
   const [shuffle, setShuffle] = useState(false);
@@ -181,7 +187,7 @@ export default function OverviewRangeView({
               onClick={onBack}
               className="mb-6 cursor-pointer"
             >
-              <ArrowLeft className="w-5 h-5 mr-2" /> Quay lại
+              <ArrowLeft className="w-5 h-5 mr-2" /> {t("learning.back")}
             </Button>
             <h1 className="text-3xl font-bold mb-6">{title}</h1>
           </div>
@@ -192,7 +198,7 @@ export default function OverviewRangeView({
             }}
             className="bg-gradient-to-br from-orange-600 to-pink-600 hover:from-orange-500 hover:to-pink-500 cursor-pointer text-white text-lg font-bold shadow-lg p-6 rounded-4xl"
           >
-            Luyện tập
+            {t("learning.practice")}
           </Button>
         </div>
 
@@ -223,7 +229,7 @@ export default function OverviewRangeView({
                       }}
                     >
                       <Volume2 className="mr-2 h-4 w-4" />
-                      Phát âm
+                      {t("learning.listenSample")}
                     </Button>
                     <h3 className="text-4xl font-bold text-gray-800">
                       {currentVocab.word}
@@ -270,7 +276,7 @@ export default function OverviewRangeView({
             </>
           ) : (
             <p className="text-gray-600 text-center py-12">
-              Không có từ nào trong khoảng này.
+              {t("learning.noWordsInRange")}
             </p>
           )}
         </div>
@@ -317,7 +323,7 @@ export default function OverviewRangeView({
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                Tất cả
+                {t("learning.all")}
               </button>
               {alphabet.map((letter) => (
                 <button
@@ -341,8 +347,8 @@ export default function OverviewRangeView({
         {/* Pagination Header */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-lg font-semibold text-gray-700">
-            Tổng:{" "}
-            <span className="text-orange-500">{filteredVocabs.length}</span> từ
+            {t("learning.total")}:{" "}
+            <span className="text-orange-500">{filteredVocabs.length}</span> {t("learning.vocabulary")}
           </p>
           <div className="flex items-center gap-3">
             <button
@@ -406,7 +412,7 @@ export default function OverviewRangeView({
                     />
                   </div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-600">Mức độ</span>
+                    <span className="text-xs text-gray-600">{t("learning.masteryLevel")}</span>
                     <span
                       className={`text-sm font-bold ${getMasteryColor(
                         v.mastery_score

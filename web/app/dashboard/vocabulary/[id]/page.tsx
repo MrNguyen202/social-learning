@@ -1,22 +1,22 @@
 "use client";
 
 import { getPersonalVocabById } from "@/app/apiClient/learning/vocabulary/vocabulary";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft,
   BookOpen,
   Volume2,
   TrendingUp,
   AlertCircle,
-  Sparkles,
   Link2,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function VocabularyDetailPage() {
+  const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [personalVocab, setPersonalVocab] = useState<any>(null);
@@ -109,10 +109,10 @@ export default function VocabularyDetailPage() {
           <CardContent className="pt-6 text-center">
             <AlertCircle className="mx-auto mb-4 h-12 w-12 text-orange-500" />
             <h2 className="mb-2 text-xl font-semibold">
-              Không tìm thấy từ vựng
+              {t("learning.noVocabularyFound")}
             </h2>
             <p className="mb-4 text-muted-foreground">
-              Từ vựng này không tồn tại hoặc đã bị xóa.
+              {t("learning.noVocabularyFoundDescription")}
             </p>
           </CardContent>
         </Card>
@@ -184,7 +184,7 @@ export default function VocabularyDetailPage() {
                   <div className="flex-1 rounded-2xl bg-gradient-to-br from-white to-gray-50 p-4 shadow-lg md:w-48">
                     <div className="mb-2 flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-600">
-                        Độ thành thạo
+                        {t("learning.masteryLevel")}
                       </span>
                       <TrendingUp className="h-4 w-4 text-orange-500" />
                     </div>
@@ -216,7 +216,7 @@ export default function VocabularyDetailPage() {
                   <div className="flex-1 rounded-2xl bg-gradient-to-br from-red-50 to-pink-50 p-4 shadow-lg md:w-48">
                     <div className="mb-2 flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-600">
-                        Tổng số lần sai
+                        {t("learning.totalMistakes")}
                       </span>
                       <AlertCircle className="h-4 w-4 text-red-500" />
                     </div>
@@ -224,7 +224,7 @@ export default function VocabularyDetailPage() {
                       <span className="bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-3xl font-bold text-transparent">
                         {personalVocab.error_count}
                       </span>
-                      <span className="text-xs text-gray-500">lần</span>
+                      <span className="text-xs text-gray-500">{t("learning.times")}</span>
                     </div>
                   </div>
                 </div>
@@ -242,14 +242,14 @@ export default function VocabularyDetailPage() {
                   }}
                   className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer"
                 >
-                  Luyện tập ngay
+                  {t("learning.practice")}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => router.push("/dashboard/vocabulary/ipa")}
                   className="border-orange-200 hover:bg-orange-50 bg-transparent cursor-pointer"
                 >
-                  Bảng IPA
+                  {t("learning.ipaTable")}
                 </Button>
                 <Button
                   variant="outline"
@@ -257,7 +257,7 @@ export default function VocabularyDetailPage() {
                   className="border-orange-200 hover:bg-orange-50 bg-transparent cursor-pointer"
                 >
                   <Volume2 className="mr-2 h-4 w-4" />
-                  Phát âm
+                  {t("learning.listenSample")}
                 </Button>
               </div>
             </CardContent>
@@ -275,7 +275,7 @@ export default function VocabularyDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
                   <Link2 className="h-5 w-5 text-orange-500" />
-                  Từ liên quan
+                  {t("learning.relatedWords")}
                 </CardTitle>
               </CardHeader>
               <CardContent>

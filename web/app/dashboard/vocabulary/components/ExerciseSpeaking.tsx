@@ -11,6 +11,7 @@ import ClickToSpeak from "./ClickToSpeak";
 import { JSX } from "react/jsx-runtime";
 
 export default function ExerciseSpeaking({
+  t,
   exercise,
   onCheck,
   isChecking,
@@ -121,7 +122,7 @@ export default function ExerciseSpeaking({
     const isCorrect = checkPronunciation();
 
     if (isCorrect) {
-      toast.success("Chính xác!", { autoClose: 1500 });
+      toast.success(`${t("learning.correct")}`, { autoClose: 1500 });
       setAttemptCount(0);
       onCheck(true, sentence);
     } else {
@@ -156,7 +157,6 @@ export default function ExerciseSpeaking({
 
   useEffect(() => {
     if (listening) {
-      // Đánh dấu là chúng ta *đang* nghe
       wasListeningRef.current = true;
     }
 
@@ -165,7 +165,6 @@ export default function ExerciseSpeaking({
     // 2. Và trước đó chúng ta *đã* nghe (wasListeningRef: true)
     // 3. Và component cha không đang check (isChecking: false)
     if (!listening && wasListeningRef.current && !isChecking) {
-      console.log("Trình duyệt tự động dừng, bắt đầu check...");
       handleCheck();
       wasListeningRef.current = false; // Đặt lại ref
     }
@@ -179,7 +178,7 @@ export default function ExerciseSpeaking({
   }, [sentence]);
 
   if (!isClient)
-    return <div className="text-center p-6 text-gray-500">Đang tải...</div>;
+    return <div className="text-center p-6 text-gray-500">{t("learning.loading")}</div>;
   if (!browserSupports)
     return <div className="text-center p-6 text-red-500">...</div>;
 
@@ -215,17 +214,17 @@ export default function ExerciseSpeaking({
         >
           {listening ? (
             <span className="flex items-center gap-2">
-              <Mic className="animate-ping" /> Đang nghe...
+              <Mic className="animate-ping" /> {t("learning.listening")}
             </span>
           ) : (
             <span className="flex items-center gap-2">
-              <Mic /> Bắt đầu nói
+              <Mic /> {t("learning.startSpeaking")}
             </span>
           )}
         </motion.button>
       </div>
       <div className="min-h-[100px] p-4 bg-gray-50 rounded-lg shadow-inner">
-        <h3 className="text-sm font-bold text-gray-500 mb-2">BẠN ĐÃ NÓI:</h3>
+        <h3 className="text-sm font-bold text-gray-500 mb-2">{t("learning.yourSpeech")}:</h3>
         {result ? (
           result
         ) : (

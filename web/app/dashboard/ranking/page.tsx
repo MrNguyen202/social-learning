@@ -10,6 +10,7 @@ import { Trophy, Medal, Award, Crown, Star, Sparkles } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
 import { getLeaderBoardByType } from "@/app/apiClient/learning/ranking/ranking";
 import { getUserImageSrc } from "@/app/apiClient/image/image";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 interface LeaderboardEntry {
   score?: number;
@@ -24,6 +25,7 @@ interface LeaderboardEntry {
 }
 
 const Leaderboard = () => {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"practice" | "test">("practice");
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>(
@@ -148,12 +150,12 @@ const Leaderboard = () => {
               <div className="inline-flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                 <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-orange-400" />
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 bg-clip-text text-transparent">
-                  Bảng Xếp Hạng
+                  {t("learning.leaderboardTitle")}
                 </h1>
                 <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-pink-400" />
               </div>
               <p className="text-gray-600 text-sm sm:text-base lg:text-lg">
-                Thể hiện kỹ năng của bạn
+                {t("learning.leaderboardDescription")}
               </p>
             </motion.div>
 
@@ -177,7 +179,7 @@ const Leaderboard = () => {
                     </div>
                     <div className="text-center sm:text-left">
                       <h3 className="text-lg sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
-                        Xếp hạng của bạn
+                        {t("learning.leaderboardUserRank")}
                         <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 fill-yellow-500" />
                       </h3>
                       <p className="text-gray-600 text-xs sm:text-sm">
@@ -190,7 +192,7 @@ const Leaderboard = () => {
                       #{userRank.rank}
                     </div>
                     <div className="text-lg sm:text-xl text-gray-900 font-semibold">
-                      {userRank.score} điểm
+                      {userRank.score} {t("learning.points")}
                     </div>
                   </div>
                 </div>
@@ -208,7 +210,7 @@ const Leaderboard = () => {
                       : "bg-white/80 text-gray-700 hover:bg-gradient-to-r hover:from-orange-400 hover:to-pink-400 hover:text-white border-2 border-orange-200"
                   }`}
                 >
-                  {tab === "practice" ? "Luyện tập" : "Kiểm tra"}
+                  {tab === "practice" ? `${t("learning.practice")}` : `${t("learning.test")}`}
                 </button>
               ))}
             </div>
@@ -274,7 +276,7 @@ const Leaderboard = () => {
                               {entry.score}
                             </div>
                             <div className="text-xs sm:text-sm text-white/90">
-                              điểm
+                              {t("learning.points")}
                             </div>
                           </div>
                         </motion.div>
@@ -331,7 +333,7 @@ const Leaderboard = () => {
                                 : "text-gray-900"
                             }`}
                           >
-                            {entry.users?.name || "Ẩn danh"}
+                            {entry.users?.name}
                           </p>
                           <p
                             className={`text-xs sm:text-sm line-clamp-1 ${
@@ -360,7 +362,7 @@ const Leaderboard = () => {
                                 : "text-gray-600"
                             }`}
                           >
-                            điểm
+                            {t("learning.points")}
                           </div>
                         </div>
                       </motion.div>
@@ -373,7 +375,7 @@ const Leaderboard = () => {
                     >
                       <Trophy className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400 mx-auto mb-4" />
                       <p className="text-gray-600 text-base sm:text-xl">
-                        Không có dữ liệu xếp hạng
+                        {t("learning.noData")}
                       </p>
                     </motion.div>
                   ) : null}

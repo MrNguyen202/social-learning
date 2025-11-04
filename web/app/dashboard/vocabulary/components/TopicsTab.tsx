@@ -152,7 +152,7 @@ export default function TopicsTab({
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer"
               }`}
             >
-              Tất cả
+              {t("learning.all")}
             </motion.button>
 
             {/* Alphabet buttons */}
@@ -221,7 +221,7 @@ export default function TopicsTab({
                       {topic.total_vocab && (
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <p className="text-xs text-gray-500">
-                            {topic.total_vocab} từ vựng
+                            {topic.total_vocab} {t("learning.vocabulary")}
                           </p>
                         </div>
                       )}

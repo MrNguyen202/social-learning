@@ -5,8 +5,8 @@ import ExerciseSpeaking from "./ExerciseSpeaking";
 import ExerciseWordBuild from "./ExerciseWordBuild";
 import ExerciseFillInBlank from "./ExerciseFillInBlank";
 
-export default function ExerciseItem({ exercise, onCheck, isChecking }: any) {
-  const props = { exercise, onCheck, isChecking };
+export default function ExerciseItem({ t, exercise, onCheck, isChecking }: any) {
+  const props = { t, exercise, onCheck, isChecking };
 
   switch (exercise.type) {
     case "multiple_choice":
@@ -22,6 +22,6 @@ export default function ExerciseItem({ exercise, onCheck, isChecking }: any) {
     case "fill_in_blank":
       return <ExerciseFillInBlank {...props} />;
     default:
-      return <p>Không hỗ trợ loại bài tập này.</p>;
+      return <p>{t("learning.unsupportedExercise")}</p>;
   }
 }

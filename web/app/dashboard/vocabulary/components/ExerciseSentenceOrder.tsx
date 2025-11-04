@@ -9,6 +9,7 @@ interface Word {
 }
 
 export default function ExerciseSentenceOrder({
+  t,
   exercise,
   onCheck,
   isChecking,
@@ -105,7 +106,7 @@ export default function ExerciseSentenceOrder({
           disabled={answer.length === 0 || isChecking}
           className="w-full bg-green-500 text-white py-3 rounded-xl hover:bg-green-600 font-bold text-lg disabled:bg-gray-300 cursor-pointer"
         >
-          Kiểm tra
+          {t("learning.check")}
         </button>
       </div>
     </>

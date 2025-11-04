@@ -333,26 +333,26 @@ export default function ListeningDetailPage() {
                 {/* Nút nộp bài + kiểm tra */}
                 <div className="flex justify-between items-center gap-4 mt-6">
                     <button className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg shadow-md hover:bg-gray-400">
-                        Thoát
+                        {t("learning.buttonExit")}
                     </button>
                     <div className="flex gap-4">
                         <button
                             onClick={handleSuggestHint}
                             className="px-6 py-2 bg-yellow-600 text-white rounded-lg shadow-md hover:bg-yellow-700"
                         >
-                            Gợi ý (-2)
+                            {t("learning.recommendation")} (-2)
                         </button>
                         <button
                             onClick={handleCheckAnswers}
                             className="px-6 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700"
                         >
-                            Kiểm tra (-1)
+                            {t("learning.check")} (-1)
                         </button>
                         <button
                             onClick={handleSubmit}
                             className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700"
                         >
-                            {loadingSubmit ? "Đang nộp..." : "Nộp bài"}
+                            {loadingSubmit ? `${t("learning.submitting")}` : `${t("learning.submit")}`}
                         </button>
                     </div>
                 </div>
@@ -384,14 +384,14 @@ export default function ListeningDetailPage() {
                         <div className="flex justify-between mb-2 text-gray-600 border-b pb-2 border-gray-400">
                             <div className="flex items-center gap-2">
                                 <Notebook className="inline h-5 w-5 text-purple-500" />
-                                <p>Số lần nộp bài</p>
+                                <p>{t("learning.submissionCount")}</p>
                             </div>
                             <span>{progress?.submit_times || 0}</span>
                         </div>
                         <div className="flex justify-between mb-2 text-gray-600">
                             <div className="flex items-center gap-2">
                                 <CircleEqual className="inline h-5 w-5 text-yellow-500" />
-                                <p>Điểm cao nhất</p>
+                                <p>{t("learning.highestScore")}</p>
                             </div>
                             <span>{progress?.score || 0}</span>
                         </div>
@@ -444,14 +444,14 @@ export default function ListeningDetailPage() {
                                         {/* Số phần trăm hiển thị giữa vòng tròn */}
                                         <div className="absolute inset-0 flex flex-col items-center justify-center">
                                             <span className="text-3xl font-bold text-green-600">{percentage}%</span>
-                                            <span className="text-sm text-gray-600">Hoàn thành</span>
-                                            <span className="text-sm text-gray-600">({progress?.number_word_completed || 0} / {total} từ vựng)</span>
+                                            <span className="text-sm text-gray-600">{t('learning.complete')}</span>
+                                            <span className="text-sm text-gray-600">({progress?.number_word_completed || 0} / {total} {t('learning.vocab')})</span>
                                         </div>
                                     </div>
                                 )
                             })()
                         ) : (
-                            <p className="text-gray-500 text-center">Hãy làm bài và kiểm tra để xem tiến trình 🎯</p>
+                            <p className="text-gray-500 text-center">{t('learning.learningProgress')}</p>
                         )}
                     </div>
 
@@ -488,14 +488,14 @@ export default function ListeningDetailPage() {
                     </div>
                 </div>
 
-                <h3 className="text-xl font-semibold mt-10 mb-4">Hướng dẫn:</h3>
+                <h3 className="text-xl font-semibold mt-10 mb-4">{t('learning.guideline')}:</h3>
                 <ul className="list-disc list-inside space-y-2 text-gray-700">
-                    <li>Nghe đoạn audio và điền từ còn thiếu vào ô trống.</li>
-                    <li>Sử dụng chức năng phát, tạm dừng, tiếp tục và dừng để kiểm soát việc nghe.</li>
-                    <li>Nhấn "Nộp bài" để lưu đáp án của bạn.</li>
-                    <li>Nhấn "Kiểm tra đáp án" để xem bạn đã điền đúng hay sai.</li>
-                    <li>Các ô trống sẽ đổi màu xanh nếu đúng và đỏ nếu sai.</li>
-                    <li>Bạn có thể thử lại bằng cách chỉnh sửa các ô trống và nhấn "Kiểm tra đáp án" lần nữa.</li>
+                    <li>{t('learning.listeningExercise')}</li>
+                    <li>{t('learning.listeningControl')}</li>
+                    <li>{t('learning.submitAnswer')}</li>
+                    <li>{t('learning.checkAnswers')}</li>
+                    <li>{t('learning.hint')}</li>
+                    <li>{t('learning.retry')}</li>
                 </ul>
             </div>
             {/* Hiệu ứng trừ điểm ❄️ */}
@@ -543,9 +543,9 @@ export default function ListeningDetailPage() {
                     <DialogContent className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white rounded-2xl shadow-2xl w-[380px] p-6 text-center">
                         <div className="flex flex-col items-center">
                             <div className="text-6xl mb-3 animate-bounce">🎧</div>
-                            <DialogTitle className="text-2xl font-bold mb-2">{submitResult?.correctCount === submitResult?.totalCount ? "Chúc mừng!" : "Cố gắng hơn nữa!"}</DialogTitle>
+                            <DialogTitle className="text-2xl font-bold mb-2">{submitResult?.correctCount === submitResult?.totalCount ? `${t('learning.congratulations')}` : `${t('learning.tryMore')}`}</DialogTitle>
                             <DialogDescription className="text-white/90 mb-5">
-                                {submitResult?.correctCount === submitResult?.totalCount ? "Bạn đã hoàn thành bài nghe!" : "Bạn đã nộp bài. Hãy xem kết quả dưới đây để cải thiện thêm nhé!"}
+                                {submitResult?.correctCount === submitResult?.totalCount ? `${t('learning.completed')}`: `${t('learning.submitted')}`}
                             </DialogDescription>
 
                             {/* ✅ Kết quả tổng hợp */}
@@ -553,23 +553,23 @@ export default function ListeningDetailPage() {
                                 <div className="flex items-center justify-between w-full text-lg font-semibold">
                                     <span className="flex items-center gap-2">
                                         <Notebook className="text-green-300 w-5 h-5" />
-                                        <span>Kết quả:</span>
+                                        <span>{t('learning.result')}:</span>
                                     </span>
                                     <span className="font-bold text-green-100">
-                                        {submitResult?.correctCount ?? 0} / {submitResult?.totalCount ?? 0} từ đúng
+                                        {submitResult?.correctCount ?? 0} / {submitResult?.totalCount ?? 0} {t('learning.wordsCorrect')}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between w-full text-lg font-semibold">
                                     <span className="flex items-center gap-2">
                                         <CircleEqual className="text-yellow-300 w-5 h-5" />
-                                        <span>Điểm:</span>
+                                        <span>{t('learning.points')}:</span>
                                     </span>
                                     <span className="font-bold text-yellow-100">+ {submitResult?.score ?? 0}</span>
                                 </div>
                                 <div className="flex items-center justify-between w-full text-lg font-semibold">
                                     <span className="flex items-center gap-2">
                                         <Snowflake className="text-blue-200 w-5 h-5" />
-                                        <span>Bông tuyết:</span>
+                                        <span>{t('learning.snowflake')}:</span>
                                     </span>
                                     <span className="font-bold text-blue-100">+ {submitResult?.snowflake ?? 0}</span>
                                 </div>
@@ -579,7 +579,7 @@ export default function ListeningDetailPage() {
                                 onClick={() => setShowCelebration(false)}
                                 className="px-5 py-2.5 bg-white text-purple-700 rounded-lg font-semibold shadow hover:bg-gray-100 transition-all"
                             >
-                                Đóng
+                                {t('learning.close')}
                             </button>
                         </div>
                     </DialogContent>
@@ -599,10 +599,10 @@ export default function ListeningDetailPage() {
                         <div className="flex flex-col items-center">
                             <Snowflake className="text-blue-400 w-12 h-12 mb-3 animate-pulse" />
                             <DialogTitle className="text-xl font-bold text-gray-800 mb-2">
-                                Bạn đã hết bông tuyết!
+                                {t('learning.noSnowflake')}
                             </DialogTitle>
                             <DialogDescription className="text-gray-600 mb-5">
-                                Bạn cần thêm bông tuyết để sử dụng các chức năng gợi ý và kiểm tra đáp án.
+                                {t('learning.needMoreSnowflake')}
                             </DialogDescription>
 
                             <div className="flex flex-col gap-3 w-full">
@@ -614,13 +614,13 @@ export default function ListeningDetailPage() {
                                     }}
                                     className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold py-2 rounded-lg shadow hover:opacity-90 transition-all"
                                 >
-                                    Mua thêm bông tuyết
+                                    {t('learning.buyMoreSnowflake')}
                                 </button>
                                 <button
                                     onClick={() => setShowBuyModal(false)}
                                     className="w-full bg-gray-100 text-gray-700 font-semibold py-2 rounded-lg shadow hover:bg-gray-200 transition-all"
                                 >
-                                    Đóng
+                                    {t('learning.close')}
                                 </button>
                             </div>
                         </div>

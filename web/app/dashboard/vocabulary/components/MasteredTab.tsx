@@ -200,7 +200,7 @@ export default function MasteredTab({
               <p className="text-lg font-semibold text-gray-700">
                 {t("learning.mastered")}:{" "}
                 <span className="text-orange-500">{masteredList.length}</span>{" "}
-                {" từ"}
+                {t("learning.vocabulary")}
               </p>
               <div className="flex items-center gap-3">
                 <button

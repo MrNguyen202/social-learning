@@ -207,7 +207,7 @@ export default function VocabsTopicPage() {
               onClick={() => router.back()}
               className="mb-6 cursor-pointer"
             >
-              <ArrowLeft className="w-5 h-5 mr-2" /> Quay lại
+              <ArrowLeft className="w-5 h-5 mr-2" /> {t("learning.back")}
             </Button>
             <h1 className="text-3xl font-bold mb-6">{nameEn}</h1>
             <div className="text-gray-600">{nameVi}</div>
@@ -220,7 +220,7 @@ export default function VocabsTopicPage() {
             }}
             className="bg-gradient-to-br from-orange-600 to-pink-600 hover:from-orange-500 hover:to-pink-500 cursor-pointer text-white text-lg font-bold shadow-lg p-6 rounded-4xl"
           >
-            Luyện tập
+            {t("learning.practice")}
           </Button>
         </div>
         {/* Flashcard Section */}
@@ -250,7 +250,7 @@ export default function VocabsTopicPage() {
                       }}
                     >
                       <Volume2 className="mr-2 h-4 w-4" />
-                      Phát âm
+                      {t("learning.listenSample")}
                     </Button>
 
                     <h3 className="text-4xl font-bold text-gray-800">
@@ -298,7 +298,7 @@ export default function VocabsTopicPage() {
             </>
           ) : (
             <p className="text-gray-600 text-center py-12">
-              Không có từ nào trong chủ đề này.
+              {t("learning.noWordsInTopic")}
             </p>
           )}
         </div>
@@ -342,7 +342,7 @@ export default function VocabsTopicPage() {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                Tất cả
+                {t("learning.all")}
               </button>
               {alphabet.map((letter) => (
                 <button
@@ -364,8 +364,8 @@ export default function VocabsTopicPage() {
         )}
         <div className="flex items-center justify-between mb-6">
           <p className="text-lg font-semibold text-gray-700">
-            Tổng:{" "}
-            <span className="text-orange-500">{filteredVocabs.length}</span> từ
+            {t("learning.total")}:{" "}
+            <span className="text-orange-500">{filteredVocabs.length}</span> {t("learning.vocabulary")}
           </p>
           <div className="flex items-center gap-3">
             <button
@@ -406,7 +406,6 @@ export default function VocabsTopicPage() {
                 key={index}
                 whileHover={{ scale: 1.02, y: -4 }}
                 className="bg-white/80 rounded-2xl p-6 shadow-lg border border-gray-100 cursor-pointer hover:shadow-xl relative overflow-hidden group"
-                section-break
                 onClick={() =>
                   window.open(`/dashboard/vocabulary/${v.id}`, "_blank")
                 }
@@ -433,7 +432,7 @@ export default function VocabsTopicPage() {
                     />
                   </div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-600">Mức độ</span>
+                    <span className="text-xs text-gray-600">{t("learning.masteryLevel")}</span>
                     <span
                       className={`text-sm font-bold ${getMasteryColor(
                         v.mastery_score
