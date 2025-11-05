@@ -99,32 +99,46 @@ const botCoverLearningService = {
             .replace(/[.,!?]/g, "") // bỏ dấu câu cơ bản
             .split(/\s+/);
 
-        // Insert word_hiddens với vị trí chính xác
-        if (data.word_hiddens && data.word_hiddens.length > 0) {
-            const wordHiddenRecords = [];
+        // ✅ Loại bỏ trùng trong word_hiddens
+        const uniqueHiddenWords = [
+            ...new Set(
+                (data.word_hiddens || [])
+                    .map(w => w.toLowerCase().trim())
+                    .filter(w => w.length > 0)
+            )
+        ];
 
-            data.word_hiddens.forEach((hiddenWord) => {
-                words.forEach((w, idx) => {
-                    if (w.toLowerCase() === hiddenWord.toLowerCase()) {
-                        wordHiddenRecords.push({
-                            position: idx + 1, // vị trí theo thứ tự từ trong đoạn text
-                            answer: hiddenWord,
-                            created_at: new Date().toISOString(),
-                            listen_para_id: listening_exercise.id
-                        });
-                    }
-                });
-            });
+        const wordHiddenRecords = [];
+        const usedPositions = new Set(); // đảm bảo không trùng position
 
-            if (wordHiddenRecords.length > 0) {
-                const { error: wordError } = await supabase
-                    .from("wordHidden")
-                    .insert(wordHiddenRecords);
-
-                if (wordError) {
-                    console.error("Error inserting word_hiddens:", wordError);
-                    throw new Error("Error creating word_hiddens");
+        // ✅ Chỉ ẩn mỗi từ một lần (lần đầu tiên xuất hiện)
+        uniqueHiddenWords.forEach((hiddenWord) => {
+            for (let idx = 0; idx < words.length; idx++) {
+                if (
+                    words[idx].toLowerCase() === hiddenWord &&
+                    !usedPositions.has(idx + 1)
+                ) {
+                    wordHiddenRecords.push({
+                        position: idx + 1,
+                        answer: hiddenWord,
+                        created_at: new Date().toISOString(),
+                        listen_para_id: listening_exercise.id
+                    });
+                    usedPositions.add(idx + 1);
+                    break; // chỉ ẩn lần đầu tiên
                 }
+            }
+        });
+
+        // ✅ Chèn dữ liệu wordHidden nếu có
+        if (wordHiddenRecords.length > 0) {
+            const { error: wordError } = await supabase
+                .from("wordHidden")
+                .insert(wordHiddenRecords);
+
+            if (wordError) {
+                console.error("Error inserting word_hiddens:", wordError);
+                throw new Error("Error creating word_hiddens");
             }
         }
 

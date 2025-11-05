@@ -32,7 +32,6 @@ export default function page() {
 
   const [achievements, setAchievements] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  console.log("Achievements:", achievements);
 
   // ✅ Hàm gọi API mới
   const fetchAchievements = async () => {

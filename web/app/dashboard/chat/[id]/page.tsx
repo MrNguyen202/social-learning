@@ -104,15 +104,7 @@ export default function ChatDetail() {
   const handleSendMessage = async () => {
     if (text.trim() === "" && files.length === 0) return;
     if (!user) return;
-    const formData = new FormData();
-    formData.append("conversationId", selectedConversation?.id || "");
-    formData.append("senderId", user.id);
-    if (text) formData.append("text", text);
-    if (files.length > 0) {
-      files.forEach((f) => formData.append("files", f));
-    }
-
-    const res = await sendMessage({
+    await sendMessage({
       conversationId: selectedConversation?.id || "",
       senderId: user.id,
       text,

@@ -20,8 +20,6 @@ export default function LearningPathPage() {
     const { t } = useLanguage()
     const router = useRouter()
 
-    console.log("🚀🚀🚀 Path:", paths)
-
     useEffect(() => {
         if (!user?.id) return
 
@@ -114,28 +112,46 @@ export default function LearningPathPage() {
                                     {path?.pathName || "Chưa có tên"}
                                 </CardTitle>
 
-
-                                <CardContent className="space-y-4 mt-2">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                                        <div className="flex flex-col border rounded-xl p-3 bg-green-50/50">
-                                            <span className="text-gray-500 font-medium">🎯 Mục tiêu</span>
-                                            <span className="text-gray-800 font-semibold">
-                                                {path?.goal || "—"}
+                                <CardContent className="space-y-8 mt-2">
+                                    {/* Ba hình tròn */}
+                                    <div className="flex justify-center gap-10 flex-wrap text-center items-center">
+                                        {/* Mục tiêu */}
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-green-600 font-semibold mb-2 text-sm tracking-wide">
+                                                🎯 Mục tiêu
                                             </span>
+                                            <div className="group relative flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-green-100 to-green-50 border border-green-300 shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 ease-out">
+                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-green-200/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                                <span className="text-gray-800 font-bold text-sm px-4">
+                                                    {path?.goal || "—"}
+                                                </span>
+                                            </div>
                                         </div>
 
-                                        <div className="flex flex-col border rounded-xl p-3 bg-green-50/50">
-                                            <span className="text-gray-500 font-medium">📘 Lĩnh vực</span>
-                                            <span className="text-gray-800 font-semibold">
-                                                {path?.field || "—"}
+                                        {/* Lĩnh vực */}
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-blue-600 font-semibold mb-2 text-sm tracking-wide">
+                                                📘 Lĩnh vực
                                             </span>
+                                            <div className="group relative flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 border border-blue-300 shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 ease-out">
+                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-200/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                                <span className="text-gray-800 font-bold text-sm px-4">
+                                                    {path?.field || "—"}
+                                                </span>
+                                            </div>
                                         </div>
 
-                                        <div className="flex flex-col border rounded-xl p-3 bg-green-50/50 sm:col-span-2">
-                                            <span className="text-gray-500 font-medium">💡 Kỹ năng chính</span>
-                                            <span className="text-gray-800 font-semibold">
-                                                {path?.targetSkills?.join(", ") || "—"}
+                                        {/* Kỹ năng */}
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-yellow-600 font-semibold mb-2 text-sm tracking-wide">
+                                                💡 Kỹ năng chính
                                             </span>
+                                            <div className="group relative flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-yellow-100 to-yellow-50 border border-yellow-300 shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 ease-out">
+                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-200/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                                <span className="text-gray-800 font-bold text-sm px-4">
+                                                    {path?.targetSkills?.join(", ") || "—"}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
 

@@ -42,7 +42,6 @@ export const generateWritingParagraphByAI = async (
             type_paragraph_slug
         });
 
-        console.log("Response from AI generation:", response.data);
         return response.data;
     } catch (error) {
         console.error("Error generating writing paragraph by AI:", error);
@@ -95,7 +94,6 @@ export const feedbackWritingParagraphExercise = async (
                 content_submit
             }
         );
-        console.log("Feedback response data:", response.data);
         return response.data;
     } catch (error) {
         console.error("Error fetching feedback writing paragraph:", error);

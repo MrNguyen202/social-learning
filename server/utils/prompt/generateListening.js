@@ -5,7 +5,6 @@ Yêu cầu:
 2. Bài tập nghe phải liên quan đến chủ đề ${topic}.
 3. Bài tập nghe nên theo dạng của toeic, ielts, cambridge.
 4. Bài tập nghe nên có nhiều từ đục lỗ hơn. Bao gồm cả danh từ, động từ, tính từ, trạng từ, giới từ, liên từ, động từ to be, động từ khiếm khuyết và những từ phổ biến khác.
-5. Mỗi câu phải có ít nhất 2-3 từ bị đục lỗ.
 Trả lời bằng định dạng JSON với cấu trúc sau:
 {
 "title_en": "Tiêu đề ngắn gọn cho bài tập nghe bằng tiếng Anh",

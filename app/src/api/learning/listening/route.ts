@@ -24,7 +24,6 @@ export const listeningService = {
 
     // Submit listening exercise results
     submitListeningResults: async (user_id: string, ex_listen_id: number, wordAnswers: any[]) => {
-        console.log("Submitting listening results:", { user_id, ex_listen_id, wordAnswers });
         const response = await api.post(`/api/learning/listening/listening-exercises/submit`, {
             user_id,
             ex_listen_id,

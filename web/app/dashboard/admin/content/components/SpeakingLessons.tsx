@@ -150,7 +150,6 @@ export function SpeakingLessons({ t }: { t: (key: string) => string }) {
       }
     }
   };
-  console.log("Rendering SpeakingLessons component", lessons);
   return (
     <>
       <Card>

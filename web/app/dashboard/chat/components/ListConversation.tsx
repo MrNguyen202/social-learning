@@ -1,25 +1,25 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, SquarePen } from "lucide-react";
 import CardUser from "./CardUser";
 import CardGroup from "./CardGroup";
 import { useRouter } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 import { fetchConversations } from "@/app/apiClient/chat/conversation/conversation";
-import { ConversationSkeleton } from "./ConversationSkeleton";
 import { getSocket } from "@/socket/socketClient";
 import { useConversation } from "@/components/contexts/ConversationContext";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 
 export default function ListConversation() {
-    const {t} = useLanguage();
+    const { t } = useLanguage();
     const router = useRouter();
     const { user, loading } = useAuth();
     const [isSearchMode, setIsSearchMode] = useState(false);
     const [conversations, setConversations] = useState<any[]>([]);
     const [loadingConversations, setLoadingConversations] = useState(true);
     const { setSelectedConversation } = useConversation();
+    const [searchTerm, setSearchTerm] = useState("");
 
     // Lấy danh sách cuộc trò chuyện của người dùng từ API hoặc context
     useEffect(() => {
@@ -63,6 +63,25 @@ export default function ListConversation() {
         router.push(`/dashboard/chat/${conversationId}`);
     };
 
+    const filteredConversations = useMemo(() => {
+        if (!searchTerm.trim()) return conversations;
+
+        return conversations.filter((conv) => {
+            let displayName = "";
+
+            if (conv.type === "private") {
+                // tìm người còn lại (không phải user hiện tại)
+                const otherMember = conv.members.find((m: any) => m.id !== user?.id);
+                displayName = otherMember?.name || "";
+            } else {
+                // nếu là group thì lấy tên group
+                displayName = conv.name || "";
+            }
+
+            return displayName.toLowerCase().includes(searchTerm.toLowerCase());
+        });
+    }, [searchTerm, conversations, user?.id]);
+
     return (
         <div className="h-screen flex flex-col">
             {/* Top bar */}
@@ -82,6 +101,8 @@ export default function ListConversation() {
                     onFocus={() => setIsSearchMode(true)}
                     onBlur={() => setIsSearchMode(false)}
                     className="w-full p-2 border border-gray-300 rounded-md"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
 
@@ -110,8 +131,29 @@ export default function ListConversation() {
 
             {isSearchMode && (
                 <div className="flex-1 overflow-y-auto">
-                    {/* User search results */}
-                    <p className="px-4 py-2 text-gray-500">{t("dashboard.displaySearch")}</p>
+                    {loadingConversations ? (
+                        <p className="px-4 py-2 text-gray-500">{t("chat.loading")}</p>
+                    ) : filteredConversations.length > 0 ? (
+                        filteredConversations.map((conversation) =>
+                            conversation.type === "private" ? (
+                                <CardUser
+                                    key={conversation.id}
+                                    conversation={conversation}
+                                    onClick={() => handleCardClick(conversation.id, conversation)}
+                                />
+                            ) : (
+                                <CardGroup
+                                    key={conversation.id}
+                                    conversation={conversation}
+                                    onClick={() => handleCardClick(conversation.id, conversation)}
+                                />
+                            )
+                        )
+                    ) : (
+                        <p className="px-4 py-2 text-gray-500">
+                            {t("chat.noResults") || "Không tìm thấy cuộc trò chuyện nào."}
+                        </p>
+                    )}
                 </div>
             )}
         </div>
