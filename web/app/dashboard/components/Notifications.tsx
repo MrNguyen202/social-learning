@@ -292,7 +292,7 @@ export function NotificationsPanel({
               </div>
 
               {/* Body */}
-              <ScrollArea className="flex-1">
+              <ScrollArea className="flex-1 overflow-y-auto">
                 {activeTab === "social"
                   ? renderSocialNotifications()
                   : renderLearningNotifications()}
