@@ -6,7 +6,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import useAuth from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import {
   statisticsScoreSpeaking,
@@ -32,13 +31,16 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function ChartArea({
+  t,
+  user,
   days,
   skillType,
 }: {
+  t: (key: string) => string;
+  user: any;
   days: any;
   skillType: "speaking" | "writing" | "listening";
 }) {
-  const { user } = useAuth();
   const [data, setData] = useState<any[]>([]);
   const [skill, setSkill] = useState("");
 

@@ -152,16 +152,22 @@ export async function getOverviewStats(userId: string): Promise<OverviewStats> {
 
   // Lấy chuỗi học hiện tại
   const res = await getLearningStreak(userId);
+  
+  // Lấy tổng số bài học
+  const resActivity = await getActivityHeatmap(userId);
+  const totalLessons = Array.isArray(resActivity)
+    ? resActivity.reduce((sum: number, item: any) => sum + (Number(item.count) || 0), 0)
+    : 0;
 
   return {
-    totalLessons: Math.floor(Math.random() * 50) + 100, // Giả sử từ 100 đến 150 bài học
+    totalLessons,
     averageScore: Math.floor(
       (speakingScore.totalScore +
         writingScore.totalScore +
         listeningScore.totalScore) /
         3
     ),
-    streak: res.data.current_streak,
+    streak: res.data?.current_streak ?? 0,
     bestSkill,
     skillScores: scores,
   };

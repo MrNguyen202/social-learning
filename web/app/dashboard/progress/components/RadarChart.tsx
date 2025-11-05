@@ -34,13 +34,16 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function ChartRadar({
+  t,
+  user,
   days,
   skillType,
 }: {
+  t: (key: string) => string;
+  user: any;
   days: any;
   skillType: "speaking" | "writing" | "listening";
 }) {
-  const { user } = useAuth();
   const [data, setData] = useState<any[]>([]);
   const [skill, setSkill] = useState("");
 

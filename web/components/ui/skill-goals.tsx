@@ -14,10 +14,13 @@ import {
   getOverviewStats,
   type OverviewStats,
 } from "@/app/apiClient/learning/score/score";
-import useAuth from "@/hooks/useAuth";
 
-export default function SkillGoals() {
-  const { user } = useAuth();
+interface SkillGoalsProps {
+  t: (key: string) => string;
+  user: any;
+}
+
+export default function SkillGoals({ t, user }: SkillGoalsProps) {
   const [stats, setStats] = useState<OverviewStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -77,10 +80,10 @@ export default function SkillGoals() {
       <div className="h-1.5 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500" />
       <CardHeader className="p-4 sm:p-6">
         <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">
-          Mục tiêu kỹ năng
+          {t("learning.skillGoals")}
         </CardTitle>
         <CardDescription className="text-sm sm:text-base text-gray-600">
-          Tiến độ đạt mục tiêu 90 điểm cho mỗi kỹ năng
+          {t("learning.skillGoalsDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-4 sm:p-6 pt-0">
@@ -102,7 +105,7 @@ export default function SkillGoals() {
                         {goal.skill}
                       </h4>
                       <p className="text-xs sm:text-sm text-gray-600">
-                        {goal.current}/{goal.target} điểm
+                        {goal.current}/{goal.target} {t("learning.points")}
                       </p>
                     </div>
                   </div>

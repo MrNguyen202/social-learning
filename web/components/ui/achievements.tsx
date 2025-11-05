@@ -10,12 +10,15 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
-import useAuth from "@/hooks/useAuth";
 import { Lock } from "lucide-react";
 import { getUserAchievements } from "@/app/apiClient/learning/score/score";
 
-export default function Achievements() {
-  const { user } = useAuth();
+interface AchievementsProps {
+  t: (key: string) => string;
+  user: any;
+}
+
+export default function Achievements({t, user}: AchievementsProps) {
   const [achievements, setAchievements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -49,10 +52,10 @@ export default function Achievements() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-2xl font-bold text-gray-900">
-              Thành tích
+              {t("learning.achievement")}
             </CardTitle>
             <CardDescription className="text-gray-600 mt-1">
-              Đã mở khóa {unlockedCount}/{achievements.length} thành tích
+              {t("learning.achievementUnlocked")} {unlockedCount}/{achievements.length} {t("learning.achiev")}
             </CardDescription>
           </div>
           <Badge className="bg-gradient-to-r from-orange-500 to-pink-500 text-white border-0 px-4 py-2 text-lg">

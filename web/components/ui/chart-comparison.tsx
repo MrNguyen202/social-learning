@@ -14,7 +14,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import useAuth from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { getSkillsComparison } from "@/app/apiClient/learning/score/score";
 import { Loader2 } from "lucide-react";
@@ -34,8 +33,15 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export default function ChartComparison({ days }: { days: string }) {
-  const { user } = useAuth();
+export default function ChartComparison({
+  t,
+  user,
+  days,
+}: {
+  t: (key: string) => string;
+  user: any;
+  days: string;
+}) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -63,10 +69,10 @@ export default function ChartComparison({ days }: { days: string }) {
       <div className="h-1.5 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500" />
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-gray-900">
-          So sánh kỹ năng
+          {t("learning.skillComparison")}
         </CardTitle>
         <CardDescription className="text-gray-600">
-          Xem sự tiến bộ của tất cả các kỹ năng trên cùng một biểu đồ
+          {t("learning.skillComparisonDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -74,7 +80,7 @@ export default function ChartComparison({ days }: { days: string }) {
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
             <span className="ml-2 text-gray-600 font-medium">
-              Đang tải dữ liệu...
+              {t("learning.loadingData")}
             </span>
           </div>
         ) : (

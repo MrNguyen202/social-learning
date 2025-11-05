@@ -28,36 +28,36 @@ import ChartRadar from "./components/RadarChart";
 import ActivityHeatmap from "./components/ActivitySchedule";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 
-const skillConfig = {
-  speaking: {
-    label: "Kỹ năng Nói",
-    icon: Mic,
-    gradient: "from-orange-500 to-pink-500",
-    bgLight: "bg-orange-50",
-    textColor: "text-orange-600",
-  },
-  writing: {
-    label: "Kỹ năng Viết",
-    icon: BookOpen,
-    gradient: "from-pink-500 to-purple-500",
-    bgLight: "bg-pink-50",
-    textColor: "text-pink-600",
-  },
-  listening: {
-    label: "Kỹ năng Nghe",
-    icon: Headphones,
-    gradient: "from-purple-500 to-blue-500",
-    bgLight: "bg-purple-50",
-    textColor: "text-purple-600",
-  },
-};
-
 export default function LearningProgressChart() {
   const { user } = useAuth();
-  const {t} = useLanguage();
+  const { t } = useLanguage();
   const [chartType, setChartType] = useState<"area" | "radar">("area");
   const [period, setPeriod] = useState("7days");
   const [loading, setLoading] = useState(false);
+
+  const skillConfig = {
+    speaking: {
+      label: `${t("learning.skillSpeaking")}`,
+      icon: Mic,
+      gradient: "from-orange-500 to-pink-500",
+      bgLight: "bg-orange-50",
+      textColor: "text-orange-600",
+    },
+    writing: {
+      label: `${t("learning.skillWriting")}`,
+      icon: BookOpen,
+      gradient: "from-pink-500 to-purple-500",
+      bgLight: "bg-pink-50",
+      textColor: "text-pink-600",
+    },
+    listening: {
+      label: `${t("learning.skillListening")}`,
+      icon: Headphones,
+      gradient: "from-purple-500 to-blue-500",
+      bgLight: "bg-purple-50",
+      textColor: "text-purple-600",
+    },
+  };
 
   const getPeriodLabel = () => {
     switch (period) {
@@ -129,20 +129,20 @@ export default function LearningProgressChart() {
                 {t("learning.progressLearningDescription")}
               </p>
             </motion.div>
-            </div>
+          </div>
 
           <div className="space-y-6 sm:space-y-8">
-            <OverviewStats />
+            <OverviewStats user={user} t={t} />
 
-            <ActivityHeatmap />
+            <ActivityHeatmap user={user} t={t} />
 
-            <SkillGoals />
+            <SkillGoals user={user} t={t} />
 
             <div className="space-y-4">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                 {t("learning.comparisonChart")}
               </h2>
-              <ChartComparison days={period} />
+              <ChartComparison t={t} user={user} days={period} />
             </div>
 
             <div className="space-y-4">
@@ -237,10 +237,20 @@ export default function LearningProgressChart() {
                         <CardContent className="p-4 sm:p-6 pt-0">
                           <div className="h-[200px] sm:h-[250px] w-full">
                             {chartType === "area" && (
-                              <ChartArea days={period} skillType={skillType} />
+                              <ChartArea
+                                t={t}
+                                user={user}
+                                days={period}
+                                skillType={skillType}
+                              />
                             )}
                             {chartType === "radar" && (
-                              <ChartRadar days={period} skillType={skillType} />
+                              <ChartRadar
+                                t={t}
+                                user={user}
+                                days={period}
+                                skillType={skillType}
+                              />
                             )}
                           </div>
                           <div className="mt-4 sm:mt-6 space-y-3">
@@ -286,7 +296,7 @@ export default function LearningProgressChart() {
               )}
             </div>
 
-            <Achievements />
+            <Achievements t={t} user={user} />
           </div>
         </div>
       </main>

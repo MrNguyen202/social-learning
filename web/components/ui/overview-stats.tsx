@@ -4,7 +4,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, TrendingUp, Flame, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getOverviewStats } from "@/app/apiClient/learning/score/score";
-import useAuth from "@/hooks/useAuth";
 
 interface OverviewStats {
   totalLessons: number;
@@ -18,8 +17,12 @@ interface OverviewStats {
   };
 }
 
-export default function OverviewStats() {
-  const { user } = useAuth();
+interface Props {
+  user: any;
+  t: (key: string) => string;
+}
+
+export default function OverviewStats({ user, t }: Props) {
   const [stats, setStats] = useState<OverviewStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -46,7 +49,7 @@ export default function OverviewStats() {
 
   const statCards = [
     {
-      title: "Tổng số bài học",
+      title: t("learning.totalLessons"),
       value: stats.totalLessons,
       icon: BookOpen,
       gradient: "from-orange-500 to-pink-500",
@@ -54,7 +57,7 @@ export default function OverviewStats() {
       textColor: "text-orange-600",
     },
     {
-      title: "Điểm trung bình",
+      title: t("learning.averageScore"),
       value: stats.averageScore,
       icon: TrendingUp,
       gradient: "from-pink-500 to-purple-500",
@@ -63,22 +66,22 @@ export default function OverviewStats() {
       suffix: "/1000",
     },
     {
-      title: "Chuỗi ngày học",
+      title: t("learning.streak"),
       value: stats.streak,
       icon: Flame,
       gradient: "from-purple-500 to-blue-500",
       bgLight: "bg-purple-50",
       textColor: "text-purple-600",
-      suffix: " ngày",
+      suffix: " " + t("learning.day"),
     },
     {
-      title: "Kỹ năng mạnh nhất",
+      title: t("learning.bestSkill"),
       value:
         stats.bestSkill === "speaking"
-          ? "Nói"
+          ? t("learning.speaking")
           : stats.bestSkill === "writing"
-          ? "Viết"
-          : "Nghe",
+          ? t("learning.writing")
+          : t("learning.listen"),
       icon: Trophy,
       gradient: "from-blue-500 to-cyan-500",
       bgLight: "bg-blue-50",

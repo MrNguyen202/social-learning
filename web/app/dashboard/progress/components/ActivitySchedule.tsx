@@ -1,12 +1,15 @@
 "use client";
 
 import { getActivityHeatmap } from "@/app/apiClient/learning/score/score";
-import useAuth from "@/hooks/useAuth";
 import React, { useEffect, useState } from "react";
 import ActivityCalendar from "react-activity-calendar";
 
-export default function ActivityHeatmap() {
-  const { user } = useAuth();
+interface ActivityHeatmapProps {
+  user: any;
+  t: (key: string) => string;
+}
+
+export default function ActivityHeatmap({ user, t }: ActivityHeatmapProps) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [year, setYear] = useState(new Date().getFullYear());
@@ -19,7 +22,7 @@ export default function ActivityHeatmap() {
   const fetchData = async () => {
     setLoading(true);
     const res = await getActivityHeatmap(user?.id);
-    // giả sử API trả về tất cả các năm, bạn có thể lọc theo year hiện tại
+    // giả sử API trả về tất cả các năm, có thể lọc theo year hiện tại
     const filtered = res.filter(
       (item: any) => new Date(item.date).getFullYear() === year
     );
@@ -34,12 +37,14 @@ export default function ActivityHeatmap() {
     setLoading(false);
   };
 
-  const years = [2023, 2024, 2025]; // hoặc sinh động dựa vào dữ liệu API
+  const years = [2024, 2025]; // hoặc sinh động dựa vào dữ liệu API
 
   return (
     <div className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-800 rounded-lg">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">Lịch sử học tập</h1>
+        <h1 className="text-lg font-semibold">
+          {t("learning.activityHistory")}
+        </h1>
 
         <select
           className="border border-gray-300 rounded-md px-3 py-1 dark:bg-gray-700"
@@ -48,45 +53,56 @@ export default function ActivityHeatmap() {
         >
           {years.map((y) => (
             <option key={y} value={y}>
-              Năm {y}
+              {t("learning.year")} {y}
             </option>
           ))}
         </select>
       </div>
-
       {loading ? (
-        <p>Đang tải dữ liệu...</p>
+        <p>{t("learning.loadingData")}</p>
       ) : data.length > 0 ? (
-        <ActivityCalendar
-          data={data}
-          labels={{
-            legend: { less: "Ít", more: "Nhiều" },
-            months: [
-              "Thg 1",
-              "Thg 2",
-              "Thg 3",
-              "Thg 4",
-              "Thg 5",
-              "Thg 6",
-              "Thg 7",
-              "Thg 8",
-              "Thg 9",
-              "Thg 10",
-              "Thg 11",
-              "Thg 12",
-            ],
-            weekdays: ["CN", "T2", "T3", "T4", "T5", "T6", "T7"],
-            totalCount: "{{count}} hoạt động trong {{year}}",
-          }}
-          theme={{
-            light: ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"],
-            dark: ["#161b22", "#0e4429", "#006d32", "#26a641", "#39d353"],
-          }}
-          hideTotalCount={false}
-          showWeekdayLabels
-        />
+        <div className="m-auto">
+          <ActivityCalendar
+            data={data}
+            labels={{
+              legend: { less: t("learning.less"), more: t("learning.more") },
+              months: [
+                `${t("learning.jan")}`,
+                `${t("learning.feb")}`,
+                `${t("learning.mar")}`,
+                `${t("learning.apr")}`,
+                `${t("learning.may")}`,
+                `${t("learning.jun")}`,
+                `${t("learning.jul")}`,
+                `${t("learning.aug")}`,
+                `${t("learning.sep")}`,
+                `${t("learning.oct")}`,
+                `${t("learning.nov")}`,
+                `${t("learning.dec")}`,
+              ],
+              weekdays: [
+                `${t("learning.sun")}`,
+                `${t("learning.mon")}`,
+                `${t("learning.tue")}`,
+                `${t("learning.wed")}`,
+                `${t("learning.thu")}`,
+                `${t("learning.fri")}`,
+                `${t("learning.sat")}`,
+              ],
+              totalCount: `{{count}} ${t("learning.activity")} {{year}}`,
+            }}
+            theme={{
+              light: ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"],
+              dark: ["#161b22", "#0e4429", "#006d32", "#26a641", "#39d353"],
+            }}
+            hideTotalCount={false}
+            showWeekdayLabels
+          />
+        </div>
       ) : (
-        <p>Không có dữ liệu cho năm {year}.</p>
+        <p>
+          {t("learning.noDataInYear")} {year}.
+        </p>
       )}
     </div>
   );
