@@ -105,6 +105,32 @@ const learningController = {
             res.status(500).json({ error: "Internal Server Error" });
         }
     },
+
+    // Get levels by name_vi
+    getLevelsByNameVi: async (req, res) => {
+        const { name_vi } = req.params;
+        try {
+            const data = await learningService.getLevelsByNameVi(name_vi);
+            res.json(data);
+        }
+        catch (error) {
+            console.error("Error fetching levels by name_vi:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    },
+
+    // Get topics by name_vi
+    getTopicsByNameVi: async (req, res) => {
+        const { name_vi } = req.params;
+        try {
+            const data = await learningService.getTopicsByNameVi(name_vi);
+            res.json(data);
+        }
+        catch (error) {
+            console.error("Error fetching topics by name_vi:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    },
 };
 
 module.exports = learningController;

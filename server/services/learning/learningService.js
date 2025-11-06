@@ -315,6 +315,52 @@ const learningService = {
     }
     return data;
   },
+
+  // Get levels by name_vi
+  async getLevelsByNameVi(name_vi) {
+    const { data, error } = await supabase
+      .from("levels")
+      .select(
+        `
+            id,
+            name_vi,
+            description_vi,
+            name_en,
+            description_en,
+            slug,
+            icon: icon_id (name, color)
+        `
+      )
+      .ilike("name_vi", `%${name_vi}%`);
+    if (error) {
+      console.error("Error fetching levels by name_vi:", error);
+      throw error;
+    }
+    return data;
+  },
+
+  // Get topics by name_vi
+  async getTopicsByNameVi(name_vi) {
+    const { data, error } = await supabase
+      .from("topics")
+      .select(
+        `
+            id,
+            name_vi,
+            description_vi,
+            name_en,
+            description_en,
+            slug,
+            icon: icon_id (name, color)
+        `
+      )
+      .ilike("name_vi", `%${name_vi}%`);
+    if (error) {
+      console.error("Error fetching topics by name_vi:", error);
+      throw error;
+    }
+    return data;
+  }
 };
 
 module.exports = learningService;

@@ -192,17 +192,31 @@ export default function ChatDetail() {
               </div>
             </>
           ) : selectedConversation?.name ? (
-            <h2 className="text-lg font-semibold">
-              {selectedConversation?.name}
-            </h2>
+            <>
+              <h2 className="text-lg font-semibold">
+                {selectedConversation?.name}
+              </h2>
+              {onlineStatus ? (
+                <span className="w-3 h-3 bg-green-500 rounded-full mb-1"></span>
+              ) : (
+                <span className="w-3 h-3 bg-red-500 rounded-full mb-1"></span>
+              )}
+            </>
           ) : (
-            <h2 className="text-lg font-semibold">
-              Bạn,{" "}
-              {selectedConversation?.members
-                .filter((m: { id: string }) => m.id !== user?.id)
-                .map((m: { name: string }) => m.name)
-                .join(", ")}
-            </h2>
+            <>
+              <h2 className="text-lg font-semibold">
+                Bạn,{" "}
+                {selectedConversation?.members
+                  .filter((m: { id: string }) => m.id !== user?.id)
+                  .map((m: { name: string }) => m.name)
+                  .join(", ")}
+              </h2>
+              {onlineStatus ? (
+                <span className="w-3 h-3 bg-green-500 rounded-full mb-1"></span>
+              ) : (
+                <span className="w-3 h-3 bg-red-500 rounded-full mb-1"></span>
+              )}
+            </>
           )}
         </div>
         <div className="flex items-center gap-2">

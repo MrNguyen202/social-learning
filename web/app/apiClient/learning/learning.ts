@@ -79,3 +79,26 @@ export const getTypeParagraphBySlug = async (slug: string) => {
     throw error;
   }
 };
+
+// Get levels by name_vi
+export const getLevelsByNameVi = async (name_vi: string) => {
+  try {
+    const response = await api.get(`/api/learning/levels/name_vi/${name_vi}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching levels by name_vi:", error);
+    throw error;
+  }
+};
+
+// Get topics by name_vi
+export const getTopicsByNameVi = async (name_vi: string) => {
+  try {
+    const response = await api.get(`/api/learning/topics/name_vi/${name_vi}`);
+    return response.data;
+  }
+  catch (error) {
+    console.error("Error fetching topics by name_vi:", error);
+    throw error;
+  }
+};
