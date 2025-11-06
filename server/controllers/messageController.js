@@ -49,7 +49,6 @@ const messageController = {
             for (const member of conversationMembers) {
                 const userSocket = io.userSockets.get(member.userId);
                 if (userSocket) {
-                    console.log("User socket for member:", member.userId, userSocket.id);
                     io.to(userSocket.id).emit("notificationNewMessage", {
                         type: "newMessage",
                         conversationId,

@@ -211,12 +211,10 @@ const ChatDetail = () => {
     const socket = getSocket();
     const conversationId = conversation?.id;
     if (conversationId) {
-      console.log('User joined conversation:', conversationId);
       socket.emit('joinRoom', conversationId);
     }
 
     socket.on('newMessage', (newMessage: any) => {
-      console.log('New message received:', newMessage);
       setMessages(prev => [newMessage, ...prev]);
       if (newMessage.senderId !== user?.id && conversation && user) {
         markMessagesAsRead(conversation.id, user.id);

@@ -8,12 +8,14 @@ import enAuth from "@/translate/en/auth.json";
 import enChatbot from "@/translate/en/chatbot.json";
 import enDashboard from "@/translate/en/dashboard.json";
 import enLearning from "@/translate/en/learning.json";
+import enChat from "@/translate/en/chat.json";
 
 import viLayout from "@/translate/vi/layout.json";
 import viAuth from "@/translate/vi/auth.json";
 import viChatbot from "@/translate/vi/chatbot.json";
 import viDashboard from "@/translate/vi/dashboard.json";
 import viLearning from "@/translate/vi/learning.json";
+import viChat from "@/translate/vi/chat.json";
 
 type Language = "en" | "vi";
 
@@ -24,6 +26,7 @@ const resources = {
     chatbot: enChatbot,
     dashboard: enDashboard,
     learning: enLearning,
+    chat: enChat,
   },
   vi: {
     layout: viLayout,
@@ -31,6 +34,7 @@ const resources = {
     chatbot: viChatbot,
     dashboard: viDashboard,
     learning: viLearning,
+    chat: viChat,
   },
 };
 

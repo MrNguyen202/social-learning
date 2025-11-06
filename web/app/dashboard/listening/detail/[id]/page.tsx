@@ -540,7 +540,7 @@ export default function ListeningDetailPage() {
                     transition={{ duration: 0.3 }}
                     className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
                 >
-                    <DialogContent className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white rounded-2xl shadow-2xl w-[380px] p-6 text-center">
+                    <DialogContent className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white rounded-2xl shadow-2xl w-[430px] p-6 text-center">
                         <div className="flex flex-col items-center">
                             <div className="text-6xl mb-3 animate-bounce">🎧</div>
                             <DialogTitle className="text-2xl font-bold mb-2">{submitResult?.correctCount === submitResult?.totalCount ? `${t('learning.congratulations')}` : `${t('learning.tryMore')}`}</DialogTitle>

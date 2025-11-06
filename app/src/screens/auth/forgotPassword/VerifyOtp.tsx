@@ -32,9 +32,7 @@ export default function VerifyOTP() {
     setLoading(true);
     const email = await AsyncStorage.getItem('email');
     try {
-      console.log('Email from storage:', email);
       const res = await verifyResetOtp({ email, otp });
-      console.log('Response from verifyResetOtp:', res);
       if (!res.success) {
         Toast.show({
           type: 'error',

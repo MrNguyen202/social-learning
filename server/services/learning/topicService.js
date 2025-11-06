@@ -118,8 +118,6 @@ module.exports = {
 
       if (updateErr) throw updateErr;
     }
-
-    console.log("🎉 Hoàn tất generateTopicsForUser cho user:", userId);
     return { success: true, message: "Gán topic cho từ vựng thành công." };
   },
 };

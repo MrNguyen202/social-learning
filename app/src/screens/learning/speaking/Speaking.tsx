@@ -45,8 +45,6 @@ export default function Speaking() {
       // Trước khi navigate đến SpeakingLessonAI
       await AsyncStorage.setItem('levelSlug', selectedLevel.slug.toString());
       await AsyncStorage.setItem('topicSlug', selectedTopic.slug.toString());
-      console.log('Selected Level:', selectedLevel.slug);
-      console.log('Selected Topic:', selectedTopic.slug);
       setLoading(true);
       navigation.navigate('LessonSpeakingAI');
     }

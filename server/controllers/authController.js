@@ -65,7 +65,6 @@ const authController = {
   async resendRegisterOtp(req, res) {
     try {
       const { email } = req.body;
-      console.log(email);
       // Gửi lại OTP nếu tồn tại email nhưng chưa xác nhận
       const { error } = await supabase.auth.resend({
         type: "signup",

@@ -7,7 +7,6 @@ const imageController = {
     try {
       const { folderName, fileBase64, isImage } = req.body;
 
-      console.log("Độ dài chuỗi base64 nhận được:", fileBase64?.length);
       if (!fileBase64 || fileBase64.length < 1000) {
         // Độ dài tối thiểu tùy ý cho một hình ảnh hợp lệ
         return {
@@ -54,7 +53,6 @@ const imageController = {
       }
 
       const url = `${supabaseUrl}/storage/v1/object/public/uploads/${filePath}`;
-      console.log("URL", url);
 
       return res.status(200).json({
         success: true,

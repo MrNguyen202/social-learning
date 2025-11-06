@@ -15,6 +15,11 @@ import {
 import UserFollowModal from "./UserFollowModal";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/components/contexts/LanguageContext";
+import MessageModal from "./MessageModal";
+import { createConversation, findConversationBetweenUsers } from "@/app/apiClient/chat/conversation/conversation";
+import { useRouter } from "next/navigation";
+import { useConversation } from "@/components/contexts/ConversationContext";
+import { sendMessage } from "@/app/apiClient/chat/message/message";
 
 interface User {
   id: string;
@@ -45,6 +50,9 @@ export default function ProfileFollowerHeader({
   const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [openMessage, setOpenMessage] = useState(false);
+  const router = useRouter();
+  const { setSelectedConversation } = useConversation();
 
   useEffect(() => {
     if (!user?.id) return;
@@ -114,6 +122,60 @@ export default function ProfileFollowerHeader({
     }
   };
 
+  const handleOpenMessage = async () => {
+    try {
+      const res = await findConversationBetweenUsers(user?.id, userSearch?.id);
+      if (res.message === "Yes") {
+        setSelectedConversation(res.conversation);
+        localStorage.setItem("selectedConversation", JSON.stringify(res.conversation));
+        router.push(`/dashboard/chat/${res.conversation.id}`);
+      } else {
+        setOpenMessage(true);
+      }
+    } catch (err) {
+      console.error("Error checking conversation:", err);
+    }
+  }
+
+  const handleSendMessage = async (text: string) => {
+    // Tạo cuộc trò chuyện mới
+    const conversationData = {
+      name: "",
+      type: "private",
+      members: [
+        {
+          userId: user?.id,
+          role: "member",
+          addBy: "",
+        },
+        {
+          userId: userSearch?.id,
+          role: "member",
+          addBy: "",
+        },
+      ],
+      avatar: "",
+      admin: ""
+    };
+
+    const creatRes = await createConversation(conversationData);
+    // Gửi tin nhắn đầu tiên
+    if (creatRes) {
+      if (text.trim() === "") return;
+      if (!user) return;
+
+      const res = await sendMessage({
+        conversationId: creatRes?.id,
+        senderId: user?.id,
+        text
+      });
+      setSelectedConversation(creatRes);
+      localStorage.setItem("selectedConversation", JSON.stringify(creatRes));
+      router.push(`/dashboard/chat/${creatRes.id}`);
+      setOpenMessage(false);
+    }
+  };
+
   if (loading) return <p className="p-6">{t("dashboard.loading")}</p>;
 
   return (
@@ -159,11 +221,10 @@ export default function ProfileFollowerHeader({
                 whileTap={{ scale: 0.95 }}
                 onClick={handleFollowToggle}
                 disabled={followLoading}
-                className={`md:w-45 w-full h-8 px-4 py-1.5 rounded-lg font-medium cursor-pointer ${
-                  isFollowing
-                    ? "bg-gray-200 text-black hover:bg-gray-300"
-                    : "bg-blue-500 text-white hover:bg-blue-600"
-                }`}
+                className={`md:w-45 w-full h-8 px-4 py-1.5 rounded-lg font-medium cursor-pointer ${isFollowing
+                  ? "bg-gray-200 text-black hover:bg-gray-300"
+                  : "bg-blue-500 text-white hover:bg-blue-600"
+                  }`}
               >
                 {followLoading ? (
                   <LoaderIcon className="h-4 w-4 m-auto animate-spin" />
@@ -178,6 +239,7 @@ export default function ProfileFollowerHeader({
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="md:w-45 w-full h-8 px-4 py-1.5 rounded-lg font-medium cursor-pointer bg-gray-200 text-black hover:bg-gray-300"
+                onClick={() => handleOpenMessage()}
               >
                 {t("dashboard.message")}
               </motion.button>
@@ -239,6 +301,18 @@ export default function ProfileFollowerHeader({
         onClose={() => setOpenFollower(false)}
         title={t("dashboard.followers")}
         data={follower}
+      />
+
+      <MessageModal
+        isOpen={openMessage}
+        onClose={() => setOpenMessage(false)}
+        receiver={{
+          id: userSearch?.id || "",
+          name: userSearch?.name || "",
+          nick_name: userSearch?.nick_name,
+          avatar: userSearch?.avatar,
+        }}
+        onSend={handleSendMessage}
       />
     </>
   );

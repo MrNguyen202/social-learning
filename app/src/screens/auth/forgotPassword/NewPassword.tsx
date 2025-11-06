@@ -38,7 +38,6 @@ export default function NewPassword() {
       }
 
       const res = await forgotPassword({ session, password });
-      console.log('Response from forgotPassword:', res);
       if (!res.success) throw new Error(res.message);
 
       Toast.show({ type: 'success', text1: 'Đổi mật khẩu thành công!' });

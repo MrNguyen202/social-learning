@@ -1,7 +1,6 @@
 import api from "@/lib/api";
 
 export const loadListeningParagraphs = async ({ levelId, topicId }: any) => {
-  console.log("API call with params:", { levelId, topicId });
   const response = await api.get("/api/admin/content/listening", {
     params: {
       levelId,

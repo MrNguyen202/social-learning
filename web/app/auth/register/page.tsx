@@ -123,7 +123,6 @@ export default function RegisterPage() {
       toast.success(t("auth.verificationSuccess"), { autoClose: 1000 });
       router.push("/auth/login");
     } catch (err: any) {
-      console.log("error", err.response?.data?.error);
       toast.error(t("auth.otpVerificationFailed"), { autoClose: 1000 });
     } finally {
       setLoading(false);

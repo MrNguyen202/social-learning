@@ -39,7 +39,6 @@ export default function RoadmapZigzagPage() {
     const [roadmap, setRoadmap] = useState<Roadmap | null>(null)
     const [expandedWeeks, setExpandedWeeks] = useState<number[]>([])
     const { id } = useParams()
-    console.log("🚀🚀🚀 expandedWeeks", expandedWeeks)
 
     useEffect(() => {
         const fetchRoadmap = async () => {

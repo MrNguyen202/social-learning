@@ -226,7 +226,6 @@ const writingController = {
         user_id,
         paragraph_id
       );
-      console.log("Fetched progress:", progress);
       res.json(progress);
     } catch (error) {
       console.error("Error fetching writing progress:", error);

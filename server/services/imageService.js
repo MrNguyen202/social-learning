@@ -51,8 +51,6 @@ const imageService = {
         };
       }
 
-      console.log("Upload thành công:", data);
-
       return {
         success: true,
         data: {

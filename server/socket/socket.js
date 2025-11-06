@@ -16,12 +16,10 @@ function socketInit(server) {
         });
 
         socket.on("joinRoom", (conversationId) => {
-            console.log("User joined room:", conversationId);
             socket.join(conversationId);
         });
 
         socket.on("leaveRoom", (conversationId) => {
-            console.log("User left room:", conversationId);
             socket.leave(conversationId);
         });
 
