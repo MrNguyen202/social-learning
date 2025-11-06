@@ -106,7 +106,7 @@ Yêu cầu:
 10. Không được lặp lại cùng một từ hoặc cấu trúc câu hỏi quá 2 lần.
 11. Ở loại "synonym_match", hãy tạo 5 cặp từ.
 12. Ở loại "fill_in_blank", "sentence_template" phải có một chỗ trống biểu thị bằng \`___\`. "options" gồm 3-4 từ, trong đó "correct_answer" là một từ trong danh sách từ vựng.
-13. Ở loại "sentence_order", các câu trong "answer_en" và "answer_vi" **không được chứa dấu câu ở cuối** (như ., !, ?).
+13. Ở loại "sentence_order", các câu trong "answer_en" và "answer_vi" **không được chứa dấu câu ở cuối** (như ., !, ?) và phải bao gồm tất cả các từ có trong answer_en", *kể cả các từ lặp lại* (ví dụ: he put the paper in the box) có 2 chữ 'the'.
 14. Ở loại "multiple_choice", hãy cố gắng tạo cả câu hỏi Anh-Việt (ví dụ: 'develop' nghĩa là gì?) và Việt-Anh (ví dụ: 'Phát triển' là gì?).
 15. Ở loại "word_build":
     - "letters" là mảng ký tự a–z, khoảng 8–12 ký tự.
