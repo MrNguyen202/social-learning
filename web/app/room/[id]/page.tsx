@@ -2,7 +2,7 @@
 
 import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { getSocket } from "@/socket/socketClient";
 import useAuth from "@/hooks/useAuth";
 import { ArrowLeft } from "lucide-react";
@@ -37,6 +37,8 @@ function Page() {
   const { user } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const [isInRoom, setIsInRoom] = useState(false);
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -70,6 +72,10 @@ function Page() {
 
       zp.joinRoom({
         container: element,
+
+        // HIỂN THỊ MÀN HÌNH PRE-JOIN (UI JOIN)
+        showPreJoinView: true,
+
         sharedLinks: [
           {
             name: "Copy Link",
@@ -85,8 +91,17 @@ function Page() {
           mode: ZegoUIKitPrebuilt.OneONoneCall,
         },
         maxUsers: 10,
+        onJoinRoom: () => {
+          console.log("[ZEGO] Đã vào phòng!");
+          // Ẩn nút "Back" của bạn
+          setIsInRoom(true);
+        },
         onLeaveRoom: () => {
           console.log("[ZEGO] Left room");
+          setIsInRoom(false);
+          setTimeout(() => {
+            router.back();
+          }, 300);
         },
       });
     };
@@ -110,18 +125,19 @@ function Page() {
   }, [id, user, router]);
 
   return (
-    <>
+    <div className="relative h-screen w-full">
       <div className="h-full w-full" ref={containerRef}></div>
-      <div>
+
+      {!isInRoom && (
         <Button
           variant="ghost"
           onClick={() => router.back()}
-          className="mb-6 cursor-pointer"
+          className="absolute top-4 left-4 z-10 cursor-pointer rounded-full bg-background/70 p-2 backdrop-blur-sm hover:bg-background/90"
         >
-          <ArrowLeft className="w-5 h-5 mr-2" /> {t("learning.back")}
+          <ArrowLeft className="h-5 w-5 mr-2" /> {t("learning.back")}
         </Button>
-      </div>
-    </>
+      )}
+    </div>
   );
 }
 
