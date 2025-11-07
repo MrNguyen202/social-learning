@@ -16,6 +16,8 @@ import { getUserImageSrc } from "@/app/apiClient/image/image";
 import { useConversation } from "@/components/contexts/ConversationContext";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { checkUserOnline } from "@/app/apiClient/user/user";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 export default function ChatDetail() {
   const { t } = useLanguage();
@@ -26,6 +28,7 @@ export default function ChatDetail() {
   const { selectedConversation } = useConversation();
   const [onlineStatus, setOnlineStatus] = useState<boolean>(false);
   const [offlineTime, setOfflineTime] = useState<string | null>(null);
+  const router = useRouter();
 
   // Lắng nghe sự kiện tin nhắn mới từ socket
   useEffect(() => {
@@ -120,18 +123,96 @@ export default function ChatDetail() {
   useEffect(() => {
     const checkOnlineStatus = async () => {
       if (!selectedConversation?.members || !user) return;
-      const members = selectedConversation.members.filter(
+
+      const otherMembers = selectedConversation.members.filter(
         (m: any) => m.id !== user?.id
-      );
-      for (const member of members) {
-        const res = await checkUserOnline(member.id);
-        setOnlineStatus(res.data.isOnline);
-        setOfflineTime(res.data.offlineTime);
+      ); // Nếu là chat 1-v-1
+
+      if (selectedConversation.type === "private") {
+        if (otherMembers.length > 0) {
+          const otherMember = otherMembers[0];
+          try {
+            const res = await checkUserOnline(otherMember.id);
+            setOnlineStatus(res.data.isOnline); // Chỉ set offlineTime khi user thực sự offline
+            setOfflineTime(res.data.isOnline ? null : res.data.offlineTime);
+          } catch (error) {
+            console.error("Failed to check user online status:", error);
+            setOnlineStatus(false);
+            setOfflineTime(null);
+          }
+        }
+      } // Nếu là chat nhóm
+      else {
+        if (otherMembers.length > 0) {
+          try {
+            // 1. Tạo một mảng các promise để check status của tất cả thành viên
+            const statusPromises = otherMembers.map((member: any) =>
+              checkUserOnline(member.id)
+            ); // 2. Chờ tất cả các API call hoàn thành
+            const statusResults = await Promise.all(statusPromises); // 3. Kiểm tra xem có BẤT KỲ (some) ai online không
+
+            const isAnyoneOnline = statusResults.some(
+              (res) => res.data.isOnline
+            ); // 4. Set state MỘT LẦN duy nhất
+
+            setOnlineStatus(isAnyoneOnline); // 5. Không set offlineTime cho group
+            setOfflineTime(null);
+          } catch (error) {
+            console.error("Failed to check group online status:", error);
+            setOnlineStatus(false);
+            setOfflineTime(null);
+          }
+        }
       }
     };
 
     checkOnlineStatus();
-  }, [selectedConversation]);
+
+    // Bạn có thể thêm một interval để check lại status mỗi 30 giây
+    // const intervalId = setInterval(checkOnlineStatus, 30000);
+    // return () => clearInterval(intervalId);
+  }, [selectedConversation, user?.id]);
+
+  // // Hàm xử lý bắt đầu cuộc gọi
+  // const handleStartCall = () => {
+  //   // 1. Kiểm tra trạng thái online
+  //   if (!onlineStatus) {
+  //     const message =
+  //       selectedConversation?.type === "private"
+  //         ? "Người dùng không online."
+  //         : "Không có thành viên nào online";
+  //     toast.info(message, { autoClose: 1000 });
+  //     return;
+  //   }
+
+  //   // 2. Chuyển đến trang cuộc gọi
+  //   router.push(`/room/${selectedConversation?.id}`);
+  // };
+
+  // // Hàm xử lý bắt đầu cuộc gọi
+  const handleStartCall = () => {
+    // Kiểm tra trạng thái online
+    if (!onlineStatus) {
+      const message =
+        selectedConversation?.type === "private"
+          ? "Người dùng không online."
+          : "Không có thành viên nào online";
+      toast.info(message, { autoClose: 1000 });
+      return;
+    } 
+    
+    // GỬI TÍN HIỆU GỌI
+    const socket = getSocket();
+    const callPayload = {
+      conversationId: selectedConversation?.id,
+      callerId: user?.id,
+      callerName: user?.name,
+      members: selectedConversation?.members,
+    };
+
+    socket.emit("startCall", callPayload); // chuyển đến trang cuộc gọi
+    router.push(`/room/${selectedConversation?.id}`);
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -220,11 +301,11 @@ export default function ChatDetail() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <button className="p-2 hover:cursor-pointer hover:bg-gray-200 rounded-full">
+          <button
+            onClick={() => handleStartCall()}
+            className="p-2 hover:cursor-pointer hover:bg-gray-200 rounded-full"
+          >
             <Phone className="w-6 h-6 text-gray-500 hover:text-black" />
-          </button>
-          <button className="p-2 hover:cursor-pointer hover:bg-gray-200 rounded-full">
-            <Video className="w-6 h-6 text-gray-500 hover:text-black" />
           </button>
           <button
             onClick={() => console.log("Options clicked")}
