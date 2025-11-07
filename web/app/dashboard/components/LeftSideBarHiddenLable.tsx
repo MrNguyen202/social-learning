@@ -52,6 +52,7 @@ export function LeftSideBarHiddenLabel() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { selectedConversation, setSelectedConversation } = useConversation();
   const [notificationCount, setNotificationCount] = useState(0);
+  const [messagesCount, setMessagesCount] = useState(1);
 
   // Lắng nghe realtime Supabase
   useEffect(() => {
@@ -112,13 +113,11 @@ export function LeftSideBarHiddenLabel() {
       icon: MessageCircle,
       path: "/dashboard/chat",
       label: "Tin nhắn",
-      badge: 3,
     },
     {
       icon: Heart,
       path: "/dashboard/notifications",
       label: "Thông báo",
-      badge: 5,
     },
     { icon: PlusSquare, path: "/dashboard/create", label: "Tạo" },
     { icon: User, path: "/dashboard/profile", label: "Trang cá nhân" },
@@ -144,10 +143,10 @@ export function LeftSideBarHiddenLabel() {
       label: "Tiến trình của tôi",
     },
     {
-    icon: ChartSpline,
-    path: "/dashboard/roadmap",
-    label: "Lộ trình học tập",
-  }
+      icon: ChartSpline,
+      path: "/dashboard/roadmap",
+      label: "Lộ trình học tập",
+    },
   ];
 
   const adminNavItems = [
@@ -179,6 +178,7 @@ export function LeftSideBarHiddenLabel() {
     if (path === "/dashboard/chat") {
       if (selectedConversation) {
         router.push(`/dashboard/chat/${selectedConversation.id}`);
+        setMessagesCount(0);
         return;
       }
     }
@@ -264,11 +264,15 @@ export function LeftSideBarHiddenLabel() {
                 {mainNavItems.map((item) => {
                   const isNotification =
                     item.path === "/dashboard/notifications";
+                  const isMessages = item.path === "/dashboard/chat";
                   const isActive = pathname === item.path;
                   const badge =
                     isNotification && notificationCount > 0
                       ? notificationCount
                       : null;
+
+                  const badgeMessages =
+                    isMessages && messagesCount > 0 ? messagesCount : null;
 
                   return (
                     <Button
@@ -288,8 +292,13 @@ export function LeftSideBarHiddenLabel() {
                       {/* FIX 3: Giảm kích thước icon về 24 (chuẩn) */}
                       <item.icon size={24} />
                       {badge && (
-                        <span className="absolute top-2 right-2 flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-xs">
+                        <span className="absolute top-2 right-2 flex items-center justify-center h-5 w-5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs">
                           {badge}
+                        </span>
+                      )}
+                      {badgeMessages && (
+                        <span className="absolute top-2 right-2 flex items-center justify-center h-5 w-5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs">
+                          {badgeMessages}
                         </span>
                       )}
                     </Button>

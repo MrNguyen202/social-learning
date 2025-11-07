@@ -36,9 +36,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
-  SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
@@ -53,7 +51,6 @@ import { toast } from "react-toastify";
 import { SearchPanel } from "./Search";
 import { NotificationsPanel } from "./Notifications";
 import { CreateOrUpdatePostModal } from "./CreateOrUpdatePost";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export function LeftSidebarMobile() {
   const { user } = useAuth();
@@ -65,8 +62,8 @@ export function LeftSidebarMobile() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { selectedConversation, setSelectedConversation } = useConversation();
   const [notificationCount, setNotificationCount] = useState(0);
+  const [messagesCount, setMessagesCount] = useState(1);
   const [isVisible, setIsVisible] = useState(false);
-  const isMobile = useIsMobile();
 
   // Lắng nghe realtime supabase
   useEffect(() => {
@@ -132,13 +129,11 @@ export function LeftSidebarMobile() {
       icon: MessageCircle,
       path: "/dashboard/chat",
       label: t("dashboard.messages"),
-      badge: 3,
     },
     {
       icon: Heart,
       path: "/dashboard/notifications",
       label: t("dashboard.notifications"),
-      badge: 0,
     },
     {
       icon: PlusSquare,
@@ -231,6 +226,7 @@ export function LeftSidebarMobile() {
       if (path === "/dashboard/chat") {
         if (selectedConversation) {
           router.push(`/dashboard/chat/${selectedConversation.id}`);
+          setMessagesCount(0);
           return;
         }
       }
@@ -314,6 +310,7 @@ export function LeftSidebarMobile() {
             <nav className="space-y-1 px-3">
               {mainNavItems.map((item, index) => {
                 const isNotification = item.path === "/dashboard/notifications";
+                const isMessages = item.path === "/dashboard/chat";
                 return (
                   <Button
                     key={item.label}
@@ -339,6 +336,11 @@ export function LeftSidebarMobile() {
                       {isNotification && notificationCount > 0 && (
                         <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0 animate-pulse">
                           {notificationCount}
+                        </Badge>
+                      )}
+                      {isMessages && messagesCount > 0 && (
+                        <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0 animate-pulse">
+                          {messagesCount}
                         </Badge>
                       )}
                     </div>

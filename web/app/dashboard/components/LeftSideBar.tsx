@@ -55,6 +55,7 @@ export function LeftSidebar() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { selectedConversation, setSelectedConversation } = useConversation();
   const [notificationCount, setNotificationCount] = useState(0);
+  const [messagesCount, setMessagesCount] = useState(1);
   const [isVisible, setIsVisible] = useState(false);
 
   // Lắng nghe realtime supabase
@@ -121,13 +122,11 @@ export function LeftSidebar() {
       icon: MessageCircle,
       path: "/dashboard/chat",
       label: t("dashboard.messages"),
-      badge: 3,
     },
     {
       icon: Heart,
       path: "/dashboard/notifications",
       label: t("dashboard.notifications"),
-      badge: 0,
     },
     {
       icon: PlusSquare,
@@ -168,21 +167,41 @@ export function LeftSidebar() {
       icon: ChartSpline,
       path: "/dashboard/roadmap",
       label: t("dashboard.learningPath"),
-    }
+    },
   ];
 
   // --- NAV ITEMS CỦA ADMIN ---
   const adminNavItems = [
-    { icon: LayoutDashboard, path: "/dashboard", label: t("dashboard.dashboard") },
-    { icon: Users, path: "/dashboard/admin/users", label: t("dashboard.users") },
-    { icon: FileText, path: "/dashboard/admin/content", label: t("dashboard.content") },
-    { icon: Globe, path: "/dashboard/admin/social", label: t("dashboard.social") },
+    {
+      icon: LayoutDashboard,
+      path: "/dashboard",
+      label: t("dashboard.dashboard"),
+    },
+    {
+      icon: Users,
+      path: "/dashboard/admin/users",
+      label: t("dashboard.users"),
+    },
+    {
+      icon: FileText,
+      path: "/dashboard/admin/content",
+      label: t("dashboard.content"),
+    },
+    {
+      icon: Globe,
+      path: "/dashboard/admin/social",
+      label: t("dashboard.social"),
+    },
     {
       icon: BookOpen,
       path: "/dashboard/admin/vocabulary",
       label: t("dashboard.vocabularys"),
     },
-    { icon: BarChart, path: "/dashboard/admin/analytics", label: t("dashboard.analytics") },
+    {
+      icon: BarChart,
+      path: "/dashboard/admin/analytics",
+      label: t("dashboard.analytics"),
+    },
     {
       icon: Trophy,
       path: "/dashboard/admin/achievements",
@@ -202,6 +221,7 @@ export function LeftSidebar() {
       if (path === "/dashboard/chat") {
         if (selectedConversation) {
           router.push(`/dashboard/chat/${selectedConversation.id}`);
+          setMessagesCount(0);
           return;
         }
       }
@@ -236,10 +256,11 @@ export function LeftSidebar() {
   return (
     <>
       <div
-        className={`fixed left-0 top-0 h-full w-70 bg-white border-r border-gray-200 flex flex-col transform transition-all duration-700 ease-out ${isVisible
+        className={`fixed left-0 top-0 h-full w-70 bg-white border-r border-gray-200 flex flex-col transform transition-all duration-700 ease-out ${
+          isVisible
             ? "translate-x-0 opacity-100"
             : "-translate-x-full opacity-0"
-          }`}
+        }`}
       >
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-br from-orange-100 to-pink-100 rounded-full opacity-30 animate-float"></div>
@@ -275,16 +296,18 @@ export function LeftSidebar() {
                 <Button
                   key={item.label}
                   variant="ghost"
-                  className={`w-full justify-start h-12 px-3 hover:cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${pathname === item.path
+                  className={`w-full justify-start h-12 px-3 hover:cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${
+                    pathname === item.path
                       ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
                       : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
-                    }`}
+                  }`}
                   style={{ animationDelay: `${index * 100}ms` }}
                   onClick={() => handleMenuClick(item.path)} // Admin chỉ cần push route
                 >
                   <item.icon
-                    className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${pathname === item.path ? "text-orange-600" : ""
-                      }`}
+                    className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${
+                      pathname === item.path ? "text-orange-600" : ""
+                    }`}
                   />
                   <span className="text-base font-medium">{item.label}</span>
                 </Button>
@@ -298,6 +321,7 @@ export function LeftSidebar() {
                 {mainNavItems.map((item, index) => {
                   const isNotification =
                     item.path === "/dashboard/notifications";
+                  const isMessages = item.path === "/dashboard/chat";
                   return (
                     <Button
                       key={item.label}
@@ -323,6 +347,11 @@ export function LeftSidebar() {
                         {isNotification && notificationCount > 0 && (
                           <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0 animate-pulse">
                             {notificationCount}
+                          </Badge>
+                        )}
+                        {isMessages && messagesCount > 0 && (
+                          <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0 animate-pulse">
+                            {messagesCount}
                           </Badge>
                         )}
                       </div>
