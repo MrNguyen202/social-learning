@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Hash, Sparkles } from 'lucide-react-native';
 import { getAllTypeParagraphs } from '../api/learning/route';
+import { Icon } from '../../components/icons/Icon';
 
 type TypeParagraph = {
     id: number;
@@ -94,7 +95,11 @@ export function TypeParagraph({ selectedTypeParagraph, setSelectedTypeParagraph 
                                         { backgroundColor: typeParagraphColor + '20' },
                                     ]}
                                 >
-                                    <Sparkles size={20} color={typeParagraphColor} />
+                                    <Icon
+                                        name={item.icon.name}
+                                        color={item.icon.color}
+                                        size={20}
+                                    />
                                 </View>
                                 {isSelected && (
                                     <View

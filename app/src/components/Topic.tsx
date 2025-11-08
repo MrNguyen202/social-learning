@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Hash, Sparkles } from 'lucide-react-native';
 import { getAllTopics } from '../api/learning/route';
+import { Icon } from '../../components/icons/Icon';
 
 type Topic = {
   id: number;
@@ -94,7 +95,11 @@ export function Topic({ selectedTopic, setSelectedTopic }: TopicProps) {
                     { backgroundColor: topicColor + '20' },
                   ]}
                 >
-                  <Sparkles size={20} color={topicColor} />
+                  <Icon
+                    name={item.icon.name}
+                    color={item.icon.color}
+                    size={20}
+                  />
                 </View>
                 {isSelected && (
                   <View

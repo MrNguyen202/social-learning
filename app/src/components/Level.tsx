@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Star, Clock, Award } from 'lucide-react-native';
 import { getAllLevels } from '../api/learning/route';
+import { Icon } from '../../components/icons/Icon';
 
 type Level = {
   id: number;
@@ -88,7 +89,11 @@ export function Level({ selectedLevel, setSelectedLevel }: LevelProps) {
                     { backgroundColor: levelColor + '20' },
                   ]}
                 >
-                  <Star size={20} color={levelColor} />
+                  <Icon
+                    name={item.icon.name}
+                    color={item.icon.color}
+                    size={20}
+                  />
                 </View>
                 {isSelected && (
                   <View style={styles.selectedBadge}>
