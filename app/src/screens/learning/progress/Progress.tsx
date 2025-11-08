@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  FlatList,
   ActivityIndicator,
   Dimensions,
   SafeAreaView,
@@ -19,10 +18,15 @@ import Animated, {
 import { LineChart as GiftedAreaChart } from 'react-native-gifted-charts';
 import {
   ArrowLeft,
-  BookOpenIcon,
-  HeadphonesIcon,
-  MicIcon,
-  TrendingUpIcon,
+  BookOpen,
+  Headphones,
+  Mic,
+  TrendingUp,
+  Target,
+  Calendar,
+  BarChart3,
+  Flame,
+  Star,
 } from 'lucide-react-native';
 import useAuth from '../../../../hooks/useAuth';
 import {
@@ -34,18 +38,37 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Rect, Text as SvgText } from 'react-native-svg';
 import dayjs from 'dayjs';
+import LinearGradient from 'react-native-linear-gradient';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 const skillConfig = {
-  speaking: { label: 'Kỹ năng Nói', icon: MicIcon, color: '#f59e0b' },
-  writing: { label: 'Kỹ năng Viết', icon: BookOpenIcon, color: '#ec4899' },
-  listening: { label: 'Kỹ năng Nghe', icon: HeadphonesIcon, color: '#8b5cf6' },
+  speaking: {
+    label: 'Kỹ năng Nói',
+    icon: Mic,
+    color: '#45B7D1',
+    gradient: ['#45B7D1', '#6BC5E8'],
+    lightColor: '#E8F6FF',
+  },
+  writing: {
+    label: 'Kỹ năng Viết',
+    icon: BookOpen,
+    color: '#FF6B6B',
+    gradient: ['#FF6B6B', '#FF8E8E'],
+    lightColor: '#FFE8E8',
+  },
+  listening: {
+    label: 'Kỹ năng Nghe',
+    icon: Headphones,
+    color: '#4ECDC4',
+    gradient: ['#4ECDC4', '#6DD5DB'],
+    lightColor: '#E8FFFE',
+  },
 };
 
 export default function ProgressScreen() {
   const { user } = useAuth();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const [period, setPeriod] = useState<'7days' | '30days' | 'all'>('7days');
   const [loading, setLoading] = useState(false);
   const [heatmapData, setHeatmapData] = useState<any[]>([]);
@@ -58,10 +81,12 @@ export default function ProgressScreen() {
 
   const bgScale1 = useSharedValue(1);
   const bgScale2 = useSharedValue(1);
+  const headerOpacity = useSharedValue(0);
 
   useEffect(() => {
-    bgScale1.value = withRepeat(withTiming(1.2, { duration: 20000 }), -1, true);
-    bgScale2.value = withRepeat(withTiming(1.2, { duration: 20000 }), -1, true);
+    bgScale1.value = withRepeat(withTiming(1.1, { duration: 3000 }), -1, true);
+    bgScale2.value = withRepeat(withTiming(1.1, { duration: 4000 }), -1, true);
+    headerOpacity.value = withTiming(4, { duration: 1000 });
   }, []);
 
   useEffect(() => {
@@ -99,7 +124,6 @@ export default function ProgressScreen() {
   const fetchDataHeatmap = async () => {
     setLoading(true);
     const res = await getActivityHeatmap(user?.id);
-    // giả sử API trả về tất cả các năm, bạn có thể lọc theo year hiện tại
     const filtered = res.filter(
       (item: any) => new Date(item.date).getFullYear() === year,
     );
@@ -116,35 +140,30 @@ export default function ProgressScreen() {
 
   const Heatmap = ({ data }: { data: any[] }) => {
     const days = 7;
-    const cellSize = 18;
-    const cellGap = 4;
-    const topOffset = 20;
-    const leftOffset = 25;
+    const cellSize = 16;
+    const cellGap = 3;
+    const topOffset = 25;
+    const leftOffset = 30;
 
     const levelColors = [
-      '#e5e7eb',
-      '#fef3c7',
-      '#fde68a',
-      '#fbbf24',
-      '#f59e0b',
-      '#b45309',
+      '#f3f4f6',
+      '#ddd6fe',
+      '#c4b5fd',
+      '#a78bfa',
+      '#8b5cf6',
+      '#7c3aed',
     ];
 
-    // Map dữ liệu ngày → level
     const dataMap = Object.fromEntries(data.map(d => [d.date, d]));
-
-    // Lấy 90 ngày gần nhất
     const today = dayjs();
-    const dates = Array.from({ length: 90 }).map((_, i) =>
-      today.subtract(89 - i, 'day'),
+    const dates = Array.from({ length: 91 }).map((_, i) =>
+      today.subtract(90 - i, 'day'),
     );
 
-    // Tính chiều rộng / cao của chart
     const columns = Math.ceil(dates.length / days);
-    const width = leftOffset + columns * (cellSize + cellGap);
-    const height = topOffset + days * (cellSize + cellGap) + 20;
+    const width = leftOffset + columns * (cellSize + cellGap) + 20;
+    const height = topOffset + days * (cellSize + cellGap) + 30;
 
-    // Tạo danh sách label tháng
     const monthLabels: { name: string; x: number }[] = [];
     let prevMonth = '';
     dates.forEach((date, i) => {
@@ -162,55 +181,74 @@ export default function ProgressScreen() {
     const weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 
     return (
-      <Svg width={width} height={height}>
-        {/* Tháng */}
-        {monthLabels.map(({ name, x }, index) => (
-          <SvgText
-            key={`${name}-${index}`}
-            x={x + 4} // căn giữa đẹp hơn
-            y={12}
-            fontSize={10}
-            fill="#6b7280"
-            fontWeight="500"
-          >
-            {name}
-          </SvgText>
-        ))}
+      <View style={styles.heatmapWrapper}>
+        <Svg width={width} height={height}>
+          {/* Month labels */}
+          {monthLabels.map(({ name, x }, index) => (
+            <SvgText
+              key={`${name}-${index}`}
+              x={x + 8}
+              y={15}
+              fontSize={11}
+              fill="#6b7280"
+              fontWeight="600"
+            >
+              {name}
+            </SvgText>
+          ))}
 
-        {/* Ô vuông mỗi ngày */}
-        {dates.map((date, i) => {
-          const week = Math.floor(i / days);
-          const day = i % days;
-          const iso = date.format('YYYY-MM-DD');
-          const level = dataMap[iso]?.level ?? 0;
-          const color = levelColors[Math.min(level, levelColors.length - 1)];
+          {/* Day cells */}
+          {dates.map((date, i) => {
+            const week = Math.floor(i / days);
+            const day = i % days;
+            const iso = date.format('YYYY-MM-DD');
+            const level = dataMap[iso]?.level ?? 0;
+            const color = levelColors[Math.min(level, levelColors.length - 1)];
 
-          return (
-            <Rect
-              key={iso}
-              x={leftOffset + week * (cellSize + cellGap)}
-              y={topOffset + day * (cellSize + cellGap)}
-              width={cellSize}
-              height={cellSize}
-              rx={4}
-              fill={color}
-            />
-          );
-        })}
+            return (
+              <Rect
+                key={iso}
+                x={leftOffset + week * (cellSize + cellGap)}
+                y={topOffset + day * (cellSize + cellGap)}
+                width={cellSize}
+                height={cellSize}
+                rx={3}
+                fill={color}
+                stroke={level > 0 ? '#8b5cf6' : '#e5e7eb'}
+                strokeWidth={level > 0 ? 0.5 : 0.3}
+              />
+            );
+          })}
 
-        {/* Nhãn thứ (T2 → CN) */}
-        {weekDays.map((d, i) => (
-          <SvgText
-            key={d}
-            x={0}
-            y={topOffset + i * (cellSize + cellGap) + cellSize / 1.4}
-            fontSize={9}
-            fill="#9ca3af"
-          >
-            {d}
-          </SvgText>
-        ))}
-      </Svg>
+          {/* Week day labels */}
+          {weekDays.map((d, i) => (
+            <SvgText
+              key={d}
+              x={5}
+              y={topOffset + i * (cellSize + cellGap) + cellSize / 1.3}
+              fontSize={10}
+              fill="#9ca3af"
+              fontWeight="500"
+            >
+              {d}
+            </SvgText>
+          ))}
+        </Svg>
+
+        {/* Legend */}
+        <View style={styles.heatmapLegend}>
+          <Text style={styles.legendText}>Ít</Text>
+          <View style={styles.legendDots}>
+            {levelColors.slice(0, 5).map((color, i) => (
+              <View
+                key={i}
+                style={[styles.legendDot, { backgroundColor: color }]}
+              />
+            ))}
+          </View>
+          <Text style={styles.legendText}>Nhiều</Text>
+        </View>
+      </View>
     );
   };
 
@@ -224,92 +262,172 @@ export default function ProgressScreen() {
     skillType: keyof typeof skillConfig,
     chartData: any[],
   ) => {
-    const { label, color, icon: Icon } = skillConfig[skillType];
+    const {
+      label,
+      color,
+      icon: Icon,
+      gradient,
+      lightColor,
+    } = skillConfig[skillType];
+    const totalScore = chartData.reduce((sum, item) => sum + item.value, 0);
+    const avgScore =
+      chartData.length > 0 ? Math.round(totalScore / chartData.length) : 0;
+    const growth = Math.round(Math.random() * 20 + 5); // Mock growth
 
     return (
       <View style={styles.skillCard}>
-        <View style={styles.skillHeader}>
-          <View
-            style={[styles.iconContainer, { backgroundColor: `${color}20` }]}
-          >
-            <Icon size={20} color={color} />
-          </View>
-          <Text style={[styles.skillTitle, { color }]}>{label}</Text>
-        </View>
+        <LinearGradient
+          colors={[lightColor, '#ffffff']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.skillCardGradient}
+        >
+          <View style={styles.skillHeader}>
+            <View style={styles.skillHeaderLeft}>
+              <View
+                style={[
+                  styles.iconContainer,
+                  { backgroundColor: `${color}20` },
+                ]}
+              >
+                <Icon size={24} color={color} />
+              </View>
+              <View>
+                <Text style={styles.skillTitle}>{label}</Text>
+                <Text style={styles.skillSubtitle}>{getPeriodLabel()}</Text>
+              </View>
+            </View>
 
-        <Text style={styles.skillDescription}>
-          Tiến trình trong {getPeriodLabel().toLowerCase()}
-        </Text>
-
-        {chartData.length > 0 ? (
-          <GiftedAreaChart
-            data={chartData}
-            width={screenWidth - 24}
-            height={220}
-            areaChart
-            curved
-            isAnimated
-            adjustToWidth
-            color={color}
-            startFillColor={`${color}50`}
-            endFillColor={`${color}10`}
-            xAxisLabelTextStyle={{ color: '#6b7280', fontSize: 10 }}
-            yAxisTextStyle={{ color: '#6b7280', fontSize: 10 }}
-            initialSpacing={20}
-            spacing={30}
-            noOfSections={4}
-            hideRules
-            yAxisThickness={0}
-            xAxisThickness={0}
-          />
-        ) : (
-          <Text style={styles.noDataText}>Chưa có dữ liệu</Text>
-        )}
-
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <TrendingUpIcon size={16} color={color} />
-            <Text style={styles.statText}>
-              Tăng trưởng: <Text style={{ fontWeight: 'bold' }}>+12%</Text>
-            </Text>
+            <View style={styles.skillStats}>
+              <View style={styles.statBadge}>
+                <Star size={14} color="#fbbf24" />
+                <Text style={styles.statBadgeText}>{avgScore}</Text>
+              </View>
+            </View>
           </View>
-          <View style={[styles.statBox, { borderLeftColor: color }]}>
-            <Text style={styles.statLabel}>Điểm trung bình</Text>
-            <Text style={[styles.statValue, { color }]}>
-              {Math.round(Math.random() * 100)}
-            </Text>
+
+          {chartData.length > 0 ? (
+            <View style={styles.chartContainer}>
+              <GiftedAreaChart
+                data={chartData}
+                width={screenWidth - 64}
+                height={180}
+                areaChart
+                curved
+                isAnimated
+                animationDuration={1200}
+                color={color}
+                startFillColor={`${color}40`}
+                endFillColor={`${color}10`}
+                startOpacity={0.8}
+                endOpacity={0.1}
+                xAxisLabelTextStyle={{
+                  color: '#9ca3af',
+                  fontSize: 11,
+                  fontWeight: '500',
+                }}
+                yAxisTextStyle={{
+                  color: '#9ca3af',
+                  fontSize: 11,
+                  fontWeight: '500',
+                }}
+                initialSpacing={15}
+                spacing={35}
+                noOfSections={3}
+                hideRules
+                yAxisThickness={0}
+                xAxisThickness={1}
+                xAxisColor="#f3f4f6"
+                thickness={3}
+                hideDataPoints={false}
+                dataPointsColor={color}
+                dataPointsRadius={4}
+                focusEnabled
+                showStripOnFocus
+                stripColor={color}
+                stripOpacity={0.2}
+                stripWidth={2}
+              />
+            </View>
+          ) : (
+            <View style={styles.noDataContainer}>
+              <BarChart3 size={32} color="#d1d5db" />
+              <Text style={styles.noDataText}>Chưa có dữ liệu</Text>
+              <Text style={styles.noDataSubtext}>
+                Bắt đầu luyện tập để xem tiến trình
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.skillFooter}>
+            <View style={styles.footerStat}>
+              <TrendingUp size={16} color="#10b981" />
+              <Text style={styles.footerStatText}>
+                <Text style={styles.footerStatValue}>+{growth}%</Text> tăng
+                trưởng
+              </Text>
+            </View>
+
+            <View style={styles.footerStat}>
+              <Target size={16} color={color} />
+              <Text style={styles.footerStatText}>
+                Mục tiêu: <Text style={styles.footerStatValue}>85 điểm</Text>
+              </Text>
+            </View>
           </View>
-        </View>
+        </LinearGradient>
       </View>
     );
   };
 
   const animatedStyle1 = useAnimatedStyle(() => ({
     position: 'absolute',
-    top: -100,
-    right: -100,
+    top: -150,
+    right: -150,
     width: 300,
     height: 300,
     borderRadius: 150,
-    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+    backgroundColor: 'rgba(102, 126, 234, 0.08)',
     transform: [{ scale: bgScale1.value }],
   }));
 
   const animatedStyle2 = useAnimatedStyle(() => ({
     position: 'absolute',
-    bottom: -100,
-    left: -100,
+    bottom: -150,
+    left: -150,
     width: 300,
     height: 300,
     borderRadius: 150,
-    backgroundColor: 'rgba(236, 72, 153, 0.1)',
+    backgroundColor: 'rgba(139, 92, 246, 0.08)',
     transform: [{ scale: bgScale2.value }],
   }));
 
-  if (loading) {
+  const headerAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: headerOpacity.value,
+  }));
+
+  if (
+    loading &&
+    !dataSpeaking.length &&
+    !dataWriting.length &&
+    !dataListening.length
+  ) {
     return (
-      <SafeAreaView style={styles.centered}>
-        <ActivityIndicator size="large" color="#f59e0b" />
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <View style={styles.loadingIconContainer}>
+            <BarChart3 size={48} color="#667eea" />
+          </View>
+          <ActivityIndicator
+            size="large"
+            color="#667eea"
+            style={styles.spinner}
+          />
+          <Text style={styles.loadingTitle}>Đang tải tiến trình...</Text>
+          <Text style={styles.loadingDescription}>
+            Vui lòng chờ trong giây lát
+          </Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -319,180 +437,467 @@ export default function ProgressScreen() {
       <Animated.View style={animatedStyle1} />
       <Animated.View style={animatedStyle2} />
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <View>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginBottom: 12,
-            }}
+      {/* Header với gradient */}
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <Animated.View style={[styles.headerContent, headerAnimatedStyle]}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+            activeOpacity={0.8}
           >
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <ArrowLeft size={24} color="#374151" />
-            </TouchableOpacity>
-            <Text
-              style={[styles.headerTitle, { flex: 1, textAlign: 'center' }]}
-            >
-              Tiến trình học tập
-            </Text>
-          </View>
-          <Text style={styles.headerSubtitle}>Theo dõi sự tiến bộ của bạn</Text>
+            <ArrowLeft size={24} color="#ffffff" />
+          </TouchableOpacity>
 
-          {/* Bộ lọc thời gian */}
-          <View style={styles.controls}>
-            {['7days', '30days', 'all'].map(p => (
+          <View style={styles.headerCenter}>
+            <View style={styles.headerIconContainer}>
+              <BarChart3 size={24} color="#fff" />
+            </View>
+            <View>
+              <Text style={styles.headerTitle}>Tiến trình học tập</Text>
+              <Text style={styles.headerSubtitle}>
+                Theo dõi sự tiến bộ của bạn
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.headerRight} />
+        </Animated.View>
+      </LinearGradient>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Period Filter */}
+        <View style={styles.filterContainer}>
+          <View style={styles.filterHeader}>
+            <Calendar size={20} color="#667eea" />
+            <Text style={styles.filterTitle}>Khoảng thời gian</Text>
+          </View>
+
+          <View style={styles.filterButtons}>
+            {[
+              { key: '7days', label: '7 ngày' },
+              { key: '30days', label: '30 ngày' },
+              { key: 'all', label: 'Tất cả' },
+            ].map(({ key, label }) => (
               <TouchableOpacity
-                key={p}
-                onPress={() => setPeriod(p as any)}
+                key={key}
+                onPress={() => setPeriod(key as any)}
                 style={[
-                  styles.periodButton,
-                  period === p && { backgroundColor: '#f59e0b' },
+                  styles.filterButton,
+                  period === key && styles.filterButtonActive,
                 ]}
+                activeOpacity={0.8}
               >
                 <Text
-                  style={[styles.periodText, period === p && { color: '#fff' }]}
+                  style={[
+                    styles.filterButtonText,
+                    period === key && styles.filterButtonTextActive,
+                  ]}
                 >
-                  {p === '7days'
-                    ? '7 ngày'
-                    : p === '30days'
-                    ? '30 ngày'
-                    : 'Tất cả'}
+                  {label}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-
-          {/* Render 3 biểu đồ kỹ năng */}
-          {renderSkillCard('speaking', dataSpeaking)}
-          {renderSkillCard('writing', dataWriting)}
-          {renderSkillCard('listening', dataListening)}
         </View>
+
+        {/* Skill Cards */}
+        {renderSkillCard('writing', dataWriting)}
+        {renderSkillCard('listening', dataListening)}
+        {renderSkillCard('speaking', dataSpeaking)}
+
+        {/* Heatmap Section */}
         <View style={styles.heatmapContainer}>
           <View style={styles.heatmapHeader}>
-            <Text style={styles.heatmapTitle}>Lịch sử học tập</Text>
+            <View style={styles.heatmapHeaderLeft}>
+              <Flame size={20} color="#8b5cf6" />
+              <Text style={styles.heatmapTitle}>Lịch sử học tập</Text>
+            </View>
+
             <View style={styles.yearPicker}>
               {[2024, 2025].map(y => (
                 <TouchableOpacity
                   key={y}
                   onPress={() => setYear(y)}
                   style={[
-                    styles.yearOption,
-                    year === y && styles.yearOptionSelected,
+                    styles.yearButton,
+                    year === y && styles.yearButtonActive,
                   ]}
+                  activeOpacity={0.8}
                 >
                   <Text
-                    style={[styles.yearText, year === y && { color: '#fff' }]}
+                    style={[
+                      styles.yearButtonText,
+                      year === y && styles.yearButtonTextActive,
+                    ]}
                   >
-                    Năm {y}
+                    {y}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
+
+          <Text style={styles.heatmapDescription}>
+            Hoạt động học tập trong năm {year}
+          </Text>
+
           {heatmapData.length > 0 ? (
-            <View style={{ alignItems: 'center' }}>
-              <Heatmap data={heatmapData} />
-            </View>
+            <Heatmap data={heatmapData} />
           ) : (
-            <Text style={styles.noDataText}>
-              Không có dữ liệu cho năm {year}
-            </Text>
+            <View style={styles.noHeatmapData}>
+              <Calendar size={32} color="#d1d5db" />
+              <Text style={styles.noDataText}>
+                Không có dữ liệu cho năm {year}
+              </Text>
+              <Text style={styles.noDataSubtext}>
+                Bắt đầu học để tạo lịch sử hoạt động
+              </Text>
+            </View>
           )}
         </View>
+
+        <View style={styles.bottomSpacing} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fafafa' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  content: { padding: 16 },
-  headerTitle: {
-    fontSize: 24,
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+  },
+  loadingIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#f0f4ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  spinner: {
+    marginBottom: 16,
+  },
+  loadingTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#1f2937',
-    textAlign: 'center',
+    marginBottom: 8,
   },
-  headerSubtitle: {
+  loadingDescription: {
     fontSize: 14,
     color: '#6b7280',
     textAlign: 'center',
-    marginBottom: 16,
+    lineHeight: 20,
   },
-  controls: {
+  headerGradient: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 20,
+  },
+  headerContent: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    marginBottom: 20,
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  periodButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: '#e5e7eb',
-  },
-  periodText: { fontSize: 14, color: '#1f2937', fontWeight: '500' },
-  skillCard: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  skillHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  iconContainer: {
+  backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerCenter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  headerIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
   },
-  skillTitle: { fontSize: 18, fontWeight: 'bold' },
-  skillDescription: { fontSize: 12, color: '#6b7280', marginBottom: 12 },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 8,
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#ffffff',
   },
-  statItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  statText: { fontSize: 12, color: '#6b7280' },
-  statBox: { padding: 8, borderLeftWidth: 3, borderRadius: 8 },
-  statLabel: { fontSize: 12, color: '#6b7280' },
-  statValue: { fontSize: 16, fontWeight: 'bold' },
-  noDataText: { textAlign: 'center', color: '#9ca3af', marginVertical: 8 },
-  heatmapContainer: {
-    backgroundColor: 'rgba(255,255,255,0.9)',
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#ffffff',
+    opacity: 0.8,
+  },
+  headerRight: {
+    width: 40,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+    paddingTop: 8,
+  },
+  filterContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+  },
+  filterHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  filterTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginLeft: 8,
+  },
+  filterButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  filterButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 12,
-    padding: 16,
-    marginTop: 24,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    alignItems: 'center',
+  },
+  filterButtonActive: {
+    backgroundColor: '#667eea',
+    borderColor: '#667eea',
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  filterButtonTextActive: {
+    color: '#ffffff',
+  },
+  skillCard: {
+    marginBottom: 20,
+    borderRadius: 20,
+    overflow: 'hidden',
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 6,
+  },
+  skillCardGradient: {
+    padding: 20,
+  },
+  skillHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  skillHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  skillTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 2,
+  },
+  skillSubtitle: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  skillStats: {
+    alignItems: 'flex-end',
+  },
+  statBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 4,
+  },
+  statBadgeText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#92400e',
+  },
+  chartContainer: {
+    marginVertical: 8,
+    alignItems: 'center',
+  },
+  noDataContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  noDataText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#9ca3af',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  noDataSubtext: {
+    fontSize: 14,
+    color: '#d1d5db',
+    textAlign: 'center',
+  },
+  skillFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+  },
+  footerStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  footerStatText: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  footerStatValue: {
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  heatmapContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 20,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
   heatmapHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
-  heatmapTitle: { fontSize: 16, fontWeight: '600', color: '#1f2937' },
-  yearPicker: { flexDirection: 'row', gap: 8 },
-  yearOption: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#e5e7eb',
+  heatmapHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  yearOptionSelected: { backgroundColor: '#f59e0b' },
-  yearText: { fontSize: 14, fontWeight: '500', color: '#374151' },
+  heatmapTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginLeft: 8,
+  },
+  heatmapDescription: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 20,
+  },
+  yearPicker: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  yearButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  yearButtonActive: {
+    backgroundColor: '#8b5cf6',
+    borderColor: '#8b5cf6',
+  },
+  yearButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  yearButtonTextActive: {
+    color: '#ffffff',
+  },
+  heatmapWrapper: {
+    alignItems: 'center',
+  },
+  heatmapLegend: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+    gap: 8,
+  },
+  legendText: {
+    fontSize: 12,
+    color: '#9ca3af',
+    fontWeight: '500',
+  },
+  legendDots: {
+    flexDirection: 'row',
+    gap: 3,
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 2,
+    borderWidth: 0.5,
+    borderColor: '#e5e7eb',
+  },
+  noHeatmapData: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  bottomSpacing: {
+    height: 32,
+  },
 });
