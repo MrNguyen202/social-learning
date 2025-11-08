@@ -376,7 +376,7 @@ export default function Social() {
 
               <div>
                 <h4 className="font-semibold mb-4">
-                  {t("dashboard..comments")} ({comments.length})
+                  {t("dashboard.comments")} ({comments.length})
                 </h4>
                 {commentsLoading ? (
                   <Skeleton className="h-32 w-full" />
