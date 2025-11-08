@@ -19,6 +19,8 @@ import { theme } from '../../constants/theme';
 import PostCard from '../screens/post/PostCard';
 import Loading from '../components/Loading';
 import LinearGradient from 'react-native-linear-gradient';
+import { getSocket } from '../../socket/socketClient';
+import { fetchTotalUnreadMessages } from '../api/chat/conversation/route';
 
 var limit = 0;
 const Main = () => {
@@ -30,6 +32,7 @@ const Main = () => {
   const [hasMore, setHasMore] = useState(true);
   const [notificationCount, setNotificationCount] = useState(0);
   const [notificationLearningCount, setNotificationLearningCount] = useState(0);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
 
   const handlePostEvent = async (payload: any) => {
     if (payload.eventType === 'INSERT' && payload?.new?.id) {
@@ -130,6 +133,32 @@ const Main = () => {
     getPosts();
   }, []);
 
+  useEffect(() => {
+    if (!user) return;
+    const socket = getSocket();
+
+    const fetchMessagesCount = async () => {
+      const res = await fetchTotalUnreadMessages(user?.id);
+      setUnreadMessageCount(res);
+    };
+
+    socket.on("notificationNewMessage", () => {
+      fetchMessagesCount();
+    });
+
+    socket.on("notificationMessagesRead", () => {
+      fetchMessagesCount();
+    });
+
+    fetchMessagesCount();
+
+    return () => {
+      socket.off("notificationNewMessage");
+      socket.off("notificationMessagesRead");
+    };
+  }, [user]);
+
+
   const getPosts = async () => {
     if (!hasMore) return;
 
@@ -194,6 +223,13 @@ const Main = () => {
               activeOpacity={0.8}
             >
               <MessageCircleMore size={20} color="#fff" />
+              {unreadMessageCount > 0 && (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationText}>
+                    {unreadMessageCount}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
         </View>
