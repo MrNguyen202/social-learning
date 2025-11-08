@@ -41,6 +41,8 @@ import { useConversation } from "@/components/contexts/ConversationContext";
 import { NotificationsPanel } from "./Notifications";
 import useAuth from "@/hooks/useAuth";
 import { useLanguage } from "@/components/contexts/LanguageContext";
+import { fetchTotalUnreadMessages } from "@/app/apiClient/chat/conversation/conversation";
+import { getSocket } from "@/socket/socketClient";
 
 export function LeftSideBarHiddenLabel() {
   const { user } = useAuth();
@@ -218,6 +220,32 @@ export function LeftSideBarHiddenLabel() {
     setLanguage(language === "vi" ? "en" : "vi");
   };
 
+  useEffect(() => {
+    if (!user) return;
+    const socket = getSocket();
+
+    const fetchMessagesCount = async () => {
+      const res = await fetchTotalUnreadMessages(user?.id);
+      console.log("Total unread messages:", res);
+      setMessagesCount(res);
+    };
+
+    socket.on("notificationNewMessage", () => {
+      fetchMessagesCount();
+    });
+
+    socket.on("notificationMessagesRead", () => {
+      fetchMessagesCount();
+    });
+
+    fetchMessagesCount();
+
+    return () => {
+      socket.off("notificationNewMessage");
+      socket.off("notificationMessagesRead");
+    };
+  }, [user]);
+
   return (
     <>
       <div className="fixed left-0 top-0 h-full sm:w-20 bg-white border-r border-gray-200 flex flex-col w-15">
@@ -245,11 +273,10 @@ export function LeftSideBarHiddenLabel() {
                   <Button
                     key={item.label}
                     variant="ghost"
-                    className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
-                      isActive
-                        ? "bg-gray-100 text-gray-900 font-medium"
-                        : "text-gray-700 hover:bg-gray-50"
-                    }`}
+                    className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${isActive
+                      ? "bg-gray-100 text-gray-900 font-medium"
+                      : "text-gray-700 hover:bg-gray-50"
+                      }`}
                     onClick={() => handleMenuClick(item.path)}
                   >
                     {/* FIX 3: Giảm kích thước icon về 24 (chuẩn) */}
@@ -278,11 +305,10 @@ export function LeftSideBarHiddenLabel() {
                     <Button
                       key={item.label}
                       variant="ghost"
-                      className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
-                        isActive
-                          ? "bg-gray-100 text-gray-900 font-medium"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
+                      className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${isActive
+                        ? "bg-gray-100 text-gray-900 font-medium"
+                        : "text-gray-700 hover:bg-gray-50"
+                        }`}
                       onClick={() =>
                         isNotification
                           ? openNotificationPanel()
@@ -320,11 +346,10 @@ export function LeftSideBarHiddenLabel() {
                   <Button
                     key={item.label}
                     variant="ghost"
-                    className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
-                      isActive
-                        ? "bg-gray-100 text-gray-900 font-medium"
-                        : "text-gray-700 hover:bg-gray-50"
-                    }`}
+                    className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${isActive
+                      ? "bg-gray-100 text-gray-900 font-medium"
+                      : "text-gray-700 hover:bg-gray-50"
+                      }`}
                     onClick={() => handleMenuClick(item.path)}
                   >
                     <item.icon size={24} />
