@@ -262,5 +262,18 @@
 
   "listeningParagraphs": "Bài tập nghe",
   "speakingLessons": "Bài nói",
-  "writingExercises": "Bài tập viết"
+  "writingExercises": "Bài tập viết",
+
+  "fillAllFields": "Vui lòng điền đầy đủ thông tin.",
+  "failedSaveAchievement":"Lỗi khi lưu thành tích",
+  "noAchievementsFound":"Không tìm thấy thành tích",
+  "createTileAchievement":"Tiêu đề",
+  "description": "Mô tả",
+  "targetAchievement": "Điểm mục tiêu",
+  "typeAchievement": "Loại mục tiêu",
+  "save": "Lưu",
+  "createNew":"Tạo mới",
+  "deleting": "Đang xóa...",
+  "creating": "Đang tạo...",
+  "noComment": "Không có bình luận nào"
 }

@@ -66,29 +66,24 @@ type Comment = {
 
 export default function Social() {
   const { t } = useLanguage();
-  // State cho Filters
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState<string | null>(null);
   const [toDate, setToDate] = useState<string | null>(null);
 
-  // State cho Data
   const [posts, setPosts] = useState<Post[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
 
-  // State cho Modals
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteCommentDialogOpen, setDeleteCommentDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
 
-  // State cho trạng thái Loading
   const [postsLoading, setPostsLoading] = useState(true);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [deletingPost, setDeletingPost] = useState(false);
   const [deletingComment, setDeletingComment] = useState(false);
 
-  // 3. Hàm Fetch Posts
   const fetchPosts = useCallback(async () => {
     setPostsLoading(true);
     try {
@@ -103,11 +98,10 @@ export default function Social() {
     } finally {
       setPostsLoading(false);
     }
-  }, [search, fromDate, toDate]); // Chỉ chạy lại khi filter thay đổi
+  }, [search, fromDate, toDate]);
 
-  // 4. Hàm Fetch Comments
   const fetchComments = useCallback(async () => {
-    if (!selectedPost) return; // Không fetch nếu không có post nào được chọn
+    if (!selectedPost) return;
 
     setCommentsLoading(true);
     try {
@@ -122,28 +116,25 @@ export default function Social() {
     } finally {
       setCommentsLoading(false);
     }
-  }, [selectedPost]); // Chỉ chạy lại khi selectedPost thay đổi
+  }, [selectedPost]);
 
-  // 5. useEffect để tải Posts (khi filter thay đổi)
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchPosts();
-    }, 500); // Thêm debounce 500ms để tránh gọi API liên tục khi gõ
+    }, 500);
     return () => clearTimeout(timer);
-  }, [fetchPosts]); // fetchPosts đã bao gồm các dependencies
+  }, [fetchPosts]);
 
-  // 6. useEffect để tải Comments (khi modal mở)
   useEffect(() => {
     if (detailDialogOpen && selectedPost) {
       fetchComments();
     } else {
-      setComments([]); // Xóa comments cũ khi đóng modal
+      setComments([]);
     }
   }, [detailDialogOpen, selectedPost, fetchComments]);
 
-  // 7. Cập nhật các hàm xử lý
   const handleSearch = () => {
-    fetchPosts(); // Gọi fetchPosts khi bấm nút search
+    fetchPosts();
   };
 
   const handleViewPost = (post: Post) => {
@@ -165,8 +156,8 @@ export default function Social() {
           toast.success("Post deleted successfully!");
           setDeleteDialogOpen(false);
           setItemToDelete(null);
-          setDetailDialogOpen(false); // Đóng modal chi tiết nếu đang mở
-          fetchPosts(); // Tải lại danh sách posts
+          setDetailDialogOpen(false);
+          fetchPosts();
         } else {
           toast.error(response.message || "Failed to delete post");
         }
@@ -192,7 +183,7 @@ export default function Social() {
           toast.success("Comment deleted successfully!");
           setDeleteCommentDialogOpen(false);
           setItemToDelete(null);
-          fetchComments(); // Tải lại danh sách comments
+          fetchComments();
         } else {
           toast.error(response.message || "Failed to delete comment");
         }
@@ -212,7 +203,6 @@ export default function Social() {
         </CardHeader>
         <CardContent className="p-6">
           <div className="space-y-4">
-            {/* Filters */}
             <div className="flex gap-4">
               <div className="flex-1 flex gap-2">
                 <Input
@@ -249,7 +239,7 @@ export default function Social() {
                     <TableHead>User</TableHead>
                     <TableHead>Engagement</TableHead>
                     <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("dashboard.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -386,12 +376,12 @@ export default function Social() {
 
               <div>
                 <h4 className="font-semibold mb-4">
-                  Comments ({comments.length})
+                  {t("dashboard..comments")} ({comments.length})
                 </h4>
                 {commentsLoading ? (
                   <Skeleton className="h-32 w-full" />
                 ) : comments.length === 0 ? (
-                  <p className="text-center py-8 text-gray-500">No comments</p>
+                  <p className="text-center py-8 text-gray-500">{t("dashboard.noComment")}</p>
                 ) : (
                   <div className="space-y-3">
                     {comments.map((comment) => (
@@ -425,7 +415,7 @@ export default function Social() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Post Dialog (Cập nhật state) */}
+      {/* Delete Post Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -435,18 +425,20 @@ export default function Social() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("dashboard.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeletePostConfirm}
               disabled={deletingPost}
             >
-              {deletingPost ? "Deleting..." : "Delete"}
+              {deletingPost
+                ? `${t("dashboard.deleting")}`
+                : `${t("dashboard.delete")}`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Delete Comment Dialog (Cập nhật state) */}
+      {/* Delete Comment Dialog */}
       <AlertDialog
         open={deleteCommentDialogOpen}
         onOpenChange={setDeleteCommentDialogOpen}
@@ -459,12 +451,14 @@ export default function Social() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("dashboard.deleting")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteCommentConfirm}
               disabled={deletingComment}
             >
-              {deletingComment ? "Deleting..." : "Delete"}
+              {deletingComment
+                ? `${t("dashboard.deleting")}`
+                : `${t("dashboard.delete")}`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

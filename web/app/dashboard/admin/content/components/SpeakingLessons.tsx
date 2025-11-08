@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react"; // Thêm hook
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,7 +40,6 @@ import {
 } from "@/app/apiClient/admin/content";
 import { SpeakingLessonDialog } from "./SpeakingLessonDialog";
 
-// Định nghĩa kiểu dữ liệu
 type SpeakingLesson = {
   id: number;
   content: string;
@@ -55,25 +54,20 @@ type Level = { id: number; name_en: string; [key: string]: any };
 type Topic = { id: number; name_en: string; [key: string]: any };
 
 export function SpeakingLessons({ t }: { t: (key: string) => string }) {
-  // State cho bộ lọc
   const [levelId, setLevelId] = useState<string | null>(null);
   const [topicId, setTopicId] = useState<string | null>(null);
 
-  // State cho dữ liệu
   const [lessons, setLessons] = useState<SpeakingLesson[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
 
-  // State cho trạng thái
   const [lessonsLoading, setLessonsLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
 
-  // State cho Modals
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [lessonToDelete, setLessonToDelete] = useState<number | null>(null);
 
-  // Hàm tải dữ liệu lessons
   const fetchLessons = useCallback(async () => {
     setLessonsLoading(true);
     try {
@@ -93,7 +87,6 @@ export function SpeakingLessons({ t }: { t: (key: string) => string }) {
     }
   }, [levelId, topicId]);
 
-  // Tải levels và topics khi component mount
   useEffect(() => {
     const fetchDropdowns = async () => {
       try {
@@ -110,7 +103,6 @@ export function SpeakingLessons({ t }: { t: (key: string) => string }) {
     fetchDropdowns();
   }, []);
 
-  // Tải lessons khi component mount hoặc khi filter thay đổi
   useEffect(() => {
     fetchLessons();
   }, [fetchLessons]);
@@ -157,7 +149,7 @@ export function SpeakingLessons({ t }: { t: (key: string) => string }) {
           <CardTitle>Speaking Lessons</CardTitle>
           <Button onClick={handleCreate} className="cursor-pointer">
             <Plus className="w-4 h-4 mr-2" />
-            Create New
+            {t("dashboard.createNew")}
           </Button>
         </CardHeader>
         <CardContent className="p-6">
@@ -208,7 +200,7 @@ export function SpeakingLessons({ t }: { t: (key: string) => string }) {
                     <TableHead>Level</TableHead>
                     <TableHead>Topic</TableHead>
                     <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("dashboard.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -279,6 +271,7 @@ export function SpeakingLessons({ t }: { t: (key: string) => string }) {
       </Card>
 
       <SpeakingLessonDialog
+        t={t}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onSuccess={refreshLessons}
@@ -294,12 +287,14 @@ export function SpeakingLessons({ t }: { t: (key: string) => string }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("dashboard.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={deleting}
             >
-              {deleting ? "Deleting..." : "Delete"}
+              {deleting
+                ? `${t("dashboard.deleting")}`
+                : `${t("dashboard.delete")}`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

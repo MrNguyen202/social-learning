@@ -27,13 +27,11 @@ import {
   loadTypeParagraphs,
 } from "@/app/apiClient/admin/content";
 
-// Kiểu dữ liệu cho Dropdowns
 type Level = { id: number; name_en: string; [key: string]: any };
 type Topic = { id: number; name_en: string; [key: string]: any };
 type TypeExercise = { id: number; title_en: string; [key: string]: any };
 type TypeParagraph = { id: number; name_en: string; [key: string]: any };
 
-// Định nghĩa kiểu dữ liệu cho form
 type FormData = {
   title: string;
   contentVi: string;
@@ -45,7 +43,6 @@ type FormData = {
   numberSentence: string;
 };
 
-// Giá trị mặc định cho form
 const defaultValues: FormData = {
   title: "",
   contentVi: "",
@@ -58,27 +55,26 @@ const defaultValues: FormData = {
 };
 
 type WritingExerciseDialogProps = {
+  t: (key: string) => string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
 };
 
 export function WritingExerciseDialog({
+  t,
   open,
   onOpenChange,
   onSuccess,
 }: WritingExerciseDialogProps) {
-  // State cho dropdowns
   const [levels, setLevels] = useState<Level[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [typeExercises, setTypeExercises] = useState<TypeExercise[]>([]);
   const [typeParagraphs, setTypeParagraphs] = useState<TypeParagraph[]>([]);
 
-  // State cho form
   const [formData, setFormData] = useState<FormData>(defaultValues);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Tải tất cả dropdowns khi modal mở
   useEffect(() => {
     if (open) {
       const fetchDropdowns = async () => {
@@ -101,12 +97,10 @@ export function WritingExerciseDialog({
       };
       fetchDropdowns();
 
-      // Reset form (vì đây là dialog "Create")
       setFormData(defaultValues);
     }
   }, [open]);
 
-  // Hàm cập nhật state chung cho form
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -114,12 +108,10 @@ export function WritingExerciseDialog({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Hàm cập nhật state cho Select
   const handleSelectChange = (name: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Xử lý submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -134,7 +126,6 @@ export function WritingExerciseDialog({
       numberSentence: parseInt(formData.numberSentence, 10),
     };
 
-    // Kiểm tra NaN (Nếu select chưa chọn)
     if (
       isNaN(payload.levelId) ||
       isNaN(payload.topicId) ||
@@ -306,10 +297,12 @@ export function WritingExerciseDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("dashboard.cancel")}
             </Button>
             <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Creating..." : "Create"}
+              {isSaving
+                ? `${t("dashboard.creating")}`
+                : `${t("dashboard.create")}`}
             </Button>
           </div>
         </form>

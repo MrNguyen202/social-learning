@@ -19,8 +19,8 @@ import {
   loadLeaderboard,
   loadSkillBreakdown,
 } from "@/app/apiClient/admin/analytic";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
-// 2. Định nghĩa Type cho dữ liệu
 type AnalyticsData = {
   date: string;
   user_count: number;
@@ -35,51 +35,43 @@ type SkillData = {
 type LeaderboardEntry = {
   rank: number;
   user: {
-    // API trả về object lồng nhau
+    // API trả về object lồng
     name: string;
-    avatar: string; // Service của bạn cũng trả về avatar
-  } | null; // User có thể là null nếu bị xóa
+    avatar: string;
+  } | null;
   leaderboard_type: string;
   score: number;
 };
 
 export default function page() {
-  // State cho Filters
+  const { t } = useLanguage();
   const [fromDate, setFromDate] = useState<string | null>(null);
   const [toDate, setToDate] = useState<string | null>(null);
-
-  // State cho Data
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData[]>([]);
   const [skillData, setSkillData] = useState<SkillData[]>([]);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>(
     []
   );
-
-  // State cho Loading
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
   const [skillLoading, setSkillLoading] = useState(true);
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
 
-  // 3. Tải Skill Breakdown và Leaderboard (chỉ chạy 1 lần)
   useEffect(() => {
     const fetchStaticData = async () => {
       setSkillLoading(true);
       setLeaderboardLoading(true);
       try {
-        // Tải song song
         const [skillRes, leaderboardRes] = await Promise.all([
           loadSkillBreakdown(),
           loadLeaderboard(),
         ]);
 
-        // Xử lý Skill Breakdown
         if (skillRes.success) {
           setSkillData(skillRes.data);
         } else {
           toast.error(skillRes.message || "Failed to load skill data");
         }
 
-        // Xử lý Leaderboard
         if (leaderboardRes.success) {
           setLeaderboardData(leaderboardRes.data);
         } else {
@@ -93,9 +85,8 @@ export default function page() {
       }
     };
     fetchStaticData();
-  }, []); // Mảng rỗng = chạy 1 lần khi mount
+  }, []);
 
-  // 4. Tải Analytics (chạy lại khi filter thay đổi)
   const fetchAnalytics = useCallback(async () => {
     setAnalyticsLoading(true);
     try {
@@ -113,17 +104,15 @@ export default function page() {
     } finally {
       setAnalyticsLoading(false);
     }
-  }, [fromDate, toDate]); // Phụ thuộc vào filters
+  }, [fromDate, toDate]);
 
-  // 5. useEffect có debounce để gọi fetchAnalytics
   useEffect(() => {
-    // Thêm debounce 500ms để tránh gọi API liên tục khi chọn ngày
     const timer = setTimeout(() => {
       fetchAnalytics();
     }, 500);
 
-    return () => clearTimeout(timer); // Xóa timer khi component unmount
-  }, [fetchAnalytics]); // fetchAnalytics đã bao gồm fromDate, toDate
+    return () => clearTimeout(timer);
+  }, [fetchAnalytics]);
 
   return (
     <div className="flex-1 pr-6 py-4 pl-12 space-y-6">
@@ -132,7 +121,6 @@ export default function page() {
           <CardTitle>Learning Analytics & Reports</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          {/* Filters (Giữ nguyên JSX) */}
           <div className="flex gap-4 mb-6">
             <Input
               type="date"
@@ -149,7 +137,6 @@ export default function page() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* User Growth Card (Giữ nguyên JSX, chỉ thay biến loading/data) */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">User Growth</CardTitle>
@@ -159,7 +146,7 @@ export default function page() {
                   <Skeleton className="h-64 w-full" />
                 ) : analyticsData.length === 0 ? (
                   <p className="text-center py-8 text-gray-500">
-                    No data available
+                    {t("dashboard.noData")}
                   </p>
                 ) : (
                   <Table>
@@ -188,7 +175,6 @@ export default function page() {
               </CardContent>
             </Card>
 
-            {/* Skill Performance Card (Giữ nguyên JSX, chỉ thay biến loading/data) */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Skill Performance</CardTitle>
@@ -198,7 +184,7 @@ export default function page() {
                   <Skeleton className="h-64 w-full" />
                 ) : skillData.length === 0 ? (
                   <p className="text-center py-8 text-gray-500">
-                    No skill data
+                    {t("dashboard.noData")}
                   </p>
                 ) : (
                   <Table>
@@ -230,7 +216,6 @@ export default function page() {
         </CardContent>
       </Card>
 
-      {/* Top Performers Card (Sửa lại logic render) */}
       <Card>
         <CardHeader>
           <CardTitle>Top Performers</CardTitle>
@@ -240,7 +225,7 @@ export default function page() {
             <Skeleton className="h-96 w-full" />
           ) : leaderboardData.length === 0 ? (
             <p className="text-center py-8 text-gray-500">
-              No leaderboard data
+              {t("dashboard.noData")}
             </p>
           ) : (
             <Table>
@@ -260,7 +245,6 @@ export default function page() {
                         #{entry.rank}
                       </Badge>
                     </TableCell>
-                    {/* 6. SỬA LỖI: dùng entry.user.name */}
                     <TableCell className="font-medium">
                       {entry.user?.name || "User Đã Bị Xóa"}
                     </TableCell>

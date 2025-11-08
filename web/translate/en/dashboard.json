@@ -261,5 +261,18 @@
 
   "listeningParagraphs": "Listening Exercises",
   "speakingLessons": "Speaking Lessons",
-  "writingExercises": "Writing Exercises"
+  "writingExercises": "Writing Exercises",
+
+  "fillAllFields": "Please fill in all fields.",
+  "failedSaveAchievement":"Failed to save achievement",
+  "noAchievementsFound":"No achievements found",
+  "createTileAchievement": "Title",
+  "description":"Description",
+  "targetAchievement": "Target",
+  "typeAchievement": "Type",
+  "save": "Save",
+  "createNew": "Create New",
+  "deleting": "Deleting...",
+  "creating": "Creating...",
+  "noComment": "No comments yet"
 }

@@ -23,8 +23,10 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil } from "lucide-react";
 import { AchievementDialog } from "./components/AchievementDialog";
 import { loadAchievement } from "@/app/apiClient/admin/achievement";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 export default function page() {
+  const { t } = useLanguage();
   const [type, setType] = useState<string | null>(null);
   const [skill, setSkill] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -33,7 +35,7 @@ export default function page() {
   const [achievements, setAchievements] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // ✅ Hàm gọi API mới
+  // Hàm gọi API mới
   const fetchAchievements = async () => {
     try {
       setLoading(true);
@@ -65,10 +67,12 @@ export default function page() {
     <div className="flex-1 pr-6 py-4 pl-12 space-y-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-3xl">Achievements & Gamification</CardTitle>
+          <CardTitle className="text-3xl">
+            Achievements & Gamification
+          </CardTitle>
           <Button onClick={handleCreate} className="cursor-pointer">
             <Plus className="w-4 h-4 mr-2" />
-            Create New
+            {t("dashboard.createNew")}
           </Button>
         </CardHeader>
         <CardContent className="p-6">
@@ -111,13 +115,13 @@ export default function page() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Achievement</TableHead>
-                    <TableHead>Type</TableHead>
+                    <TableHead>{t("dashboard.achievements")}</TableHead>
+                    <TableHead>{t("dashboard.typeAchievement")}</TableHead>
                     <TableHead>Skill</TableHead>
-                    <TableHead>Target</TableHead>
+                    <TableHead>{t("dashboard.targetAchievement")}</TableHead>
                     <TableHead>Unlocks</TableHead>
                     <TableHead>Unlock Rate</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("dashboard.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -137,7 +141,7 @@ export default function page() {
                         colSpan={7}
                         className="text-center py-8 text-gray-500"
                       >
-                        No achievements found
+                        {t("dashboard.noAchievementsFound")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -187,7 +191,7 @@ export default function page() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         achievement={selectedAchievement}
-        onSuccess={fetchAchievements} // ✅ Gọi lại khi tạo/sửa thành công
+        onSuccess={fetchAchievements} // Gọi lại khi tạo/sửa thành công
       />
     </div>
   );

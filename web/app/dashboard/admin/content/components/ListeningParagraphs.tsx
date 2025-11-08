@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -141,7 +143,7 @@ export function ListeningParagraphs({ t }: { t: (key: string) => string }) {
           <CardTitle>Listening Paragraphs</CardTitle>
           <Button onClick={handleCreate} className="cursor-pointer">
             <Plus className="w-4 h-4 mr-2" />
-            Create New
+            {t("dashboard.createNew")}
           </Button>
         </CardHeader>
         <CardContent className="p-6">
@@ -269,6 +271,7 @@ export function ListeningParagraphs({ t }: { t: (key: string) => string }) {
       </Card>
 
       <ListeningParagraphDialog
+        t={t}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         paragraph={selectedParagraph}
@@ -285,12 +288,14 @@ export function ListeningParagraphs({ t }: { t: (key: string) => string }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel> {t("dashboard.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={deleting}
             >
-              {deleting ? "Deleting..." : "Delete"}
+              {deleting
+                ? `${t("dashboard.deleting")}`
+                : `${t("dashboard.delete")}`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

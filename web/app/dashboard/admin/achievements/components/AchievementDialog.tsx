@@ -19,6 +19,8 @@ import {
   createAchievement,
   updateAchievement,
 } from "@/app/apiClient/admin/achievement";
+import { toast } from "react-toastify";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 type AchievementDialogProps = {
   open: boolean;
@@ -42,8 +44,9 @@ export function AchievementDialog({
     target: "",
   });
   const [saving, setSaving] = useState(false);
+  const { t } = useLanguage();
 
-  // ✅ Khi mở form hoặc có dữ liệu edit
+  // Khi mở form hoặc có dữ liệu edit
   useEffect(() => {
     if (achievement) {
       setForm({
@@ -73,7 +76,7 @@ export function AchievementDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // ✅ Validation đơn giản
+    // Validation đơn giản
     if (
       !form.title ||
       !form.description ||
@@ -81,7 +84,7 @@ export function AchievementDialog({
       !form.skill ||
       !form.target
     ) {
-      alert("Please fill in all required fields");
+      toast.error(`${t("dashboard.fillAllFields")}`, { autoClose: 1000 });
       return;
     }
 
@@ -95,8 +98,9 @@ export function AchievementDialog({
       onOpenChange(false);
       onSuccess();
     } catch (err) {
-      console.error("Failed to save achievement", err);
-      alert("Failed to save achievement.");
+      toast.error(`${t("dashboard.failedSaveAchievement")}`, {
+        autoClose: 1000,
+      });
     } finally {
       setSaving(false);
     }
@@ -107,13 +111,18 @@ export function AchievementDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {achievement ? "Edit" : "Create"} Achievement
+            {achievement
+              ? `${t("dashboard.edit")}`
+              : `${t("dashboard.create")}`}{" "}
+            {t("dashboard.achievements")}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
+            <label className="block text-sm font-medium mb-1">
+              {t("dashboard.createTileAchievement")}
+            </label>
             <Input
               value={form.title}
               onChange={(e) => handleChange("title", e.target.value)}
@@ -122,7 +131,7 @@ export function AchievementDialog({
 
           <div>
             <label className="block text-sm font-medium mb-1">
-              Description
+              {t("dashboard.description")}
             </label>
             <Textarea
               rows={3}
@@ -143,7 +152,9 @@ export function AchievementDialog({
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Target</label>
+              <label className="block text-sm font-medium mb-1">
+                {t("dashboard.targetAchievement")}
+              </label>
               <Input
                 type="number"
                 value={form.target}
@@ -154,7 +165,9 @@ export function AchievementDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Type</label>
+              <label className="block text-sm font-medium mb-1">
+                {t("dashboard.typeAchievement")}
+              </label>
               <Select
                 value={form.type}
                 onValueChange={(val) => handleChange("type", val)}
@@ -195,11 +208,12 @@ export function AchievementDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              className="cursor-pointer"
             >
-              Cancel
+              {t("dashboard.cancel")}
             </Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : "Save"}
+            <Button type="submit" disabled={saving} className="cursor-pointer">
+              {saving ? `${t("dashboard.saving")}` : `${t("dashboard.save")}`}
             </Button>
           </div>
         </form>

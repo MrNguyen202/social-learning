@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react"; // Thêm hook
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,29 +59,24 @@ type TypeExercise = { id: number; title_en: string; [key: string]: any };
 type TypeParagraph = { id: number; name_en: string; [key: string]: any };
 
 export function WritingExercises({ t }: { t: (key: string) => string }) {
-  // State cho bộ lọc
   const [levelId, setLevelId] = useState<string | null>(null);
   const [topicId, setTopicId] = useState<string | null>(null);
   const [typeExerciseId, setTypeExerciseId] = useState<string | null>(null);
   const [typeParagraphId, setTypeParagraphId] = useState<string | null>(null);
 
-  // State cho dữ liệu
   const [exercises, setExercises] = useState<WritingExercise[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [typeExercises, setTypeExercises] = useState<TypeExercise[]>([]);
   const [typeParagraphs, setTypeParagraphs] = useState<TypeParagraph[]>([]);
 
-  // State cho trạng thái
   const [exercisesLoading, setExercisesLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
 
-  // State cho Modals
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [exerciseToDelete, setExerciseToDelete] = useState<number | null>(null);
 
-  // Hàm tải dữ liệu exercises
   const fetchExercises = useCallback(async () => {
     setExercisesLoading(true);
     try {
@@ -125,7 +120,6 @@ export function WritingExercises({ t }: { t: (key: string) => string }) {
     fetchDropdowns();
   }, []);
 
-  // Tải exercises khi component mount hoặc khi filter thay đổi
   useEffect(() => {
     fetchExercises();
   }, [fetchExercises]);
@@ -173,12 +167,11 @@ export function WritingExercises({ t }: { t: (key: string) => string }) {
           <CardTitle>Writing Exercises</CardTitle>
           <Button onClick={handleCreate} className="cursor-pointer">
             <Plus className="w-4 h-4 mr-2" />
-            Create New
+            {t("dashboard.createNew")}
           </Button>
         </CardHeader>
         <CardContent className="p-6">
           <div className="space-y-4">
-            {/* Filters */}
             <div className="flex flex-wrap gap-4">
               <Select
                 value={levelId ?? "all"}
@@ -264,7 +257,7 @@ export function WritingExercises({ t }: { t: (key: string) => string }) {
                     <TableHead>Topic</TableHead>
                     <TableHead>Sentences</TableHead>
                     <TableHead>Submissions</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("dashboard.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -325,6 +318,7 @@ export function WritingExercises({ t }: { t: (key: string) => string }) {
       </Card>
 
       <WritingExerciseDialog
+        t={t}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onSuccess={refreshExercises}
@@ -340,12 +334,14 @@ export function WritingExercises({ t }: { t: (key: string) => string }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("dashboard.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={deleting}
             >
-              {deleting ? "Deleting..." : "Delete"}
+              {deleting
+                ? `${t("dashboard.deleting")}`
+                : `${t("dashboard.delete")}`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

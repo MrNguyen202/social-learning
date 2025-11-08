@@ -19,12 +19,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "react-toastify";
-import { createListeningParagraph, loadLevels, loadTopics, updateListeningParagraph } from "@/app/apiClient/admin/content";
+import {
+  createListeningParagraph,
+  loadLevels,
+  loadTopics,
+  updateListeningParagraph,
+} from "@/app/apiClient/admin/content";
 
 type Level = { id: number; name_en: string; [key: string]: any };
 type Topic = { id: number; name_en: string; [key: string]: any };
 
-// Định nghĩa kiểu dữ liệu cho form
 type FormData = {
   titleEn: string;
   titleVi: string;
@@ -35,7 +39,6 @@ type FormData = {
   topicId: string;
 };
 
-// Giá trị mặc định cho form
 const defaultValues: FormData = {
   titleEn: "",
   titleVi: "",
@@ -47,27 +50,26 @@ const defaultValues: FormData = {
 };
 
 type ListeningParagraphDialogProps = {
+  t: (key: string) => string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  paragraph: any; // 'any' để khớp với code cũ
+  paragraph: any;
   onSuccess: () => void;
 };
 
 export function ListeningParagraphDialog({
+  t,
   open,
   onOpenChange,
   paragraph,
   onSuccess,
 }: ListeningParagraphDialogProps) {
-  // State cho dropdowns
   const [levels, setLevels] = useState<Level[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
 
-  // State cho form
   const [formData, setFormData] = useState<FormData>(defaultValues);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Tải levels và topics khi modal mở
   useEffect(() => {
     if (open) {
       const fetchDropdowns = async () => {
@@ -86,10 +88,9 @@ export function ListeningParagraphDialog({
     }
   }, [open]);
 
-  // Cập nhật form data khi 'paragraph' (props) thay đổi
   useEffect(() => {
     if (open && paragraph) {
-      // Chế độ Edit
+      // Edit
       setFormData({
         titleEn: paragraph.title_en || "",
         titleVi: paragraph.title_vi || "",
@@ -100,7 +101,7 @@ export function ListeningParagraphDialog({
         topicId: paragraph.topic_id?.toString() || "",
       });
     } else if (open) {
-      // Chế độ Create (reset)
+      // Create
       setFormData(defaultValues);
     }
   }, [paragraph, open]);
@@ -124,7 +125,7 @@ export function ListeningParagraphDialog({
     setIsSaving(true);
 
     // Chuyển đổi ID sang kiểu số
-    const payload:any = {
+    const payload: any = {
       ...formData,
       levelId: parseInt(formData.levelId, 10),
       topicId: parseInt(formData.topicId, 10),
@@ -133,7 +134,7 @@ export function ListeningParagraphDialog({
     try {
       let response;
       if (paragraph) {
-        // Chế độ Edit - include id in single payload object
+        // Chế độ Edit
         const payloadWithId = { id: paragraph.id, ...payload };
         response = await updateListeningParagraph(payloadWithId);
       } else {
@@ -160,7 +161,8 @@ export function ListeningParagraphDialog({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {paragraph ? "Edit" : "Create"} Listening Paragraph
+            {paragraph ? `${t("dashboard.edit")}` : `${t("dashboard.create")}`}{" "}
+            Listening Paragraph
           </DialogTitle>
         </DialogHeader>
 
@@ -214,7 +216,7 @@ export function ListeningParagraphDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("dashboard.description")}</Label>
             <Textarea
               id="description"
               name="description"
@@ -271,10 +273,10 @@ export function ListeningParagraphDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("dashboard.cancel")}
             </Button>
             <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save"}
+              {isSaving ? `${t("dashboard.saving")}` : `${t("dashboard.save")}`}
             </Button>
           </div>
         </form>

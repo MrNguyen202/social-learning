@@ -9,18 +9,15 @@ import { Label } from "@/components/ui/label";
 import { toast } from "react-toastify";
 import { createSpeakingLesson, loadLevels, loadTopics } from "@/app/apiClient/admin/content";
 
-// Kiểu dữ liệu cho Levels và Topics (linh hoạt)
 type Level = { id: number; name_en: string; [key: string]: any };
 type Topic = { id: number; name_en: string; [key: string]: any };
 
-// Định nghĩa kiểu dữ liệu cho form
 type FormData = {
   content: string;
   levelId: string;
   topicId: string;
 };
 
-// Giá trị mặc định cho form
 const defaultValues: FormData = {
   content: "",
   levelId: "",
@@ -28,25 +25,24 @@ const defaultValues: FormData = {
 };
 
 type SpeakingLessonDialogProps = {
+  t: (key: string) => string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
 };
 
 export function SpeakingLessonDialog({
+  t,
   open,
   onOpenChange,
   onSuccess,
 }: SpeakingLessonDialogProps) {
-  // State cho dropdowns
   const [levels, setLevels] = useState<Level[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
 
-  // State cho form
   const [formData, setFormData] = useState<FormData>(defaultValues);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Tải levels và topics khi modal mở
   useEffect(() => {
     if (open) {
       const fetchDropdowns = async () => {
@@ -65,14 +61,12 @@ export function SpeakingLessonDialog({
     }
   }, [open]);
 
-  // Reset form khi modal được mở
   useEffect(() => {
     if (open) {
       setFormData(defaultValues);
     }
   }, [open]);
 
-  // Hàm cập nhật state chung cho form
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -80,7 +74,6 @@ export function SpeakingLessonDialog({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Hàm cập nhật state cho Select
   const handleSelectChange = (name: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -180,10 +173,10 @@ export function SpeakingLessonDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("dashboard.cancel")}
             </Button>
             <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Creating..." : "Create"}
+              {isSaving ? `${t("dashboard.creating")}` : `${t("dashboard.create")}`}
             </Button>
           </div>
         </form>
