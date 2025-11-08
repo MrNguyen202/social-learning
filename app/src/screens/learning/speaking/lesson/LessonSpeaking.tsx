@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   View,
   Text,
@@ -10,6 +16,8 @@ import {
   StatusBar,
   ScrollView,
   SafeAreaView,
+  StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import Voice from '@react-native-voice/voice';
 import LinearGradient from 'react-native-linear-gradient';
@@ -17,22 +25,18 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 import Modal from 'react-native-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import { JSX } from 'react/jsx-runtime';
 import {
   ArrowLeft,
-  ArrowRight,
   Check,
   ChevronRight,
-  Flower,
   List,
   Lock,
   Mic,
-  MicOff,
-  Pen,
-  RefreshCcwDot,
-  Star,
-  Volume,
+  Trophy,
+  Volume2,
   X,
+  Sparkles,
+  Star,
 } from 'lucide-react-native';
 import useAuth from '../../../../../hooks/useAuth';
 import { supabase } from '../../../../../lib/supabase';
@@ -50,13 +54,11 @@ interface Lesson {
 }
 
 const { width, height } = Dimensions.get('window');
-const isSmallDevice = height < 700;
 
 export default function LessonSpeaking() {
   const navigation = useNavigation();
   const { user } = useAuth();
 
-  // States
   const [currentSentence, setCurrentSentence] = useState<string>('');
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(0);
@@ -69,47 +71,58 @@ export default function LessonSpeaking() {
 
   const [transcript, setTranscript] = useState<string>('');
   const [isListening, setIsListening] = useState(false);
-  const [result, setResult] = useState<JSX.Element | null>(null);
+  const [result, setResult] = useState<React.ReactNode | null>(null);
   const [sentenceComplete, setSentenceComplete] = useState(false);
   const [error, setError] = useState('');
   const [hasPermission, setHasPermission] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [totalScore, setTotalScore] = useState<number>(0);
 
-  const finishDebounceRef = useRef<NodeJS.Timeout | null>(null);
-  const lastCheckedTranscriptRef = useRef<string>('');
-  const ttsRef = useRef<any>(null);
+  const wasListeningRef = useRef(false);
 
-  // Voice recognition setup
+
   useEffect(() => {
     Voice.removeAllListeners();
-
     Voice.onSpeechStart = () => {
       setError('');
       setIsListening(true);
+      wasListeningRef.current = true; // Đánh dấu là đã bắt đầu nghe
     };
+    let speechEndTimeout: any;
 
     Voice.onSpeechEnd = () => {
-      setIsListening(false);
-    };
+      if (speechEndTimeout) clearTimeout(speechEndTimeout);
 
+      speechEndTimeout = setTimeout(() => {
+        setIsListening(false);
+      }, 700); // delay 700ms để cho user nói tiếp
+    };
     Voice.onSpeechResults = event => {
       if (event.value && event.value.length > 0) {
         setTranscript(event.value[0]);
       }
     };
-
     Voice.onSpeechPartialResults = event => {
       if (event.value && event.value.length > 0) {
         setTranscript(event.value[0]);
       }
     };
-
     Voice.onSpeechError = e => {
+      if (e.error?.code === '11') {
+        setError('Không nghe rõ. Hãy thử nói lại.');
+        setTranscript('');
+        return;
+      }
+
       setIsListening(false);
-      setError('Lỗi nhận diện giọng nói. Vui lòng thử lại.');
     };
 
-    requestPermission();
-    loadLessonData();
+    const setup = async () => {
+      await requestPermission();
+      await loadLessonData();
+      setIsLoading(false);
+    };
+    setup();
 
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
@@ -117,20 +130,24 @@ export default function LessonSpeaking() {
   }, []);
 
   const requestPermission = async () => {
+    let granted = false;
     if (Platform.OS === 'android') {
-      const granted = await PermissionsAndroid.request(
+      const result = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
         {
           title: 'Quyền sử dụng microphone',
           message: 'Ứng dụng cần quyền microphone để nhận diện giọng nói.',
-          buttonNeutral: 'Hỏi lại sau',
-          buttonNegative: 'Hủy',
           buttonPositive: 'Đồng ý',
+          buttonNegative: 'Hủy',
         },
       );
-      setHasPermission(granted === PermissionsAndroid.RESULTS.GRANTED);
+      granted = result === PermissionsAndroid.RESULTS.GRANTED;
     } else {
-      setHasPermission(true);
+      granted = true; // Quyền được xử lý tự động trên iOS
+    }
+    setHasPermission(granted);
+    if (!granted) {
+      Alert.alert('Lỗi', 'Cần cấp quyền microphone để sử dụng tính năng này.');
     }
   };
 
@@ -157,26 +174,23 @@ export default function LessonSpeaking() {
       setTranscript('');
       setResult(null);
       setSentenceComplete(false);
+      wasListeningRef.current = false;
     }
   }, [lessons, currentLessonIndex]);
 
-  // Speech processing
   useEffect(() => {
-    if (!transcript || transcript === lastCheckedTranscriptRef.current) return;
+    // Chỉ chạy khi:
+    // 1. Vừa dừng nghe (isListening = false)
+    // 2. Trước đó CÓ nghe (wasListeningRef.current = true)
+    // 3. Chưa hiện bảng chúc mừng
+    if (!isListening && wasListeningRef.current && !showCelebration) {
+      wasListeningRef.current = false; // Reset ref
+      const correct = buildResultAndCheck();
 
-    if (finishDebounceRef.current) {
-      clearTimeout(finishDebounceRef.current);
-    }
-
-    finishDebounceRef.current = setTimeout(() => {
-      lastCheckedTranscriptRef.current = transcript;
-      const isCorrect = buildResultAndCheck();
-
-      if (isCorrect) {
-        stopListening();
+      if (correct) {
         setSentenceComplete(true);
         setCompletedSentences(prev => prev + 1);
-        setCompletedLessons(prev => new Set([...prev, currentLessonIndex]));
+        setCompletedLessons(prev => new Set(prev).add(currentLessonIndex));
 
         setTimeout(() => {
           if (currentLessonIndex < lessons.length - 1) {
@@ -184,28 +198,44 @@ export default function LessonSpeaking() {
           } else {
             handleLessonComplete();
           }
-        }, 1500);
+        }, 1500); // Delay 1.5s
       } else {
-        stopListening();
+        // Phát âm sai
+        checkPronunciation();
         setTimeout(() => {
-          checkPronunciation();
-        }, 700);
+          // Tự động reset để thử lại
+          setResult(null);
+          setTranscript('');
+        }, 1200); // Delay 1.2s
       }
-    }, 2000);
+    }
+  }, [isListening, showCelebration]);
 
-    return () => {
-      if (finishDebounceRef.current) {
-        clearTimeout(finishDebounceRef.current);
+  const normalize = useCallback(
+    (s: string) =>
+      s
+        .toLowerCase()
+        .replace(/[.,!?;:\\"'()[\]{}]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim(),
+    [],
+  );
+
+  const updateMasteryOnSuccess = useCallback(
+    async (userId: string, word: string) => {
+      if (word && isNaN(Number(word))) {
+        try {
+          await supabase.rpc('update_mastery_on_success', {
+            user_id: userId,
+            word_input: word,
+          });
+        } catch (error) {
+          console.error('Error updating mastery:', error);
+        }
       }
-    };
-  }, [transcript]);
-
-  const normalize = (s: string) =>
-    s
-      .toLowerCase()
-      .replace(/[.,!?;:\\"'()[\]{}]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
+    },
+    [],
+  );
 
   const buildResultAndCheck = (): boolean => {
     if (!currentSentence) return false;
@@ -216,30 +246,29 @@ export default function LessonSpeaking() {
     const spokenWords = spoken.split(' ');
 
     const compared = sampleWords.map((word, i) => {
-      const isCorrect = spokenWords[i] === word;
+      const spokenWord = spokenWords[i];
+      const isCorrect = spokenWord === word;
+
       if (isCorrect && user) {
         updateMasteryOnSuccess(user.id, word);
       }
 
+      // - Đúng: hiện từ {word} màu xanh
+      // - Sai: hiện từ {spokenWord || '___'} màu đỏ
       return (
         <Text
           key={i}
-          style={{
-            color: isCorrect ? '#10B981' : '#EF4444',
-            fontWeight: '600',
-            marginRight: 4,
-          }}
+          style={[
+            styles.resultWord,
+            isCorrect ? styles.resultWordCorrect : styles.resultWordIncorrect,
+          ]}
         >
-          {spokenWords[i] || '___'}
+          {isCorrect ? word : spokenWord || '___'}
         </Text>
       );
     });
 
-    setResult(
-      <View style={{ flexWrap: 'wrap', flexDirection: 'row', marginTop: 8 }}>
-        {compared}
-      </View>,
-    );
+    setResult(<View style={styles.resultContainer}>{compared}</View>);
 
     const isCorrect =
       sampleWords.length === spokenWords.length &&
@@ -248,48 +277,30 @@ export default function LessonSpeaking() {
     return isCorrect;
   };
 
-  const updateMasteryOnSuccess = async (userId: string, word: string) => {
-    try {
-      await supabase.rpc('update_mastery_on_success', {
-        user_id: userId,
-        word_input: word,
-      });
-    } catch (error) {
-      console.error('Error updating mastery:', error);
-    }
-  };
-
   const checkPronunciation = () => {
     if (!currentSentence || !user) return;
 
-    const cleanSample = currentSentence
-      .toLowerCase()
-      .replace(/[.,!?]/g, '')
-      .trim();
-    const cleanTranscript = transcript
-      .toLowerCase()
-      .replace(/[.,!?]/g, '')
-      .trim();
+    // Dùng hàm normalize đã chuẩn hóa
+    const cleanSample = normalize(currentSentence);
+    const cleanTranscript = normalize(transcript);
 
     const sampleWords = cleanSample.split(' ');
     const spokenWords = cleanTranscript.split(' ');
 
-    const wrongPairs = sampleWords
-      .map((word, i) => ({
-        correct: word,
-        spoken: spokenWords[i] || '(bỏ qua)',
-      }))
-      .filter((_, i) => spokenWords[i] !== sampleWords[i]);
-
-    wrongPairs.forEach(({ correct }) => {
-      insertOrUpdateVocabularyErrors({
-        userId: user.id,
-        vocabData: {
-          word: correct,
-          error_type: 'pronunciation',
-          skill: 'speaking',
-        },
-      });
+    sampleWords.forEach((word, i) => {
+      if (spokenWords[i] !== word) {
+        // Chỉ lưu lỗi nếu từ đó tồn tại và không phải là số
+        if (word && isNaN(Number(word))) {
+          insertOrUpdateVocabularyErrors({
+            userId: user.id,
+            vocabData: {
+              word: word,
+              error_type: 'pronunciation',
+              skill: 'speaking',
+            },
+          });
+        }
+      }
     });
   };
 
@@ -298,55 +309,33 @@ export default function LessonSpeaking() {
     if (user) {
       try {
         await addSkillScore(user.id, 'speaking', 10);
+        // Có thể lấy totalScore và hiển thị nếu muốn
         const res = await getScoreUserByUserId(user.id);
-        const totalScore = res?.data?.practice_score ?? 0;
-        // Update UI with score if needed
+        setTotalScore(res?.data?.practice_score ?? 0);
       } catch (error) {
         console.error('Error adding score:', error);
       }
     }
   };
 
-  // Voice controls
   const startListening = async () => {
     if (!hasPermission) {
       Alert.alert('Lỗi', 'Cần cấp quyền microphone');
       return;
     }
+    if (isListening) return;
 
     try {
-      setTranscript('');
-      setError('');
-      await Voice.stop();
       await Voice.start('en-US');
-      setIsListening(true);
     } catch (e) {
       console.error('Error starting voice:', e);
       setError('Không thể bắt đầu nhận diện giọng nói');
     }
   };
 
-  const stopListening = async () => {
-    try {
-      await Voice.stop();
-      setIsListening(false);
-    } catch (e) {
-      console.error('Error stopping voice:', e);
-    }
-  };
-
-  const resetTranscript = () => {
-    setTranscript('');
-    setResult(null);
-  };
-
-  // TTS nghe mẫu
   const speak = useCallback((text: string) => {
     speakText(text);
   }, []);
-
-  const progress =
-    lessons.length > 0 ? (completedSentences / lessons.length) * 100 : 0;
 
   const jumpToLesson = (index: number) => {
     if (index <= completedSentences) {
@@ -355,17 +344,41 @@ export default function LessonSpeaking() {
     }
   };
 
+  const progress =
+    lessons.length > 0 ? (completedSentences / lessons.length) * 100 : 0;
+
+  const clickableSentence = useMemo(() => {
+    if (!currentSentence)
+      return <Text style={styles.sentenceText}>Đang tải...</Text>;
+
+    return currentSentence.split(/(\s+)/g).map((part, index) => {
+      if (part.trim() === '')
+        return (
+          <Text key={index} style={styles.sentenceText}>
+            {part}
+          </Text>
+        );
+      return (
+        <TouchableOpacity key={index} onPress={() => speak(part)}>
+          <Text style={styles.sentenceText}>{part}</Text>
+        </TouchableOpacity>
+      );
+    });
+  }, [currentSentence, speak]);
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#8b5cf6" />
+        <Text style={styles.loadingText}>Đang tải bài học...</Text>
+      </SafeAreaView>
+    );
+  }
+
   if (!hasPermission) {
     return (
-      <SafeAreaView
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: '#fef3c7',
-        }}
-      >
-        <Text style={{ color: '#dc2626', fontSize: 16, textAlign: 'center' }}>
+      <SafeAreaView style={styles.loadingContainer}>
+        <Text style={styles.errorText}>
           Cần cấp quyền microphone để sử dụng tính năng này
         </Text>
       </SafeAreaView>
@@ -373,83 +386,42 @@ export default function LessonSpeaking() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
 
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View
-          style={{
-            padding: 16,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.headerButton}
         >
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              padding: 8,
-              borderRadius: 12,
-              backgroundColor: '#fff',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 3,
-            }}
-          >
-            <ArrowLeft size={24} color="#374151" />
-            <Text
-              style={{ marginLeft: 8, fontWeight: '600', color: '#374151' }}
-            >
-              Quay lại
-            </Text>
-          </TouchableOpacity>
+          <ArrowLeft size={24} color="#374151" />
+          <Text style={styles.headerButtonText}>Quay lại</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => setShowExerciseList(true)}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              padding: 8,
-              borderRadius: 12,
-              backgroundColor: '#f59e0b',
-            }}
-          >
-            <List size={20} color="#fff" />
-            <Text style={{ marginLeft: 4, color: '#fff', fontWeight: '600' }}>
-              Danh sách
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          onPress={() => setShowExerciseList(true)}
+          style={[styles.headerButton, styles.listButton]}
+        >
+          <List size={20} color="#fff" />
+          <Text style={[styles.headerButtonText, { color: '#fff' }]}>
+            Danh sách
+          </Text>
+        </TouchableOpacity>
+      </View>
 
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Progress Bar */}
-        <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginBottom: 8,
-            }}
-          >
-            <Text style={{ fontSize: 14, fontWeight: '600', color: '#374151' }}>
+        <View style={styles.progressSection}>
+          <View style={styles.progressLabels}>
+            <Text style={styles.progressText}>
               Tiến độ: {completedSentences}/{lessons.length}
             </Text>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: '#8b5cf6' }}>
+            <Text style={[styles.progressText, { color: '#8b5cf6' }]}>
               {Math.round(progress)}%
             </Text>
           </View>
-          <View
-            style={{
-              height: 8,
-              backgroundColor: '#e5e7eb',
-              borderRadius: 4,
-              overflow: 'hidden',
-            }}
-          >
+          <View style={styles.progressBarBackground}>
             <LinearGradient
               colors={['#8b5cf6', '#ec4899']}
               start={{ x: 0, y: 0 }}
@@ -460,266 +432,78 @@ export default function LessonSpeaking() {
         </View>
 
         {/* Main Lesson Card */}
-        <View style={{ paddingHorizontal: 16, marginBottom: 24 }}>
+        <View style={styles.cardContainer}>
           <LinearGradient
             colors={['#3b82f6', '#8b5cf6', '#ec4899']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={{
-              borderRadius: 24,
-              padding: 24,
-              marginBottom: 16,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 10 },
-              shadowOpacity: 0.3,
-              shadowRadius: 20,
-              elevation: 10,
-            }}
+            style={styles.mainCard}
           >
             {sentenceComplete && (
-              <View
-                style={{
-                  position: 'absolute',
-                  top: -20,
-                  right: -20,
-                  backgroundColor: '#f59e0b',
-                  borderRadius: 50,
-                  padding: 16,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 8,
-                  elevation: 5,
-                }}
-              >
-                <Star size={32} color="#fff" />
+              <View style={styles.starBadge}>
+                <Star size={32} color="#fff" fill="#fff" />
               </View>
             )}
 
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginBottom: 16,
-              }}
-            >
-              <View style={{ marginRight: 12 }}>
-                <Pen size={28} color="#fff" />
-              </View>
-              <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>
-                Câu {currentLessonIndex + 1}
-              </Text>
+            <View style={styles.cardHeader}>
+              <Sparkles size={28} color="#fff" />
+              <Text style={styles.cardTitle}>Câu {currentLessonIndex + 1}</Text>
             </View>
 
-            <View
-              style={{
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                borderRadius: 16,
-                padding: 20,
-                marginBottom: 16,
-                borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.3)',
-              }}
-            >
-              <Text
-                style={{
-                  color: '#fff',
-                  fontSize: isSmallDevice ? 18 : 24,
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                  lineHeight: 32,
-                }}
-              >
-                "{currentSentence || 'Đang tải...'}"
-              </Text>
+            {/* TỐI ƯU: Clickable Sentence */}
+            <View style={styles.sentenceBox}>
+              <View style={styles.sentenceWrap}>{clickableSentence}</View>
             </View>
 
             <TouchableOpacity
               onPress={() => currentSentence && speak(currentSentence)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 12,
-                borderRadius: 12,
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.3)',
-              }}
+              style={styles.speakButton}
             >
-              <Volume size={24} color="#fff" />
-              <Text style={{ color: '#fff', fontWeight: '600', marginLeft: 8 }}>
-                Nghe mẫu
-              </Text>
+              <Volume2 size={24} color="#fff" />
+              <Text style={styles.speakButtonText}>Nghe mẫu</Text>
             </TouchableOpacity>
           </LinearGradient>
         </View>
 
-        {/* Controls */}
-        <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
-          <View style={{ alignItems: 'center', marginBottom: 8 }}>
-            <View
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: 10,
-                backgroundColor: isListening ? '#10B981' : '#9CA3AF',
-                marginBottom: 8,
-                shadowColor: isListening ? '#10B981' : '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.3,
-                shadowRadius: 4,
-                elevation: 3,
-              }}
-            />
-            <Text style={{ fontSize: 16, fontWeight: '600', color: '#374151' }}>
-              Trạng thái:{' '}
-              <Text
-                style={{
-                  color: isListening ? '#10B981' : '#6B7280',
-                  fontWeight: 'bold',
-                }}
-              >
-                {isListening ? 'Đang nghe' : 'Dừng'}
-              </Text>
-            </Text>
-          </View>
-
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-around',
-              marginBottom: 24,
-            }}
+        <View style={styles.controlsSection}>
+          <TouchableOpacity
+            onPress={startListening}
+            disabled={isListening}
+            style={[
+              styles.micButton,
+              isListening ? styles.micButtonListening : styles.micButtonActive,
+            ]}
           >
-            <TouchableOpacity
-              onPress={startListening}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 24,
-                paddingVertical: 12,
-                borderRadius: 12,
-                backgroundColor: '#10B981',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.2,
-                shadowRadius: 8,
-                elevation: 4,
-              }}
-            >
-              <Mic size={20} color="#fff" />
-              <Text
-                style={{ color: '#fff', fontWeight: 'bold', marginLeft: 8 }}
-              >
-                Bắt đầu
-              </Text>
-            </TouchableOpacity>
+            <Mic size={24} color="#fff" />
+            <Text style={styles.micButtonText}>
+              {isListening ? 'Đang nghe...' : 'Bắt đầu'}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-            <TouchableOpacity
-              onPress={stopListening}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 24,
-                paddingVertical: 12,
-                borderRadius: 12,
-                backgroundColor: '#EF4444',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.2,
-                shadowRadius: 8,
-                elevation: 4,
-              }}
-            >
-              <MicOff size={20} color="#fff" />
-              <Text
-                style={{ color: '#fff', fontWeight: 'bold', marginLeft: 8 }}
-              >
-                Dừng
+        {/* Results */}
+        <View style={styles.resultsSection}>
+          <View>
+            <Text style={styles.resultTitle}>Lời nói của bạn:</Text>
+            <View style={styles.resultDisplayBox}>
+              <Text style={styles.transcriptText}>
+                {transcript || 'Chưa có dữ liệu...'}
               </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={resetTranscript}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 24,
-                paddingVertical: 12,
-                borderRadius: 12,
-                backgroundColor: '#6B7280',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.2,
-                shadowRadius: 8,
-                elevation: 4,
-              }}
-            >
-              <RefreshCcwDot size={20} color="#fff" />
-            </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Results */}
-          <View style={{ gap: 20 }}>
-            <View>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: 'bold',
-                  color: '#1F2937',
-                  marginBottom: 12,
-                }}
-              >
-                Lời nói của bạn:
-              </Text>
-              <View
-                style={{
-                  padding: 16,
-                  borderWidth: 2,
-                  borderColor: '#E5E7EB',
-                  borderRadius: 12,
-                  backgroundColor: '#F9FAFB',
-                  minHeight: 60,
-                  justifyContent: 'center',
-                }}
-              >
-                <Text
-                  style={{ color: '#374151', fontSize: 16, lineHeight: 24 }}
-                >
-                  {transcript || 'Chưa có dữ liệu...'}
+          <View>
+            <Text style={styles.resultTitle}>Kết quả:</Text>
+            <View style={styles.resultDisplayBox}>
+              {result || (
+                <Text style={styles.transcriptPlaceholder}>
+                  Chưa có kết quả...
                 </Text>
-              </View>
-            </View>
-
-            <View>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: 'bold',
-                  color: '#1F2937',
-                  marginBottom: 12,
-                }}
-              >
-                Kết quả:
-              </Text>
-              <View
-                style={{
-                  padding: 16,
-                  borderWidth: 2,
-                  borderColor: '#E5E7EB',
-                  borderRadius: 12,
-                  backgroundColor: '#F9FAFB',
-                  minHeight: 60,
-                  justifyContent: 'center',
-                }}
-              >
-                {result || (
-                  <Text style={{ color: '#9CA3AF' }}>Chưa có kết quả...</Text>
-                )}
-              </View>
+              )}
             </View>
           </View>
+
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
         </View>
       </ScrollView>
 
@@ -727,39 +511,21 @@ export default function LessonSpeaking() {
       <Modal
         isVisible={showExerciseList}
         onBackdropPress={() => setShowExerciseList(false)}
-        style={{ margin: 0, justifyContent: 'flex-end' }}
+        style={styles.modal}
         backdropOpacity={0.5}
       >
-        <View
-          style={{
-            backgroundColor: '#fff',
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            maxHeight: height * 0.7,
-          }}
-        >
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: 20,
-              borderBottomWidth: 1,
-              borderBottomColor: '#E5E7EB',
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <View style={styles.modalTitleContainer}>
               <List size={24} color="#f59e0b" />
-              <Text style={{ marginLeft: 8, fontSize: 18, fontWeight: 'bold' }}>
-                Danh sách bài
-              </Text>
+              <Text style={styles.modalTitle}>Danh sách bài</Text>
             </View>
             <TouchableOpacity onPress={() => setShowExerciseList(false)}>
               <X size={24} color="#6B7280" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={{ padding: 20 }}>
+          <ScrollView style={styles.modalScrollView}>
             {lessons.map((lesson, index) => {
               const isCompleted = completedLessons.has(index);
               const isCurrent = index === currentLessonIndex;
@@ -770,45 +536,21 @@ export default function LessonSpeaking() {
                   key={lesson.id}
                   onPress={() => jumpToLesson(index)}
                   disabled={isLocked}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    padding: 16,
-                    marginBottom: 12,
-                    borderRadius: 12,
-                    backgroundColor: isCurrent
-                      ? 'linear-gradient(90deg, #f59e0b, #ef4444)'
-                      : isCompleted
-                      ? '#d1fae5'
-                      : isLocked
-                      ? '#f3f4f6'
-                      : '#fff',
-                    borderWidth: 2,
-                    borderColor: isCompleted
-                      ? '#10b981'
-                      : isLocked
-                      ? '#d1d5db'
-                      : '#e5e7eb',
-                    opacity: isLocked ? 0.5 : 1,
-                  }}
+                  style={[
+                    styles.lessonItem,
+                    isCurrent && styles.lessonItemCurrent,
+                    isCompleted && styles.lessonItemCompleted,
+                    isLocked && styles.lessonItemLocked,
+                  ]}
                   activeOpacity={isLocked ? 1 : 0.7}
                 >
                   <View
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      backgroundColor: isCurrent
-                        ? '#fbbf24'
-                        : isCompleted
-                        ? '#10b981'
-                        : isLocked
-                        ? '#d1d5db'
-                        : '#fed7aa',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginRight: 12,
-                    }}
+                    style={[
+                      styles.lessonIconContainer,
+                      isCurrent && styles.lessonIconCurrent,
+                      isCompleted && styles.lessonIconCompleted,
+                      isLocked && styles.lessonIconLocked,
+                    ]}
                   >
                     {isCompleted ? (
                       <Check size={20} color="#fff" />
@@ -816,35 +558,26 @@ export default function LessonSpeaking() {
                       <Lock size={16} color="#6b7280" />
                     ) : (
                       <Text
-                        style={{
-                          fontWeight: 'bold',
-                          color: isCurrent ? 'black' : '#c2410c',
-                          fontSize: 16,
-                        }}
+                        style={[
+                          styles.lessonNumber,
+                          isCurrent && styles.lessonNumberCurrent,
+                        ]}
                       >
                         {index + 1}
                       </Text>
                     )}
                   </View>
-                  <View style={{ flex: 1 }}>
+                  <View style={styles.lessonTextContainer}>
                     <Text
-                      style={{
-                        fontWeight: '600',
-                        color: isCurrent
-                          ? 'black'
-                          : isCompleted
-                          ? '#065f46'
-                          : isLocked
-                          ? '#6b7280'
-                          : '#374151',
-                        marginBottom: 4,
-                      }}
+                      style={[
+                        styles.lessonText,
+                        isCurrent && styles.lessonTextCurrent,
+                        isCompleted && styles.lessonTextCompleted,
+                        isLocked && styles.lessonTextLocked,
+                      ]}
                     >
                       Câu {index + 1}
                     </Text>
-                    {isCurrent && (
-                      <Text style={{ fontSize: 12 }}>{lesson.content}</Text>
-                    )}
                   </View>
                   {isCurrent && <ChevronRight size={24} color="#fff" />}
                 </TouchableOpacity>
@@ -858,83 +591,418 @@ export default function LessonSpeaking() {
       <Modal
         isVisible={showCelebration}
         onBackdropPress={() => setShowCelebration(false)}
-        style={{ marginLeft: 23, justifyContent: 'center' }}
+        style={styles.centerModal}
         backdropOpacity={0.7}
       >
-        <View
-          style={{
-            backgroundColor: '#fff',
-            borderRadius: 24,
-            padding: 32,
-            alignItems: 'center',
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.3,
-            shadowRadius: 20,
-            elevation: 10,
-            maxWidth: width * 0.9,
-          }}
+        <LinearGradient
+          colors={['#f59e0b', '#ef4444']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.celebrationModal}
         >
-          <LinearGradient
-            colors={['#f59e0b', '#ef4444']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              width: 80,
-              height: 80,
-              borderRadius: 40,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginBottom: 20,
-            }}
-          >
-            <Flower size={40} color="#fff" />
-          </LinearGradient>
-          <Text
-            style={{
-              fontSize: 24,
-              fontWeight: 'bold',
-              textAlign: 'center',
-              marginBottom: 12,
-            }}
-          >
-            Chúc mừng!
-          </Text>
-          <Text
-            style={{
-              fontSize: 16,
-              textAlign: 'center',
-              color: '#6b7280',
-              marginBottom: 24,
-            }}
-          >
+          <View style={styles.celebrationIcon}>
+            <Trophy size={40} color="#f59e0b" fill="#fff" />
+          </View>
+          <Text style={styles.celebrationTitle}>Chúc mừng!</Text>
+          <Text style={styles.celebrationText}>
             Bạn đã hoàn thành tất cả các câu!
+          </Text>
+          {/* Show điểm user */}
+          <Text style={styles.celebrationScore}>
+            Điểm hiện tại của bạn: {totalScore} điểm
           </Text>
           <TouchableOpacity
             onPress={() => {
               setShowCelebration(false);
               navigation.goBack();
             }}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: 24,
-              paddingVertical: 12,
-              borderRadius: 12,
-              backgroundColor: '#8b5cf6',
-            }}
+            style={styles.celebrationButton}
           >
-            <Text style={{ color: '#fff', fontWeight: 'bold', marginRight: 8 }}>
-              Thử bài khác
-            </Text>
-            <ArrowRight size={20} color="#fff" />
+            <Text style={styles.celebrationButtonText}>Thử bài khác</Text>
           </TouchableOpacity>
-        </View>
+        </LinearGradient>
       </Modal>
 
       {showCelebration && (
-        <ConfettiCannon count={200} origin={{ x: width / 2, y: 0 }} />
+        <ConfettiCannon
+          count={200}
+          origin={{ x: width / 2, y: -10 }}
+          fallSpeed={3000}
+        />
       )}
     </SafeAreaView>
   );
 }
+
+// --- StyleSheet ---
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f9fafb', // Match scrollview bg
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  errorText: {
+    color: '#dc2626',
+    fontSize: 16,
+    textAlign: 'center',
+    padding: 20,
+  },
+  header: {
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f9fafb',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  headerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  headerButtonText: {
+    marginLeft: 8,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  listButton: {
+    backgroundColor: '#f59e0b',
+  },
+  progressSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  progressLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  progressText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  progressBarBackground: {
+    height: 8,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  cardContainer: {
+    paddingHorizontal: 16,
+    marginBottom: 24,
+  },
+  mainCard: {
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  starBadge: {
+    position: 'absolute',
+    top: -16,
+    right: -16,
+    backgroundColor: '#f59e0b',
+    borderRadius: 50,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  cardTitle: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginLeft: 12,
+  },
+  sentenceBox: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    minHeight: 100,
+    justifyContent: 'center',
+  },
+  sentenceWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  sentenceText: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    lineHeight: 32,
+  },
+  speakButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  speakButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  controlsSection: {
+    paddingHorizontal: 16,
+    marginBottom: 24,
+    alignItems: 'center',
+  },
+  micButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 99,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  micButtonActive: {
+    backgroundColor: '#10B981',
+  },
+  micButtonListening: {
+    backgroundColor: '#9CA3AF', // Màu xám khi đang nghe
+  },
+  micButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    marginLeft: 8,
+    fontSize: 16,
+  },
+  resultsSection: {
+    paddingHorizontal: 16,
+    paddingBottom: 32,
+    gap: 20,
+  },
+  resultTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 12,
+  },
+  resultDisplayBox: {
+    padding: 16,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    minHeight: 60,
+    justifyContent: 'center',
+  },
+  transcriptText: {
+    color: '#374151',
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  transcriptPlaceholder: {
+    color: '#9CA3AF',
+    fontSize: 16,
+  },
+  resultContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  resultWord: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 4,
+    lineHeight: 24,
+  },
+  resultWordCorrect: {
+    color: '#10B981',
+  },
+  resultWordIncorrect: {
+    color: '#EF4444',
+  },
+  // Modal Styles
+  modal: {
+    margin: 0,
+    justifyContent: 'flex-end',
+  },
+  centerModal: {
+    margin: 16,
+    justifyContent: 'center',
+    zIndex: 1000,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: height * 0.7,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  modalTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    marginLeft: 8,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1F2937',
+  },
+  modalScrollView: {
+    padding: 16,
+  },
+  lessonItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+  },
+  lessonItemCurrent: {
+    borderColor: '#f59e0b',
+    backgroundColor: '#f59e0b',
+  },
+  lessonItemCompleted: {
+    borderColor: '#10b981',
+    backgroundColor: '#d1fae5',
+  },
+  lessonItemLocked: {
+    borderColor: '#d1d5db',
+    backgroundColor: '#f3f4f6',
+    opacity: 0.6,
+  },
+  lessonIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  lessonIconCurrent: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  lessonIconCompleted: {
+    backgroundColor: '#10b981',
+  },
+  lessonIconLocked: {
+    backgroundColor: '#d1d5db',
+  },
+  lessonNumber: {
+    fontWeight: 'bold',
+    color: '#c2410c',
+    fontSize: 16,
+  },
+  lessonNumberCurrent: {
+    color: '#fff',
+  },
+  lessonTextContainer: {
+    flex: 1,
+  },
+  lessonText: {
+    fontWeight: '600',
+    color: '#374151',
+  },
+  lessonTextCurrent: {
+    color: '#fff',
+  },
+  lessonTextCompleted: {
+    color: '#065f46',
+  },
+  lessonTextLocked: {
+    color: '#6b7280',
+  },
+  // Celebration Modal
+  celebrationModal: {
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+  },
+  celebrationIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  celebrationTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 12,
+    color: '#fff',
+  },
+  celebrationText: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: 'rgba(255,255,255,0.9)',
+    marginBottom: 24,
+  },
+  celebrationScore: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 24,
+  },
+  celebrationButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+  },
+  celebrationButtonText: {
+    color: '#8b5cf6',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+});

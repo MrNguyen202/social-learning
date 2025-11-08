@@ -1,5 +1,5 @@
-import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -30,6 +30,14 @@ export default function Speaking() {
   const [loading, setLoading] = useState(false);
 
   const isReady = selectedLevel && selectedTopic;
+
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(false);
+
+      return () => {};
+    }, []),
+  );
 
   const handleStart = async () => {
     if (isReady) {
@@ -231,7 +239,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 120,
+    paddingBottom: 140,
   },
   descriptionContainer: {
     alignItems: 'center',
