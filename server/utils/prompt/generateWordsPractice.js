@@ -104,7 +104,7 @@ Yêu cầu:
 8. Mỗi câu hỏi phải liên quan trực tiếp đến ít nhất một từ trong danh sách từ vựng ở trên.
 9. Không sử dụng ký tự đặc biệt trong câu hỏi hoặc câu trả lời (ngoại trừ '___' cho 'fill_in_blank').
 10. Không được lặp lại cùng một từ hoặc cấu trúc câu hỏi quá 2 lần.
-11. Ở loại "synonym_match", hãy tạo 5 cặp từ.
+11. Ở loại "synonym_match", hãy tạo 5 cặp từ và không được trùng nhau.
 12. Ở loại "fill_in_blank", "sentence_template" phải có một chỗ trống biểu thị bằng \`___\`. "options" gồm 3-4 từ, trong đó "correct_answer" là một từ trong danh sách từ vựng.
 13. Ở loại "sentence_order", các câu trong "answer_en" và "answer_vi" **không được chứa dấu câu ở cuối** (như ., !, ?) và phải bao gồm tất cả các từ có trong answer_en", *kể cả các từ lặp lại* (ví dụ: he put the paper in the box) có 2 chữ 'the'.
 14. Ở loại "multiple_choice", hãy cố gắng tạo cả câu hỏi Anh-Việt (ví dụ: 'develop' nghĩa là gì?) và Việt-Anh (ví dụ: 'Phát triển' là gì?).
@@ -114,5 +114,8 @@ Yêu cầu:
     - Thứ tự các ký tự được xáo trộn ngẫu nhiên.
     - "hint" là nghĩa tiếng Việt của từ "answer" để gợi ý.
 16. Mỗi từ trong danh sách chỉ được xuất hiện tối đa một lần trong loại "word_build".
-17. Nếu câu có số là thời gian ( ví dụ: 7 am, 12 pm, 7:00 am, 12:00 pm ...), hãy chuyển thành dạng 7:00, 12:00 ...
+17. Ở loại "speaking": 
+    - Nếu câu có số là thời gian ( ví dụ: 7 am, 12 pm, 7:00 am, 12:00 pm ...), hãy chuyển thành dạng 7:00, 12:00 ...
+    - Không sử dụng [email], [your name], [your country], [your favorite place] hoặc các cụm từ tương tự mà hãy hãy tạo tên bất kì.
+    - Nếu câu có email thì hãy chuyển thành e-mail.
 `;

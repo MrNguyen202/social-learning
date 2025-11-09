@@ -152,20 +152,40 @@ export function LeftSideBarHiddenLabel() {
   ];
 
   const adminNavItems = [
-    { icon: LayoutDashboard, path: "/dashboard", label: "Dashboard" },
-    { icon: Users, path: "/admin/dashboard/users", label: "Users" },
-    { icon: FileText, path: "/admin/dashboard/content", label: "Content" },
-    { icon: Globe, path: "/admin/dashboard/social", label: "Social" },
+    {
+      icon: LayoutDashboard,
+      path: "/dashboard",
+      label: t("dashboard.dashboard"),
+    },
+    {
+      icon: Users,
+      path: "/dashboard/admin/users",
+      label: t("dashboard.users"),
+    },
+    {
+      icon: FileText,
+      path: "/dashboard/admin/content",
+      label: t("dashboard.content"),
+    },
+    {
+      icon: Globe,
+      path: "/dashboard/admin/social",
+      label: t("dashboard.social"),
+    },
     {
       icon: BookOpen,
-      path: "/admin/dashboard/vocabulary",
-      label: "Vocabulary",
+      path: "/dashboard/admin/vocabulary",
+      label: t("dashboard.vocabularys"),
     },
-    { icon: BarChart, path: "/admin/dashboard/analytics", label: "Analytics" },
+    {
+      icon: BarChart,
+      path: "/dashboard/admin/analytics",
+      label: t("dashboard.analytics"),
+    },
     {
       icon: Trophy,
-      path: "/admin/dashboard/achievements",
-      label: "Achievements",
+      path: "/dashboard/admin/achievements",
+      label: t("dashboard.achievements"),
     },
     { icon: User, path: "/dashboard/profile", label: t("dashboard.profile") },
   ];
@@ -273,10 +293,11 @@ export function LeftSideBarHiddenLabel() {
                   <Button
                     key={item.label}
                     variant="ghost"
-                    className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${isActive
-                      ? "bg-gray-100 text-gray-900 font-medium"
-                      : "text-gray-700 hover:bg-gray-50"
-                      }`}
+                    className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
+                      isActive
+                        ? "bg-gray-100 text-gray-900 font-medium"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
                     onClick={() => handleMenuClick(item.path)}
                   >
                     {/* FIX 3: Giảm kích thước icon về 24 (chuẩn) */}
@@ -305,10 +326,11 @@ export function LeftSideBarHiddenLabel() {
                     <Button
                       key={item.label}
                       variant="ghost"
-                      className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${isActive
-                        ? "bg-gray-100 text-gray-900 font-medium"
-                        : "text-gray-700 hover:bg-gray-50"
-                        }`}
+                      className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
+                        isActive
+                          ? "bg-gray-100 text-gray-900 font-medium"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
                       onClick={() =>
                         isNotification
                           ? openNotificationPanel()
@@ -346,10 +368,11 @@ export function LeftSideBarHiddenLabel() {
                   <Button
                     key={item.label}
                     variant="ghost"
-                    className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${isActive
-                      ? "bg-gray-100 text-gray-900 font-medium"
-                      : "text-gray-700 hover:bg-gray-50"
-                      }`}
+                    className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
+                      isActive
+                        ? "bg-gray-100 text-gray-900 font-medium"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
                     onClick={() => handleMenuClick(item.path)}
                   >
                     <item.icon size={24} />
