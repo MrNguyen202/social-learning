@@ -1,37 +1,22 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
-  FlatList,
   ActivityIndicator,
-  Alert,
   SafeAreaView,
   StyleSheet,
   ScrollView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Animated, {
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import useAuth from '../../../../hooks/useAuth';
 import { getListPersonalVocabByUserIdAndCreated } from '../../../api/learning/vocabulary/route';
-import VocabularyCard from './components/VocabularyCard';
 import {
   AlertCircle,
   ArrowLeft,
   BookOpen,
-  BookOpenIcon,
-  GridIcon,
-  ListIcon,
-  SearchIcon,
   TrendingUp,
-  X,
 } from 'lucide-react-native';
 import Tts from 'react-native-tts';
 import OverviewRangeView from './components/RangeView';
@@ -45,7 +30,6 @@ const CustomButton = ({ onPress, title, style, textStyle }: any) => (
 );
 
 export default function Vocabulary() {
-  const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const { user } = useAuth();
 
@@ -78,12 +62,9 @@ export default function Vocabulary() {
     setLoading(false);
   };
 
-  // Speech Synthesis (react-native-tts) - Giữ nguyên
   useEffect(() => {
     Tts.getInitStatus().then(
-      () => {
-        // (Tùy chọn)
-      },
+      () => {},
       err => {
         if (err.code === 'no_engine') {
           console.warn('No TTS engine installed.');
@@ -114,7 +95,7 @@ export default function Vocabulary() {
     Tts.speak(text);
   };
 
-  // Tính stats (giữ nguyên logic)
+  // Tính stats
   const totalWords = listPersonalVocab.length;
   const averageMastery =
     totalWords > 0
@@ -154,10 +135,12 @@ export default function Vocabulary() {
           </View>
         </View>
         <Text style={styles.emptyTitle}>
-          {searchQuery ? 'learning.noVocabularyFound' : 'learning.noVocabulary'}
+          {searchQuery ? 'Không tìm thấy từ vựng' : 'Chưa có từ vựng'}
         </Text>
         <Text style={styles.emptySubtitle}>
-          {searchQuery ? 'learning.suggestion' : 'learning.startLearning'}
+          {searchQuery
+            ? 'Hãy thử điều chỉnh truy vấn tìm kiếm của bạn'
+            : 'Bắt đầu học và thêm từ mới vào bộ sưu tập từ vựng cá nhân của bạn'}
         </Text>
         {searchQuery && (
           <CustomButton
@@ -174,19 +157,19 @@ export default function Vocabulary() {
   const overviewCards = [
     {
       key: 'low',
-      title: 'learning.urgentReview',
+      title: 'Cần ôn gấp',
       count: lowCount,
       icon: AlertCircle,
     },
     {
       key: 'mid',
-      title: 'learning.inProgress',
+      title: 'Đang tiến bộ',
       count: midCount,
       icon: TrendingUp,
     },
     {
       key: 'high',
-      title: 'learning.wellMastered',
+      title: 'Sắp thành thạo',
       count: highCount,
       icon: BookOpen,
     },
@@ -229,11 +212,8 @@ export default function Vocabulary() {
             <View style={styles.statCard}>
               <View style={styles.statContent}>
                 <View>
-                  <Text style={styles.statLabel}>learning.totalWords</Text>
+                  <Text style={styles.statLabel}>Tổng số từ</Text>
                   <Text style={styles.statValue}>{totalWords}</Text>
-                </View>
-                <View style={styles.statIconWrapper}>
-                  <BookOpen size={24} color="#FF6347" />
                 </View>
               </View>
             </View>
@@ -241,18 +221,10 @@ export default function Vocabulary() {
             <View style={styles.statCard}>
               <View style={styles.statContent}>
                 <View>
-                  <Text style={styles.statLabel}>learning.averageMastery</Text>
+                  <Text style={styles.statLabel}>Trung bình thành thạo</Text>
                   <Text style={[styles.statValue, { color: '#34D399' }]}>
                     {averageMastery}%
                   </Text>
-                </View>
-                <View
-                  style={[
-                    styles.statIconWrapper,
-                    { backgroundColor: '#A7F3D0' },
-                  ]}
-                >
-                  <TrendingUp size={24} color="#059669" />
                 </View>
               </View>
             </View>
@@ -260,18 +232,10 @@ export default function Vocabulary() {
             <View style={styles.statCard}>
               <View style={styles.statContent}>
                 <View>
-                  <Text style={styles.statLabel}>learning.needReview</Text>
+                  <Text style={styles.statLabel}>Cần xem lại</Text>
                   <Text style={[styles.statValue, { color: '#F59E0B' }]}>
                     {wordsToReview}
                   </Text>
-                </View>
-                <View
-                  style={[
-                    styles.statIconWrapper,
-                    { backgroundColor: '#FDE68A' },
-                  ]}
-                >
-                  <AlertCircle size={24} color="#D97706" />
                 </View>
               </View>
             </View>
@@ -296,7 +260,7 @@ export default function Vocabulary() {
                     activeTab === 'overview' && styles.tabTextActive,
                   ]}
                 >
-                  learning.overview
+                  Tổng quan
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -312,7 +276,7 @@ export default function Vocabulary() {
                     activeTab === 'mastered' && styles.tabTextActive,
                   ]}
                 >
-                  learning.mastered
+                  Đã thành thạo
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -328,7 +292,7 @@ export default function Vocabulary() {
                     activeTab === 'topics' && styles.tabTextActive,
                   ]}
                 >
-                  learning.byTopic
+                  Chủ đề
                 </Text>
               </TouchableOpacity>
             </View>
@@ -339,7 +303,6 @@ export default function Vocabulary() {
               <View>
                 {selectedTopic ? (
                   <OverviewRangeView
-                    // t={t} // ĐÃ XÓA
                     topicKey={selectedTopic}
                     listPersonalVocab={listPersonalVocab}
                     speakWord={speakWord}
@@ -384,7 +347,6 @@ export default function Vocabulary() {
                 user={user}
                 listPersonalVocab={listPersonalVocab}
                 loading={loading}
-                // t={t} // ĐÃ XÓA
                 speakWord={speakWord}
                 renderLoadingSkeleton={renderLoadingSkeleton}
                 renderEmptyState={renderEmptyState}
@@ -395,7 +357,6 @@ export default function Vocabulary() {
               <TopicsTab
                 loading={loading}
                 user={user}
-                // t={t} // ĐÃ XÓA
                 renderLoadingSkeleton={renderLoadingSkeleton}
                 renderEmptyState={renderEmptyState}
               />
@@ -473,7 +434,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
-    marginBottom: 32,
+    marginBottom: 28,
   },
 
   statCard: {
@@ -493,9 +454,8 @@ const styles = StyleSheet.create({
   },
 
   statLabel: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#4B5563',
-    marginBottom: 4,
   },
 
   statValue: {
@@ -518,7 +478,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#fff',
     borderRadius: 20,
-    padding: 6,
+    padding: 4,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },

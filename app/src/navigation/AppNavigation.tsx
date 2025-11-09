@@ -43,6 +43,7 @@ import ListExercise from '../screens/learning/listening/ListExercise';
 import WritingDetail from '../screens/learning/writing/WritingDetail';
 import ListExerciseWriting from '../screens/learning/writing/ListExerciseWriting';
 import RoadMap from '../screens/learning/roadmap/RoadMap';
+import VocabularyTopicDetail from '../screens/learning/vocabulary/VocabularyTopicDetail';
 
 const Tab = createBottomTabNavigator();
 
@@ -229,6 +230,11 @@ const AppNavigation = () => {
         <Stack.Screen
           name="VocabularyDetail"
           component={VocabularyDetail}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="VocabularyTopicDetail"
+          component={VocabularyTopicDetail}
           options={{ headerShown: false }}
         />
         <Stack.Screen

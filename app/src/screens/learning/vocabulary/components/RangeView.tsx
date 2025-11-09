@@ -3,9 +3,9 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Pressable, // Dùng để thay thế stopPropagation
+  Pressable,
   TextInput,
-  ScrollView, // Dùng cho phần alphabet filter
+  ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useState, useEffect, useMemo } from 'react';
@@ -20,7 +20,6 @@ import {
 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Định nghĩa Interface (giữ nguyên)
 interface VocabItem {
   id: string;
   word: string;
@@ -30,7 +29,6 @@ interface VocabItem {
 }
 
 interface Props {
-  // t: (key: string) => string; // ĐÃ XÓA
   topicKey: string;
   listPersonalVocab: VocabItem[];
   speakWord: (text: string) => void;
@@ -38,7 +36,6 @@ interface Props {
   onSelectWord?: (id: string) => void;
 }
 
-// Component Button tùy chỉnh (để thay thế shadcn/ui)
 const CustomButton = ({ onPress, style, children, disabled = false }: any) => (
   <TouchableOpacity
     onPress={onPress}
@@ -50,7 +47,6 @@ const CustomButton = ({ onPress, style, children, disabled = false }: any) => (
 );
 
 export default function OverviewRangeView({
-  // t, // ĐÃ XÓA
   topicKey,
   listPersonalVocab = [],
   speakWord,
@@ -62,30 +58,27 @@ export default function OverviewRangeView({
     mid: [30, 69],
     high: [70, 99],
   };
-  const navigation = useNavigation<any>(); // Thay thế useRouter
+  const navigation = useNavigation<any>();
   const [min, max] = ranges[topicKey] ?? [0, 100];
 
-  // Đã thay t() bằng string
   const title =
     topicKey === 'low'
-      ? 'learning.urgentReview'
+      ? 'Cần ôn gấp'
       : topicKey === 'mid'
-      ? 'learning.inProgress'
-      : 'learning.wellMastered';
+      ? 'Đang tiến bộ'
+      : 'Sắp thành thạo';
 
   const [vocabs, setVocabs] = useState<VocabItem[]>([]);
-  const [shuffle, setShuffle] = useState(false); // Logic shuffle có thể giữ lại
+  const [shuffle, setShuffle] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const itemsPerPage = 4;
 
-  // Flashcard states
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const currentVocab = vocabs[currentIndex];
 
-  // Filter theo mastery (logic giữ nguyên)
   useEffect(() => {
     if (!listPersonalVocab || !Array.isArray(listPersonalVocab)) {
       setVocabs([]);
@@ -108,7 +101,6 @@ export default function OverviewRangeView({
     setCurrentIndex(0);
   }, [listPersonalVocab, min, max]);
 
-  // Shuffle (logic giữ nguyên)
   useEffect(() => {
     if (shuffle && vocabs.length > 0) {
       setVocabs(prev => [...prev].sort(() => Math.random() - 0.5));
@@ -116,7 +108,6 @@ export default function OverviewRangeView({
     }
   }, [shuffle]);
 
-  // Flashcard controls (logic giữ nguyên)
   const handleNextCard = () => {
     setIsFlipped(false);
     setCurrentIndex(prev => (prev < vocabs.length - 1 ? prev + 1 : prev));
@@ -132,20 +123,18 @@ export default function OverviewRangeView({
     setCurrentIndex(0);
   };
 
-  // Helpers trả về mã màu thay vì class
   const getMasteryColor = (score: number) => {
-    if (score >= 70) return '#16A34A'; // green-600
-    if (score >= 30) return '#D97706'; // yellow-600
-    return '#DC2626'; // red-600
+    if (score >= 70) return '#16A34A';
+    if (score >= 30) return '#D97706';
+    return '#DC2626';
   };
 
   const getMasteryBarColor = (score: number) => {
-    if (score >= 70) return '#10B981'; // green-500
-    if (score >= 30) return '#F59E0B'; // yellow-500
-    return '#EF4444'; // red-500
+    if (score >= 70) return '#10B981';
+    if (score >= 30) return '#F59E0B';
+    return '#EF4444';
   };
 
-  // Alphabet filtering (logic giữ nguyên)
   const alphabet = useMemo(() => {
     const letters = new Set<string>();
     vocabs.forEach(v => {
@@ -191,7 +180,7 @@ export default function OverviewRangeView({
   const handlePracticePress = async () => {
     try {
       await AsyncStorage.setItem('practiceWords', JSON.stringify(getWords));
-      navigation.navigate('VocabularyPracticeAI'); // Tên màn hình giả định
+      navigation.navigate('VocabularyPracticeAI');
     } catch (e) {
       console.error('Failed to save practice words to AsyncStorage', e);
     }
@@ -201,26 +190,28 @@ export default function OverviewRangeView({
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <CustomButton onPress={onBack} style={styles.backButton}>
-            <ArrowLeft size={20} color="#4B5563" />
-            <Text style={styles.backButtonText}>learning.back</Text>
-          </CustomButton>
+        <View>
+          <TouchableOpacity
+            onPress={onBack}
+            style={styles.backButton}
+            activeOpacity={0.8}
+          >
+            <ArrowLeft size={24} color="black" />
+            <Text style={styles.backButtonText}>Quay lại</Text>
+          </TouchableOpacity>
           <Text style={styles.title}>{title}</Text>
         </View>
         <CustomButton
           onPress={handlePracticePress}
           style={styles.practiceButton}
         >
-          <Text style={styles.practiceButtonText}>learning.practice</Text>
+          <Text style={styles.practiceButtonText}>Luyện tập</Text>
         </CustomButton>
       </View>
 
-      {/* ✅ Flashcard Section */}
       <View style={styles.flashcardSection}>
         {currentVocab ? (
           <>
-            {/* Flashcard: ĐÃ BỎ HIỆU ỨNG LẬT, thay bằng HIỂN THỊ CÓ ĐIỀU KIỆN */}
             <Pressable
               onPress={() => setIsFlipped(!isFlipped)}
               style={styles.cardContainer}
@@ -233,9 +224,7 @@ export default function OverviewRangeView({
                     onPress={() => speakWord(currentVocab.word)}
                   >
                     <Volume2 size={16} color="#F97316" />
-                    <Text style={styles.listenButtonText}>
-                      learning.listenSample
-                    </Text>
+                    <Text style={styles.listenButtonText}>Nghe mẫu</Text>
                   </Pressable>
                   <Text style={styles.cardWord}>{currentVocab.word}</Text>
                 </View>
@@ -271,19 +260,18 @@ export default function OverviewRangeView({
             </View>
           </>
         ) : (
-          <Text style={styles.emptyText}>learning.noWordsInRange</Text>
+          <Text style={styles.emptyText}>
+            Không có từ nào trong khoảng này.
+          </Text>
         )}
       </View>
-
-      {/* Divider */}
-      <View style={styles.divider} />
 
       {/* Search */}
       <View style={styles.searchContainer}>
         <View style={styles.searchInputWrapper}>
           <Search size={20} color="#6B7280" style={styles.searchIcon} />
           <TextInput
-            placeholder={'learning.searchVocab'}
+            placeholder={'Tìm kiếm từ vựng...'}
             placeholderTextColor="#6B7280"
             value={searchQuery}
             onChangeText={text => {
@@ -306,7 +294,7 @@ export default function OverviewRangeView({
       {/* Alphabet Filter */}
       {alphabet.length > 0 && (
         <View style={styles.alphabetContainer}>
-          <Text style={styles.alphabetTitle}>learning.filterByLetter</Text>
+          <Text style={styles.alphabetTitle}>Lọc theo chữ cái</Text>
           {/* Dùng ScrollView ngang để chứa các chữ cái */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <TouchableOpacity
@@ -322,7 +310,7 @@ export default function OverviewRangeView({
                   selectedLetter === null && styles.letterButtonTextActive,
                 ]}
               >
-                learning.all
+                Tất cả
               </Text>
             </TouchableOpacity>
             {alphabet.map(letter => (
@@ -353,9 +341,8 @@ export default function OverviewRangeView({
       {/* Pagination Header */}
       <View style={styles.paginationHeader}>
         <Text style={styles.totalText}>
-          learning.total:{' '}
-          <Text style={{ color: '#F97316' }}>{filteredVocabs.length}</Text>{' '}
-          learning.vocabulary
+          Tổng:{' '}
+          <Text style={{ color: '#F97316' }}>{filteredVocabs.length}</Text> từ
         </Text>
         <View style={styles.paginationControls}>
           <CustomButton
@@ -386,40 +373,36 @@ export default function OverviewRangeView({
             style={styles.vocabCard}
             onPress={() => onSelectWord?.(v.id)}
           >
-            <View style={styles.cardContent}>
-              <View style={styles.cardTopRow}>
-                <View style={styles.cardWordContainer}>
-                  <Text style={styles.cardWordText}>{v.word}</Text>
-                  <Text style={styles.cardTranslationText}>
-                    {v.translation}
-                  </Text>
-                </View>
-                <Pressable onPress={() => speakWord(v.word)}>
-                  <Volume2 size={24} color="#F97316" />
-                </Pressable>
+            <View style={styles.cardTopRow}>
+              <View style={styles.cardWordContainer}>
+                <Text style={styles.cardWordText}>{v.word}</Text>
+                <Text style={styles.cardTranslationText}>{v.translation}</Text>
               </View>
-              <View style={styles.cardBottomRow}>
-                <Text style={styles.masteryLabel}>learning.masteryLevel</Text>
-                <Text
-                  style={[
-                    styles.masteryScore,
-                    { color: getMasteryColor(v.mastery_score) },
-                  ]}
-                >
-                  {v.mastery_score}%
-                </Text>
-              </View>
-              <View style={styles.progressBg}>
-                <View
-                  style={[
-                    styles.progressBar,
-                    {
-                      width: `${v.mastery_score}%`,
-                      backgroundColor: getMasteryBarColor(v.mastery_score),
-                    },
-                  ]}
-                />
-              </View>
+              <Pressable onPress={() => speakWord(v.word)}>
+                <Volume2 size={24} color="#F97316" />
+              </Pressable>
+            </View>
+            <View style={styles.cardBottomRow}>
+              <Text style={styles.masteryLabel}>Trình độ thông thạo</Text>
+              <Text
+                style={[
+                  styles.masteryScore,
+                  { color: getMasteryColor(v.mastery_score) },
+                ]}
+              >
+                {v.mastery_score}%
+              </Text>
+            </View>
+            <View style={styles.progressBg}>
+              <View
+                style={[
+                  styles.progressBar,
+                  {
+                    width: `${v.mastery_score}%`,
+                    backgroundColor: getMasteryBarColor(v.mastery_score),
+                  },
+                ]}
+              />
             </View>
           </Pressable>
         ))}
@@ -428,11 +411,10 @@ export default function OverviewRangeView({
   );
 }
 
-// --- StyleSheet ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 16, // px-6
+    paddingHorizontal: 16,
     paddingBottom: 20,
   },
   // Header
@@ -442,14 +424,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  headerLeft: {
-    flex: 1,
-  },
   backButton: {
-    flexDirection: 'row',
+    width: 120,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E5E7EB',
     alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
     marginBottom: 12,
-    padding: 0, // Tương tự variant="ghost"
   },
   backButtonText: {
     fontSize: 16,
@@ -462,10 +445,10 @@ const styles = StyleSheet.create({
     color: '#1F2937',
   },
   practiceButton: {
-    backgroundColor: '#FF6347', // Gradient fallback
+    backgroundColor: '#FF6347',
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 20, // rounded-4xl
+    borderRadius: 20,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -483,7 +466,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     width: '100%',
     maxWidth: 450,
-    height: 256, // h-64
+    height: 256,
     alignSelf: 'center',
     marginBottom: 24,
   },
@@ -510,18 +493,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'transparent',
-    borderColor: '#FDBA74', // border-orange-200
+    borderColor: '#FDBA74',
     borderWidth: 1,
     borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
   },
   listenButtonText: {
     color: '#F97316',
     marginLeft: 8,
   },
   cardWord: {
-    fontSize: 36, // text-4xl
+    fontSize: 36,
     fontWeight: 'bold',
     color: '#1F2937',
     textAlign: 'center',
@@ -540,12 +523,6 @@ const styles = StyleSheet.create({
     color: '#4B5563',
     textAlign: 'center',
     paddingVertical: 48,
-  },
-  // Divider
-  divider: {
-    height: 1,
-    backgroundColor: '#E5E7EB',
-    marginVertical: 32,
   },
   // Search
   searchContainer: {
@@ -566,8 +543,8 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
     borderWidth: 1,
     borderRadius: 8,
-    paddingLeft: 48, // pl-12
-    paddingRight: 40, // pr-10
+    paddingLeft: 48, 
+    paddingRight: 40,
     fontSize: 16,
   },
   clearIcon: {
@@ -594,10 +571,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     backgroundColor: '#F3F4F6',
-    marginRight: 8, // gap-2
+    marginRight: 8, 
   },
   letterButtonActive: {
-    backgroundColor: '#FF6347', // Gradient fallback
+    backgroundColor: '#FF6347', 
   },
   letterButtonText: {
     fontWeight: '600',
@@ -638,7 +615,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   vocabCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: 'white',
     borderRadius: 16,
     padding: 24,
     shadowColor: '#000',
@@ -667,7 +644,7 @@ const styles = StyleSheet.create({
   cardTranslationText: {
     fontSize: 14,
     color: '#4B5563',
-    marginLeft: 2, // Gần giống ml-2
+    marginLeft: 2, 
   },
   cardBottomRow: {
     flexDirection: 'row',
@@ -692,11 +669,9 @@ const styles = StyleSheet.create({
   progressBar: {
     height: '100%',
   },
-  // Base button
   buttonBase: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
   },
   buttonDisabled: {
     opacity: 0.4,

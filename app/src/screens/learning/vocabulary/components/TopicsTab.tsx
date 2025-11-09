@@ -14,7 +14,6 @@ import { getUserTopics } from '../../../../api/learning/vocabulary/route';
 interface Props {
   user: any;
   loading: boolean;
-  // t: (key: string) => string; // ĐÃ XÓA
   renderLoadingSkeleton: () => any;
   renderEmptyState: () => any;
 }
@@ -22,18 +21,16 @@ interface Props {
 export default function TopicsTab({
   loading,
   user,
-  // t, // ĐÃ XÓA
   renderLoadingSkeleton,
   renderEmptyState,
 }: Props) {
-  const navigation = useNavigation<any>(); // Thay thế useRouter
+  const navigation = useNavigation<any>();
   const [searchQuery, setSearchQuery] = useState('');
   const [topics, setTopics] = useState<any[]>([]);
   const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  // const topicsRef = useRef<HTMLDivElement>(null); // ĐÃ XÓA
 
-  const itemsPerPage = 9;
+  const itemsPerPage = 4;
 
   useEffect(() => {
     getTopics();
@@ -51,7 +48,6 @@ export default function TopicsTab({
     }
   };
 
-  // Logic filter (giữ nguyên)
   const getAlphabet = () => {
     const letters = new Set<string>();
     topics.forEach(topic => {
@@ -90,7 +86,6 @@ export default function TopicsTab({
   const handleLetterClick = (letter: string) => {
     setSelectedLetter(selectedLetter === letter ? null : letter);
     setCurrentPage(1);
-    // setTimeout(() => ...); // ĐÃ XÓA
   };
 
   const handleNext = () => {
@@ -103,13 +98,11 @@ export default function TopicsTab({
 
   return (
     <View>
-      {/* Search Bar (Đã bỏ motion.div) */}
       <View style={styles.searchSection}>
         <View style={styles.searchInputWrapper}>
           <Search size={20} color="#6B7280" style={styles.searchIcon} />
-          {/* Thay thế Input bằng TextInput */}
           <TextInput
-            placeholder={'learning.searchTopics'}
+            placeholder={'Tìm kiếm từ vựng...'}
             placeholderTextColor="#6B7280"
             value={searchQuery}
             onChangeText={text => {
@@ -119,7 +112,6 @@ export default function TopicsTab({
             style={styles.searchInput}
           />
           {searchQuery.length > 0 && (
-            // Thay thế button bằng TouchableOpacity
             <TouchableOpacity
               onPress={() => setSearchQuery('')}
               style={styles.clearIcon}
@@ -130,13 +122,11 @@ export default function TopicsTab({
         </View>
       </View>
 
-      {/* Alphabet Filter (Đã bỏ motion.div) */}
+      {/* Alphabet Filter */}
       {!searchQuery && alphabet.length > 0 && (
         <View style={styles.alphabetContainer}>
-          <Text style={styles.alphabetTitle}>learning.filterByLetter</Text>
-          {/* Dùng ScrollView ngang để đảm bảo không vỡ layout */}
+          <Text style={styles.alphabetTitle}>Lọc theo chữ cái</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {/* Clear filter button (Thay thế motion.button) */}
             <TouchableOpacity
               onPress={() => setSelectedLetter(null)}
               style={[
@@ -150,11 +140,10 @@ export default function TopicsTab({
                   selectedLetter === null && styles.letterButtonTextActive,
                 ]}
               >
-                learning.all
+                Tất cả
               </Text>
             </TouchableOpacity>
 
-            {/* Alphabet buttons (Thay thế motion.button) */}
             {alphabet.map(letter => (
               <TouchableOpacity
                 key={letter}
@@ -178,15 +167,12 @@ export default function TopicsTab({
         </View>
       )}
 
-      {/* Topics List (Grid đã chuyển thành List) */}
       {loading ? (
         renderLoadingSkeleton()
       ) : filteredTopics.length > 0 ? (
         <>
-          {/* Đã bỏ AnimatePresence và motion.div */}
           <View style={styles.listContainer}>
             {displayedTopics.map((topic, index) => (
-              // Thay thế motion.div bằng TouchableOpacity
               <TouchableOpacity
                 // Thay thế router.push bằng navigation.navigate
                 onPress={() =>
@@ -195,13 +181,11 @@ export default function TopicsTab({
                 key={topic.id}
                 style={styles.topicCard}
               >
-                {/* Đã bỏ div gradient background (cho hover) */}
                 <View style={styles.cardContent}>
                   <View style={styles.cardTopRow}>
                     <View style={styles.cardTextContainer}>
                       <Text style={styles.cardTitle}>{topic.name_en}</Text>
                     </View>
-                    {/* (Đã bỏ icon chữ cái) */}
                   </View>
                   <Text style={styles.cardDescription}>
                     {topic.name_vi || 'learning.noDescription'}
@@ -209,7 +193,7 @@ export default function TopicsTab({
                   {topic.total_vocab && (
                     <View style={styles.cardFooter}>
                       <Text style={styles.cardFooterText}>
-                        {topic.total_vocab} learning.vocabulary
+                        {topic.total_vocab} từ vựng
                       </Text>
                     </View>
                   )}
@@ -220,7 +204,6 @@ export default function TopicsTab({
 
           {/* Pagination Controls */}
           <View style={styles.paginationContainer}>
-            {/* Thay thế motion.button bằng TouchableOpacity */}
             <TouchableOpacity
               onPress={handlePrev}
               disabled={currentPage === 1}
@@ -230,7 +213,6 @@ export default function TopicsTab({
               ]}
             >
               <ChevronLeft size={16} color="#4B5563" />
-              <Text style={styles.pageButtonText}>learning.prePage</Text>
             </TouchableOpacity>
 
             <Text style={styles.pageText}>
@@ -245,7 +227,6 @@ export default function TopicsTab({
                 currentPage === totalPages && styles.buttonDisabled,
               ]}
             >
-              <Text style={styles.pageButtonText}>learning.nextPage</Text>
               <ChevronRight size={16} color="#4B5563" />
             </TouchableOpacity>
           </View>
@@ -257,7 +238,6 @@ export default function TopicsTab({
   );
 }
 
-// --- StyleSheet ---
 const styles = StyleSheet.create({
   // Search
   searchSection: {
@@ -278,8 +258,8 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
     borderWidth: 1,
     borderRadius: 8,
-    paddingLeft: 48, // pl-12
-    paddingRight: 40, // pr-10
+    paddingLeft: 48,
+    paddingRight: 40,
     fontSize: 16,
     color: '#1F2937',
   },
@@ -307,10 +287,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     backgroundColor: '#F3F4F6',
-    marginRight: 8, // gap-2
+    marginRight: 8,
   },
   letterButtonActive: {
-    backgroundColor: '#FF6347', // Gradient fallback
+    backgroundColor: '#FF6347',
   },
   letterButtonText: {
     fontWeight: '600',
@@ -322,10 +302,10 @@ const styles = StyleSheet.create({
   // Topic List
   listContainer: {
     paddingVertical: 16,
-    gap: 16, // Tương tự gap-6
+    gap: 16,
   },
   topicCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: 'white',
     borderRadius: 16,
     padding: 24,
     shadowColor: '#000',
@@ -351,7 +331,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   cardTitle: {
-    fontSize: 18, // text-lg
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#1F2937',
   },
@@ -374,12 +354,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 32,
+    marginVertical: 20,
     gap: 16,
   },
   pageButton: {
     paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 10,
     backgroundColor: '#F3F4F6',
     borderRadius: 8,
     flexDirection: 'row',

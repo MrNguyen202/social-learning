@@ -3,11 +3,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Pressable, // Dùng để xử lý stopPropagation
+  Pressable,
   TextInput,
-  ScrollView, // Dùng cho phần alphabet filter
+  ScrollView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // Cần import
+import { useNavigation } from '@react-navigation/native';
 import { useState, useMemo } from 'react';
 import {
   ChevronLeft,
@@ -21,13 +21,11 @@ interface Props {
   user: any;
   listPersonalVocab: any[];
   loading: boolean;
-  // t: (key: string) => string; // ĐÃ XÓA
   speakWord: (text: string) => void;
   renderLoadingSkeleton: () => any;
   renderEmptyState: () => any;
 }
 
-// Component Button tùy chỉnh (để thay thế shadcn/ui button)
 const CustomButton = ({ onPress, style, children, disabled = false }: any) => (
   <TouchableOpacity
     onPress={onPress}
@@ -42,12 +40,11 @@ export default function MasteredTab({
   user,
   listPersonalVocab,
   loading,
-  // t, // ĐÃ XÓA
   speakWord,
   renderLoadingSkeleton,
   renderEmptyState,
 }: Props) {
-  const navigation = useNavigation<any>(); // Thay thế cho useRouter/window.open
+  const navigation = useNavigation<any>();
   const masteredList = useMemo(
     () => listPersonalVocab.filter(v => v.mastery_score === 100),
     [listPersonalVocab],
@@ -55,35 +52,26 @@ export default function MasteredTab({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
-  // const vocabRef = useRef<HTMLDivElement>(null); // ĐÃ XÓA (Web-only)
+  const itemsPerPage = 4;
 
   const handleNext = () => {
     if (currentPage < totalPages) {
       setCurrentPage(p => p + 1);
-      // scrollToTop(); // ĐÃ XÓA
     }
   };
 
   const handlePrev = () => {
     if (currentPage > 1) {
       setCurrentPage(p => p - 1);
-      // scrollToTop(); // ĐÃ XÓA
     }
   };
 
-  // const scrollToTop = () => {}; // ĐÃ XÓA
-
-  // Trả về mã màu (thay vì class)
   const getMasteryColor = (score: number) => {
-    if (score >= 70) return '#16A34A'; // green-600
-    if (score >= 30) return '#D97706'; // yellow-600
-    return '#DC2626'; // red-600
+    if (score >= 70) return '#16A34A';
+    if (score >= 30) return '#D97706';
+    return '#DC2626';
   };
 
-  // const getMasteryBgColor = ...; // ĐÃ XÓA (Không cần cho hover-effect)
-
-  // Logic filter (giữ nguyên)
   const getAlphabet = () => {
     const letters = new Set<string>();
     masteredList.forEach(mastered => {
@@ -119,19 +107,16 @@ export default function MasteredTab({
 
   const handleLetterClick = (letter: string) => {
     setSelectedLetter(selectedLetter === letter ? null : letter);
-    setCurrentPage(1); // reset về trang đầu
-    // setTimeout(() => ...); // ĐÃ XÓA
+    setCurrentPage(1);
   };
 
   return (
     <View>
-      {/* Search Bar (Đã bỏ motion.div) */}
       <View style={styles.searchSection}>
         <View style={styles.searchInputWrapper}>
           <Search size={20} color="#6B7280" style={styles.searchIcon} />
-          {/* Thay thế Input bằng TextInput */}
           <TextInput
-            placeholder={'learning.searchVocab'}
+            placeholder={'Tìm kiếm từ vựng...'}
             placeholderTextColor="#6B7280"
             value={searchQuery}
             onChangeText={text => {
@@ -141,7 +126,6 @@ export default function MasteredTab({
             style={styles.searchInput}
           />
           {searchQuery.length > 0 && (
-            // Thay thế button bằng TouchableOpacity
             <TouchableOpacity
               onPress={() => setSearchQuery('')}
               style={styles.clearIcon}
@@ -152,13 +136,10 @@ export default function MasteredTab({
         </View>
       </View>
 
-      {/* Alphabet Filter (Đã bỏ motion.div) */}
       {!searchQuery && alphabet.length > 0 && (
         <View style={styles.alphabetContainer}>
-          <Text style={styles.alphabetTitle}>learning.filterByLetter</Text>
-          {/* Dùng ScrollView ngang cho các chữ cái */}
+          <Text style={styles.alphabetTitle}>Lọc theo chữ cái</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {/* Clear filter button (Thay thế motion.button) */}
             <TouchableOpacity
               onPress={() => setSelectedLetter(null)}
               style={[
@@ -176,7 +157,6 @@ export default function MasteredTab({
               </Text>
             </TouchableOpacity>
 
-            {/* Alphabet buttons (Thay thế motion.button) */}
             {alphabet.map(letter => (
               <TouchableOpacity
                 key={letter}
@@ -200,7 +180,6 @@ export default function MasteredTab({
         </View>
       )}
 
-      {/* Content Area (Đã bỏ div ref) */}
       <View>
         {loading ? (
           renderLoadingSkeleton()
@@ -208,22 +187,19 @@ export default function MasteredTab({
           renderEmptyState()
         ) : (
           <>
-            {/* Header (Đã bỏ motion.div) */}
             <View style={styles.paginationHeader}>
               <Text style={styles.totalText}>
-                learning.mastered:{' '}
+                Đã thành thạo:{' '}
                 <Text style={{ color: '#F97316' }}>{masteredList.length}</Text>{' '}
-                learning.vocabulary
+                từ
               </Text>
               <View style={styles.paginationControls}>
-                {/* Thay thế button bằng CustomButton (TouchableOpacity) */}
                 <CustomButton
                   onPress={handlePrev}
                   disabled={currentPage === 1}
                   style={styles.pageButton}
                 >
                   <ChevronLeft size={16} color="#4B5563" />
-                  <Text style={styles.pageButtonText}>learning.prePage</Text>
                 </CustomButton>
                 <Text style={styles.pageText}>
                   {currentPage} / {totalPages}
@@ -233,30 +209,23 @@ export default function MasteredTab({
                   disabled={currentPage === totalPages}
                   style={styles.pageButton}
                 >
-                  <Text style={styles.pageButtonText}>learning.nextPage</Text>
                   <ChevronRight size={16} color="#4B5563" />
                 </CustomButton>
               </View>
             </View>
 
-            {/* Vocabulary Cards (Đã bỏ AnimatePresence và motion.div) */}
-            {/* Chuyển layout "grid" thành danh sách (1 cột) */}
             <View style={styles.listContainer}>
               {displayedVocab.map((vocab, index) => (
-                // Thay thế motion.div bằng Pressable
                 <Pressable
                   key={vocab.id}
-                  // Thay thế window.open bằng navigation.navigate
                   onPress={() =>
                     navigation.navigate('VocabularyDetail', { id: vocab.id })
                   }
                   style={styles.vocabCard}
                 >
-                  {/* Đã bỏ div gradient background (cho hover) */}
                   <View style={styles.cardContent}>
                     <View style={styles.cardTopRow}>
                       <Text style={styles.cardWordText}>{vocab.word}</Text>
-                      {/* Xử lý stopPropagation bằng cách lồng Pressable */}
                       <Pressable
                         onPress={() => {
                           speakWord(vocab.word);
@@ -267,7 +236,7 @@ export default function MasteredTab({
                     </View>
                     <View style={styles.cardBottomRow}>
                       <Text style={styles.masteryLabel}>
-                        learning.masteryLevel
+                        Trình độ thành thạo
                       </Text>
                       <Text
                         style={[
@@ -289,8 +258,6 @@ export default function MasteredTab({
   );
 }
 
-// --- StyleSheet ---
-// (StyleSheet giống hệt như component trước, đã tuân thủ yêu cầu)
 const styles = StyleSheet.create({
   // Search
   searchSection: {
@@ -311,10 +278,10 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
     borderWidth: 1,
     borderRadius: 8,
-    paddingLeft: 48, // pl-12
-    paddingRight: 40, // pr-10
+    paddingLeft: 48,
+    paddingRight: 40,
     fontSize: 16,
-    color: '#1F2937', // Thêm màu chữ cho TextInput
+    color: '#1F2937',
   },
   clearIcon: {
     position: 'absolute',
@@ -340,10 +307,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     backgroundColor: '#F3F4F6',
-    marginRight: 8, // gap-2
+    marginRight: 8,
   },
   letterButtonActive: {
-    backgroundColor: '#FF6347', // Gradient fallback
+    backgroundColor: '#FF6347',
   },
   letterButtonText: {
     fontWeight: '600',
@@ -363,17 +330,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#374151',
-    flexShrink: 1, // Cho phép text co lại nếu cần
+    flexShrink: 1,
     marginRight: 8,
   },
   paginationControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8, // Giảm gap một chút
+    gap: 8,
   },
   pageButton: {
     paddingVertical: 8,
-    paddingHorizontal: 10, // Giảm padding ngang
+    paddingHorizontal: 10,
     backgroundColor: '#F3F4F6',
     borderRadius: 8,
     flexDirection: 'row',
@@ -382,7 +349,7 @@ const styles = StyleSheet.create({
   pageButtonText: {
     color: '#4B5563',
     marginHorizontal: 4,
-    fontSize: 14, // Giảm cỡ chữ
+    fontSize: 14,
   },
   pageText: {
     fontSize: 16,
@@ -393,9 +360,10 @@ const styles = StyleSheet.create({
   // Vocab List
   listContainer: {
     gap: 16,
+    marginBottom: 32,
   },
   vocabCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: 'white',
     borderRadius: 16,
     padding: 24,
     shadowColor: '#000',
@@ -420,7 +388,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#1F2937',
-    flex: 1, // Đảm bảo text không đẩy icon đi
+    flex: 1,
     marginRight: 8,
   },
   cardBottomRow: {

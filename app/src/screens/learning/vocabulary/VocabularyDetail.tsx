@@ -6,7 +6,6 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -89,17 +88,17 @@ const RelatedWordCard = ({
 export default function VocabularyDetail() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const { vocabId } = route.params; // Lấy vocabId từ params
+  const { id } = route.params;
 
   const [personalVocab, setPersonalVocab] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!vocabId) return;
+      if (!id) return;
       setLoading(true);
       try {
-        const res = await getPersonalVocabById({ personalVocabId: vocabId });
+        const res = await getPersonalVocabById({ personalVocabId: id });
         if (res.success) {
           setPersonalVocab(res.data);
         } else {
@@ -113,11 +112,10 @@ export default function VocabularyDetail() {
       }
     };
     fetchData();
-  }, [vocabId]);
+  }, [id]);
 
   // --- Chức năng phát âm ---
   useEffect(() => {
-    // Khởi tạo Tts engine
     Tts.getInitStatus().then(() => {
       Tts.setDefaultLanguage('en-US');
       Tts.setDefaultRate(0.5);
@@ -182,7 +180,6 @@ export default function VocabularyDetail() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Decorative Background */}
       <Animated.View style={[styles.bgCircle, { top: -50, right: -80 }]} />
       <Animated.View
         style={[
@@ -192,7 +189,6 @@ export default function VocabularyDetail() {
       />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
         <Animated.View style={styles.header}>
           <TouchableOpacity
             style={styles.backButtonGhost}
@@ -319,7 +315,6 @@ export default function VocabularyDetail() {
   );
 }
 
-// --- StyleSheet ---
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FEFBF9' },
   scrollContent: { padding: 16, paddingBottom: 50 },
