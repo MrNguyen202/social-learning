@@ -1,6 +1,6 @@
 "use client"
 
-import { getLevelsByNameVi, getTopicsByNameVi } from "@/app/apiClient/learning/learning"
+import { getLevelsByNameVi, getTopicsByNameVi, getTypeParagraphsByNameVi } from "@/app/apiClient/learning/learning"
 import { listeningService } from "@/app/apiClient/learning/listening/listening"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
@@ -54,17 +54,22 @@ const WeekCard = ({
     // Handle click options inside lesson card
     const handleLessonClickSystemExercise = async (lesson: Lesson) => {
         const resLevels = await getLevelsByNameVi(lesson.level);
-        const resTopics = await getTopicsByNameVi(lesson.topic);
         if (lesson.type === "Listening") {
             // Handle Listening lesson click
+            const resTopics = await getTopicsByNameVi(lesson.topic);
             router.push(`/dashboard/listening/list?level=${resLevels[0].slug}&topic=${resTopics[0].slug}`);
         } else if (lesson.type === "Speaking") {
             // Handle Speaking lesson click
+            const resTopics = await getTopicsByNameVi(lesson.topic);
             localStorage.setItem("levelSlug", JSON.stringify(resLevels[0].slug));
             localStorage.setItem("topicSlug", JSON.stringify(resTopics[0].slug));
             router.push(
                 `/dashboard/speaking/lesson?level=${resLevels[0].id}&topic=${resTopics[0].id}`
             );
+        } else if (lesson.type === "Writing") {
+            // Handle Writing lesson click
+            const resTypeParagraph = await getTypeParagraphsByNameVi(lesson.topic);
+            router.push(`/dashboard/writing/writing-paragraph/${resLevels[0].slug}/paragraph/${resTypeParagraph[0].slug}`);
         }
     }
 

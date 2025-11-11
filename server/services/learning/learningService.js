@@ -360,7 +360,30 @@ const learningService = {
       throw error;
     }
     return data;
-  }
+  },
+
+  // Get type paragraphs by name_vi
+  async getTypeParagraphsByNameVi(name_vi) {
+    const { data, error } = await supabase
+      .from("typeParagraphs")
+      .select(
+        `
+            id,
+            name_vi,
+            description_vi,
+            name_en,
+            description_en,
+            slug,
+            icon: icon_id (name, color)
+        `
+      )
+      .ilike("name_vi", `%${name_vi}%`);
+    if (error) {
+      console.error("Error fetching type paragraphs by name_vi:", error);
+      throw error;
+    }
+    return data;
+  },
 };
 
 module.exports = learningService;

@@ -102,3 +102,14 @@ export const getTopicsByNameVi = async (name_vi: string) => {
     throw error;
   }
 };
+
+// Get type paragraphs by name_vi
+export const getTypeParagraphsByNameVi = async (name_vi: string) => {
+  try {
+    const response = await api.get(`/api/learning/type-paragraphs/name_vi/${name_vi}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching type paragraphs by name_vi:", error);
+    throw error;
+  }
+};

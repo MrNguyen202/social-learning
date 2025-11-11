@@ -35,4 +35,7 @@ router.get('/levels/name_vi/:name_vi', learningController.getLevelsByNameVi);
 // Get topics by name_vi
 router.get('/topics/name_vi/:name_vi', learningController.getTopicsByNameVi);
 
+// Get type paragraphs by name_vi
+router.get('/type-paragraphs/name_vi/:name_vi', learningController.getTypeParagraphsByNameVi);
+
 module.exports = router;

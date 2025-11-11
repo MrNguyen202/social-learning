@@ -131,6 +131,18 @@ const learningController = {
             res.status(500).json({ error: "Internal Server Error" });
         }
     },
+
+    // Get type paragraphs by name_vi
+    getTypeParagraphsByNameVi: async (req, res) => {
+        const { name_vi } = req.params;
+        try {
+            const data = await learningService.getTypeParagraphsByNameVi(name_vi);
+            res.json(data);
+        } catch (error) {
+            console.error("Error fetching type paragraphs by name_vi:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    }
 };
 
 module.exports = learningController;
