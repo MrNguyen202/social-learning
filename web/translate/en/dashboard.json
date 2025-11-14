@@ -45,7 +45,10 @@
   "no": "No, reset streak",
   "startLearning": "Start learning today to create a new streak!",
   "back": "Back",
-  
+  "preparingReview": "Preparing review...",
+  "startingReview": "Starting review!",
+  "reviewLoadError": "Failed to load review. Please try again!",
+
   "yourAchievements": "Your Achievements",
   "practiceScore": "Practice Score",
   "testScore": "Test Score",
@@ -269,10 +272,10 @@
   "writingExercises": "Writing Exercises",
 
   "fillAllFields": "Please fill in all fields.",
-  "failedSaveAchievement":"Failed to save achievement",
-  "noAchievementsFound":"No achievements found",
+  "failedSaveAchievement": "Failed to save achievement",
+  "noAchievementsFound": "No achievements found",
   "createTileAchievement": "Title",
-  "description":"Description",
+  "description": "Description",
   "targetAchievement": "Target",
   "typeAchievement": "Type",
   "save": "Save",

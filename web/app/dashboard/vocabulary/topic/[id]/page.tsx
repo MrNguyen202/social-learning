@@ -10,6 +10,7 @@ import {
   Volume2,
   Search,
   X,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ import { useParams, useRouter } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { getVocabByTopic } from "@/app/apiClient/learning/vocabulary/vocabulary";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface VocabItem {
   id: string;
@@ -48,6 +50,8 @@ export default function VocabsTopicPage() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  // State mới để lưu các từ được chọn
+  const [selectedWords, setSelectedWords] = useState<string[]>([]);
 
   useEffect(() => {
     if (user?.id && isInitialLoad.current) {
@@ -92,7 +96,6 @@ export default function VocabsTopicPage() {
   }, [originalVocabs]);
 
   const filteredVocabs = useMemo(() => {
-    // [FIX] Bắt đầu từ danh sách đã xáo trộn
     let filtered = shuffledVocabs;
     if (searchQuery)
       filtered = filtered.filter((v) =>
@@ -102,7 +105,7 @@ export default function VocabsTopicPage() {
       filtered = filtered.filter(
         (v) => v.word.charAt(0).toUpperCase() === selectedLetter
       );
-    return filtered; // [FIX] Phụ thuộc vào shuffledVocabs
+    return filtered;
   }, [shuffledVocabs, searchQuery, selectedLetter]);
 
   useEffect(() => {
@@ -112,6 +115,7 @@ export default function VocabsTopicPage() {
 
   useEffect(() => {
     setCurrentPage(1);
+    setSelectedWords([]);
   }, [searchQuery, selectedLetter, shuffledVocabs]);
 
   const currentVocab = shuffledVocabs[currentIndex];
@@ -190,7 +194,32 @@ export default function VocabsTopicPage() {
     }
   };
 
-  const getWords = filteredVocabs.map((v) => v.word);
+  // Hàm để xử lý chọn/bỏ chọn 1 từ
+  const handleToggleWord = (wordId: string) => {
+    setSelectedWords((prev) =>
+      prev.includes(wordId)
+        ? prev.filter((id) => id !== wordId)
+        : [...prev, wordId]
+    );
+  };
+
+  // Logic cho nút Luyện tập
+  const wordsToPractice = useMemo(() => {
+    if (selectedWords.length > 0) {
+      // Lấy các từ (word string) từ các ID đã chọn
+      // Phải lọc từ `originalVocabs` gốc để đảm bảo có đủ thông tin
+      return originalVocabs
+        .filter((v) => selectedWords.includes(v.id))
+        .map((v) => v.word);
+    }
+
+    return filteredVocabs.map((v) => v.word);
+  }, [selectedWords, originalVocabs, filteredVocabs]); // Dùng originalVocabs để tra cứu ID
+
+  const practiceButtonText =
+    selectedWords.length > 0
+      ? `${t("learning.practiceSelected")} (${selectedWords.length})`
+      : `${t("learning.practiceAll")} (${filteredVocabs.length})`;
 
   return (
     <motion.div
@@ -215,12 +244,16 @@ export default function VocabsTopicPage() {
 
           <Button
             onClick={() => {
-              sessionStorage.setItem("practiceWords", JSON.stringify(getWords));
+              sessionStorage.setItem(
+                "practiceWords",
+                JSON.stringify(wordsToPractice)
+              );
               router.push("/dashboard/vocabulary/wordPracticesAI");
             }}
+            disabled={filteredVocabs.length === 0}
             className="bg-gradient-to-br from-orange-600 to-pink-600 hover:from-orange-500 hover:to-pink-500 cursor-pointer text-white text-lg font-bold shadow-lg p-6 rounded-4xl"
           >
-            {t("learning.practice")}
+            {practiceButtonText}
           </Button>
         </div>
         {/* Flashcard Section */}
@@ -365,7 +398,8 @@ export default function VocabsTopicPage() {
         <div className="flex items-center justify-between mb-6">
           <p className="text-lg font-semibold text-gray-700">
             {t("learning.total")}:{" "}
-            <span className="text-orange-500">{filteredVocabs.length}</span> {t("learning.vocabulary")}
+            <span className="text-orange-500">{filteredVocabs.length}</span>{" "}
+            {t("learning.vocabulary")}
           </p>
           <div className="flex items-center gap-3">
             <button
@@ -391,6 +425,32 @@ export default function VocabsTopicPage() {
             </button>
           </div>
         </div>
+
+        {/* Thêm Nút Chọn/Bỏ chọn */}
+        <div className="mb-4 flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              // Chọn tất cả các từ trong danh sách đã lọc
+              setSelectedWords(filteredVocabs.map((v) => v.id));
+            }}
+            disabled={filteredVocabs.length === 0}
+          >
+            <Check className="w-4 h-4 mr-2" />
+            {t("learning.selectAll")} ({filteredVocabs.length})
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSelectedWords([])}
+            disabled={selectedWords.length === 0}
+          >
+            <X className="w-4 h-4 mr-2" />
+            {t("learning.clearSelection")} ({selectedWords.length})
+          </Button>
+        </div>
+
         {/* Grid/List */}
         <motion.div
           layout
@@ -401,62 +461,103 @@ export default function VocabsTopicPage() {
           }`}
         >
           <AnimatePresence mode="popLayout">
-            {displayedVocabs.map((v:any, index:number) => (
-              <motion.div
-                key={index}
-                whileHover={{ scale: 1.02, y: -4 }}
-                className="bg-white/80 rounded-2xl p-6 shadow-lg border border-gray-100 cursor-pointer hover:shadow-xl relative overflow-hidden group"
-                onClick={() =>
-                  window.open(`/dashboard/vocabulary/${v.id}`, "_blank")
-                }
-              >
-                <div
-                  className={`absolute inset-0 bg-gradient-to-br ${getMasteryBgColor(
-                    v.mastery_score
-                  )} opacity-0 group-hover:opacity-100 transition-opacity`}
-                />
-                <div className="relative z-10">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-2xl font-bold text-gray-800 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-orange-600 group-hover:to-pink-600 group-hover:bg-clip-text transition-all">
-                      {v.word}
-                      <span className="text-sm text-gray-600 ml-2">
-                        {v.translation}
-                      </span>
-                    </h3>
-                    <Volume2
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        speakWord(v.word);
-                      }}
-                      className="w-6 h-6 transition-opacity text-orange-300 hover:text-orange-500 cursor-pointer"
+            {displayedVocabs.map((v: any) => {
+              const isSelected = selectedWords.includes(v.id);
+              return (
+                <motion.div
+                  key={v.id}
+                  whileHover={{ scale: 1.02, y: -4 }}
+                  className={`bg-white/80 rounded-2xl p-6 shadow-lg border relative overflow-hidden group cursor-pointer hover:shadow-xl
+          ${
+            isSelected
+              ? "ring-2 ring-pink-400 border-orange-500"
+              : "border-gray-200"
+          }
+        `}
+                  onClick={() =>
+                    window.open(`/dashboard/vocabulary/${v.id}`, "_blank")
+                  }
+                >
+                  {/* Checkbox luôn nằm trên cùng */}
+                  <div
+                    className="absolute top-5 right-2 z-30 h-8 w-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm border border-gray-300 hover:border-orange-400 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleWord(v.id);
+                    }}
+                  >
+                    <Checkbox
+                      checked={isSelected}
+                      className={`w-5 h-5 rounded-[4px] border-2 transition-colors cursor-pointer
+              ${
+                isSelected
+                  ? "bg-orange-500 border-orange-500 text-white"
+                  : "bg-white border-gray-400 hover:border-orange-400"
+              }
+            `}
                     />
                   </div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-600">{t("learning.masteryLevel")}</span>
-                    <span
-                      className={`text-sm font-bold ${getMasteryColor(
+
+                  {/* Background hover hiệu ứng */}
+                  <div className="absolute inset-0 z-0">
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-br ${getMasteryBgColor(
                         v.mastery_score
-                      )}`}
-                    >
-                      {v.mastery_score}%
-                    </span>
-                  </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${v.mastery_score}%` }}
-                      className={`h-full bg-gradient-to-r ${
-                        v.mastery_score >= 70
-                          ? "from-green-500 to-emerald-500"
-                          : v.mastery_score >= 30
-                          ? "from-yellow-500 to-orange-500"
-                          : "from-red-500 to-pink-500"
-                      }`}
+                      )} opacity-0 group-hover:opacity-100 transition-opacity`}
                     />
                   </div>
-                </div>
-              </motion.div>
-            ))}
+
+                  {/* Nội dung chính */}
+                  <div className="relative z-10">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="text-2xl font-bold text-gray-800 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-orange-600 group-hover:to-pink-600 group-hover:bg-clip-text transition-all">
+                        {v.word}
+                        <span className="text-sm text-gray-600 ml-2">
+                          {v.translation}
+                        </span>
+                      </h3>
+
+                      {/* Volume Icon - luôn nằm dưới checkbox */}
+                      <div className="relative z-20 pr-6">
+                        <Volume2
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            speakWord(v.word);
+                          }}
+                          className="w-6 h-6 text-orange-300 hover:text-orange-500 cursor-pointer transition-colors"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-gray-600">
+                        {t("learning.masteryLevel")}
+                      </span>
+                      <span
+                        className={`text-sm font-bold ${getMasteryColor(
+                          v.mastery_score
+                        )}`}
+                      >
+                        {v.mastery_score}%
+                      </span>
+                    </div>
+                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${v.mastery_score}%` }}
+                        className={`h-full bg-gradient-to-r ${
+                          v.mastery_score >= 70
+                            ? "from-green-500 to-emerald-500"
+                            : v.mastery_score >= 30
+                            ? "from-yellow-500 to-orange-500"
+                            : "from-red-500 to-pink-500"
+                        }`}
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
         </motion.div>
       </div>

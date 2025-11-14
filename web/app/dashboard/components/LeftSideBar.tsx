@@ -386,7 +386,7 @@ export function LeftSidebar() {
                 })}
               </nav>
 
-              <Separator className="my-4 mx-3 opacity-50" />
+              <Separator className="my-4 opacity-50" />
 
               {/* Learning Navigation */}
               {user && user.role !== "admin" && (

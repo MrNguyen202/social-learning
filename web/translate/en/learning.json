@@ -79,6 +79,9 @@
   "selectListeningMode": "Select Listening Mode",
   "personalListening": "Personal Listening Practice",
   "sentenceListening": "Sentence Listening Practice",
+  "graduatedTitle": "Congratulations on mastering this vocabulary!",
+  "graduatedDesc": "You have fully mastered this vocabulary. It will be moved to the review list!",
+
 
   "score": "Score",
   "accuracy": "Accuracy",
@@ -152,6 +155,7 @@
   "times": "times",
   "ipaTable": "IPA Table",
   "relatedWords": "Related Words",
+  "relatedWordsNote": "Note: For effective practice, please also review the related words below.",
 
   "myVocabulary": "My Vocabulary",
   "myVocabularyDescription": "Master your personal vocabulary collection and track your learning progress",
@@ -179,6 +183,10 @@
   "byTopic": "By Topic",
   "prePage": "Previous",
   "nextPage": "Next",
+  "practiceAll": "Practice All",
+  "practiceSelected": "Practice Selected",
+  "selectAll": "Select All",
+  "clearSelection": "Clear Selection",
 
   "creatingExercise": "Creating exercise...",
   "submittingExercise": "Submitting exercise...",

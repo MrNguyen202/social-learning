@@ -64,6 +64,28 @@ const notificationService = {
     if (error) throw error;
     return { data, error };
   },
+
+  async checkForDueReviews(userId) {
+    const { error } = await supabase.rpc("check_for_review_notifications", {
+      p_user_id: userId,
+    });
+
+    if (error) throw error;
+
+    return { data: null, error: null };
+  },
+
+  async deleteNotificationLearning(notificationId, personalVocabId) {
+    const { data, error } = await supabase
+      .from("notificationsLearning")
+      .delete()
+      .eq("id", notificationId)
+      .eq("personalVocabId", personalVocabId);
+
+    if (error) throw error;
+
+    return { data, error };
+  },
 };
 
 module.exports = notificationService;

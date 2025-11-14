@@ -157,6 +157,64 @@ const notificationController = {
       });
     }
   },
+
+  async checkForDueReviews(req, res) {
+    try {
+      const { userId } = req.params;
+      if (!userId) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing userId",
+        });
+      }
+      const { data, error } = await notificationService.checkForDueReviews(
+        userId
+      );
+      if (error) {
+        return res.status(400).json({ success: false, message: error.message });
+      }
+      return res.status(200).json({
+        success: true,
+        data,
+        message: "Checked for due reviews successfully",
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Server error: " + error.message,
+      });
+    }
+  },
+
+  async deleteNotificationLearning(req, res) {
+    try {
+      const { notificationId, personalVocabId } = req.params;
+      if (!notificationId || !personalVocabId) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing notificationId or personalVocabId",
+        });
+      }
+      const { data, error } =
+        await notificationService.deleteNotificationLearning(
+          notificationId,
+          personalVocabId
+        );
+      if (error) {
+        return res.status(400).json({ success: false, message: error.message });
+      }
+      return res.status(200).json({
+        success: true,
+        data,
+        message: "NotificationLearning deleted successfully",
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Server error: " + error.message,
+      });
+    }
+  },
 };
 
 module.exports = notificationController;

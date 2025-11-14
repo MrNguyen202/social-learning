@@ -21,6 +21,7 @@ import { PostModal } from "./PostModal";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { getVocabDetailsForReviewRPC } from "@/app/apiClient/learning/vocabulary/vocabulary";
 
 interface NotificationsPanelProps {
   isOpen: boolean;
@@ -131,26 +132,95 @@ export function NotificationsPanel({
     }
   };
 
+  // const handleOpenVocabFromNotif = async (notif: any) => {
+  //   try {
+  //     if (!notif) return;
+  //     if (!notif.personalVocabId) {
+  //       markAsReadLearning(notif.id);
+  //       toast.success(t("learning.congratulations"), { autoClose: 1000 });
+  //       return;
+  //     }
+
+  //     route.push(
+  //       `/dashboard/vocabulary?personalVocabId=${notif.personalVocabId}`
+  //     );
+
+  //     markAsReadLearning(notif.id);
+  //   } catch (err) {
+  //     console.error("Failed to open vocab from notificationLearning", err);
+  //   }
+  // };
+
+  // Render Social Notifications
+
   const handleOpenVocabFromNotif = async (notif: any) => {
     try {
       if (!notif) return;
+
+      // Đánh dấu đã đọc ngay lập tức
+      markAsReadLearning(notif.id);
+
+      // Đóng panel thông báo (vì user đã click)
+      onClose();
+
+      // 1: Thông báo chung (không có ID từ vựng)
+      // Chúc mừng lên cấp, đạt thành tích...
       if (!notif.personalVocabId) {
-        markAsReadLearning(notif.id);
-        toast.success(t("learning.congratulations"), { autoClose: 1000 });
+        toast.success(notif.title || t("learning.congratulations"), {
+          autoClose: 1500,
+        });
         return;
       }
 
-      route.push(
-        `/dashboard/vocabulary?personalVocabId=${notif.personalVocabId}`
-      );
+      //  2: Thông báo ÔN TẬP (có ID và đúng tiêu đề)
+      if (notif.title === "🔔 Đến giờ ôn tập!") {
+        const toastId = toast.loading(t("dashboard.preparingReview"));
 
-      markAsReadLearning(notif.id);
+        // Lấy data (từ và các từ liên quan)
+        const res = await getVocabDetailsForReviewRPC({
+          personalVocabId: notif.personalVocabId,
+        });
+
+        if (res.data) {
+          const wordsArray = Array.isArray(res.data.word)
+            ? res.data.word
+            : [res.data.word];
+          // Đặt tín hiệu cho trang Luyện tập
+          sessionStorage.setItem("practiceWords", JSON.stringify(wordsArray));
+
+          sessionStorage.setItem(
+            "reviewGraduationId", // Tín hiệu "Tái tốt nghiệp"
+            JSON.stringify(notif.personalVocabId)
+          );
+          sessionStorage.setItem("notifiId", JSON.stringify(notif.id));
+          console.log("notifiId lưu trong sessionStorage:", sessionStorage.getItem("notifiId"));
+          console.log("reviewGraduationId lưu trong sessionStorage:", sessionStorage.getItem("reviewGraduationId"));
+
+          // Chuyển đến trang Luyện tập
+          route.push("/dashboard/vocabulary/wordPracticesAI");
+
+          toast.update(toastId, {
+            render: t("dashboard.startingReview"),
+            type: "success",
+            isLoading: false,
+            autoClose: 1500,
+          });
+        } else {
+          throw new Error("Không tìm thấy dữ liệu từ vựng để ôn tập.");
+        }
+
+        // 3: Thông báo TỪ MỚI (hoặc bất kỳ thông báo nào khác có ID)
+      } else {
+        // Chuyển đến trang Chi tiết từ vựng
+        route.push(`/dashboard/vocabulary/${notif.personalVocabId}`);
+      }
     } catch (err) {
       console.error("Failed to open vocab from notificationLearning", err);
+      toast.dismiss(); // Tắt toast loading (nếu có)
+      toast.error(t("dashboard.reviewLoadError"));
     }
   };
 
-  // Render Social Notifications
   const renderSocialNotifications = () => {
     if (loading) {
       return (

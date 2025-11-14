@@ -56,4 +56,19 @@ router.get("/vocab_topic/:userId/:topicId", vocabularyController.getVocabByTopic
 // Route to update mastery score via RPC
 router.post("/update_mastery_score_rpc", vocabularyController.updateMasteryScoreRPC);
 
+// Route to archive mastered word via RPC
+router.post("/archive_mastered_word_rpc", vocabularyController.archiveMasteredWordRPC);
+
+// Route to reset review word via RPC
+router.post("/reset_review_word_rpc", vocabularyController.resetReviewWordRPC);
+
+// Route to delete personal vocab via RPC
+router.delete("/delete_personal_vocab_rpc", vocabularyController.deletePersonalVocabRPC);
+
+// Route to delete user vocab errors via RPC
+router.delete("/delete_user_vocab_errors_rpc", vocabularyController.deleteUserVocabErrorsRPC);
+
+// Route to get vocab details for review via RPC
+router.get("/vocab_details_for_review/:personalVocabId", vocabularyController.getVocabDetailsForReviewRPC);
+
 module.exports = router;

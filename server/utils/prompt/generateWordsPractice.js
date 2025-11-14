@@ -12,7 +12,7 @@ Yêu cầu:
     - "speaking": Nói lại câu hoặc từ (kèm ví dụ).
     - "fill_in_blank": Chọn từ đúng để điền vào chỗ trống trong câu.
     - "word_build": Ghép các ký tự (từ ngân hàng chữ cái) thành từ đúng.
-2. Tổng cộng khoảng 18–30 câu hỏi, được chia đều hoặc gần đều cho 6 loại trên (mỗi loại khoảng 3–5 câu).
+2. Tổng cộng khoảng 10 câu hỏi, được chia đều hoặc gần đều cho 6 loại trên (mỗi loại khoảng 1–2 câu).
 3. Mỗi phần tử phải có:
     - "id": số thứ tự (số nguyên, bắt đầu từ 1 và tăng dần).
     - "type": loại bài ("multiple_choice" | "sentence_order" | "synonym_match" | "speaking" | "fill_in_blank" | "word_build")
@@ -104,13 +104,13 @@ Yêu cầu:
 8. Mỗi câu hỏi phải liên quan trực tiếp đến ít nhất một từ trong danh sách từ vựng ở trên.
 9. Không sử dụng ký tự đặc biệt trong câu hỏi hoặc câu trả lời (ngoại trừ '___' cho 'fill_in_blank').
 10. Không được lặp lại cùng một từ hoặc cấu trúc câu hỏi quá 2 lần.
-11. Ở loại "synonym_match", hãy tạo 5 cặp từ và không được trùng nhau.
+11. Ở loại "synonym_match", hãy tạo 5 cặp từ và không được trùng nhau về từ và các cặp từ phải là Việt-Anh không được Việt-Việt hoặc Anh-Anh.
 12. Ở loại "fill_in_blank", "sentence_template" phải có một chỗ trống biểu thị bằng \`___\`. "options" gồm 3-4 từ, trong đó "correct_answer" là một từ trong danh sách từ vựng.
-13. Ở loại "sentence_order", các câu trong "answer_en" và "answer_vi" **không được chứa dấu câu ở cuối** (như ., !, ?) và phải bao gồm tất cả các từ có trong answer_en", *kể cả các từ lặp lại* (ví dụ: he put the paper in the box) có 2 chữ 'the'.
+13. Ở loại "sentence_order", các câu trong "answer_en" và "answer_vi" **không được chứa dấu câu ở cuối** (như ., !, ?) và lưu ý: phải bao gồm tất cả các từ có trong answer_en", *kể cả các từ lặp lại* (ví dụ: he put the paper in the box) có 2 chữ 'the'.
 14. Ở loại "multiple_choice", hãy cố gắng tạo cả câu hỏi Anh-Việt (ví dụ: 'develop' nghĩa là gì?) và Việt-Anh (ví dụ: 'Phát triển' là gì?).
 15. Ở loại "word_build":
-    - "letters" là mảng ký tự a–z, khoảng 8–12 ký tự.
-    - Phải bao gồm *tất cả* các ký tự trong "answer", *kể cả các ký tự lặp lại* (ví dụ: 'always' phải cung cấp 2 chữ 'a', 'develop' phải cung cấp 2 chữ 'e'), và thêm 3–5 ký tự nhiễu.
+    - "letters" là mảng ký tự a–z, khoảng 5-20 ký tự tùy vào độ dài từ "answer".
+    - Lưu ý: Phải bao gồm *tất cả* các ký tự trong "answer", *kể cả các ký tự lặp lại* (ví dụ: 'always' phải cung cấp 2 chữ 'a', 'develop' phải cung cấp 2 chữ 'e'), và thêm 3–5 ký tự nhiễu.
     - Thứ tự các ký tự được xáo trộn ngẫu nhiên.
     - "hint" là nghĩa tiếng Việt của từ "answer" để gợi ý.
 16. Mỗi từ trong danh sách chỉ được xuất hiện tối đa một lần trong loại "word_build".
@@ -118,4 +118,12 @@ Yêu cầu:
     - Nếu câu có số là thời gian ( ví dụ: 7 am, 12 pm, 7:00 am, 12:00 pm ...), hãy chuyển thành dạng 7:00, 12:00 ...
     - Không sử dụng [email], [your name], [your country], [your favorite place] hoặc các cụm từ tương tự mà hãy hãy tạo tên bất kì.
     - Nếu câu có email thì hãy chuyển thành e-mail.
+-------------------------------------------------------------------------
+Trước khi tạo kết quả cuối cùng, hãy:
+1. Tự kiểm tra từng mục theo toàn bộ 17 điều kiện.
+2. Đặc biệt kiểm tra: từ lặp, ký tự lặp, không trùng từ, không thiếu từ trong sentence_order, word_build.
+3. Nếu phát hiện lỗi → sửa trước khi xuất JSON.
+4. Chỉ xuất JSON sau khi kiểm tra hoàn tất.
+Nếu kết quả không tuân thủ tất cả các quy tắc,
+hãy tự động tạo lại.
 `;

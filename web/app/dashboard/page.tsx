@@ -15,6 +15,7 @@ import useAuth from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 import { Dashboard } from "./admin/components/Dashboard";
 import { useLanguage } from "@/components/contexts/LanguageContext";
+import { checkForDueReviews } from "../apiClient/notification/notification";
 
 // ===================================================================
 // COMPONENT DASHBOARD CỦA ADMIN
@@ -53,8 +54,10 @@ function UserDashboard() {
 
 function StreakStatusCard() {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [streak, setStreak] = useState<any>(null);
+  // Biến này để đảm bảo chỉ chạy 1 LẦN DUY NHẤT
+  let hasCheckedForReviews = false;
 
   const fetchStreak = useCallback(async () => {
     if (!user) return;
@@ -79,6 +82,14 @@ function StreakStatusCard() {
   useEffect(() => {
     fetchStreak();
   }, [fetchStreak]);
+
+  useEffect(() => {
+    // Nếu user đã đăng nhập VÀ chúng ta chưa check lần nào
+    if (user && !hasCheckedForReviews) {
+      hasCheckedForReviews = true; // Đánh dấu là đã check
+      checkForDueReviews(user.id); // Gọi hàm RPC
+    }
+  }, [user]);
 
   const handleRestore = async () => {
     if (!user) return;
@@ -113,7 +124,9 @@ function StreakStatusCard() {
       className="w-full max-w-[300px] sm:max-w-xl md:max-w-2xl mx-auto p-4 mb-4 rounded-xl shadow-md bg-white/80 backdrop-blur-md border border-orange-200"
     >
       {streak.status === "active" && (
-        <p className="text-green-600 font-medium">{streak.message}</p>
+        <p className="text-green-600 font-medium">
+          {streak[`message_${language}`]}
+        </p>
       )}
 
       {streak.status === "not_learned_today" && (
@@ -127,7 +140,7 @@ function StreakStatusCard() {
 
       {streak.status === "can_restore" && (
         <div className="text-yellow-600">
-          <p>{streak.message}</p>
+          <p>{streak[`message_${language}`]}</p>
           <div className="flex gap-3 mt-3">
             <Button
               onClick={handleRestore}

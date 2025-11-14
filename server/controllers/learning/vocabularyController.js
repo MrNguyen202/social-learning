@@ -267,6 +267,113 @@ const vocabularyController = {
       return res.status(500).json({ error: "Internal Server Error" });
     }
   },
+
+  async archiveMasteredWordRPC(req, res) {
+    const { personalVocabId } = req.body;
+
+    if (!personalVocabId) {
+      return res.status(400).json({ error: "Missing or invalid parameters" });
+    }
+    try {
+      const { data, error } = await vocabularyService.archiveMasteredWordRPC(
+        personalVocabId
+      );
+      if (error) {
+        return res
+
+          .status(500)
+          .json({ error: "Error archiving mastered word via RPC" });
+      }
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Error in archiveMasteredWordRPC:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
+  async resetReviewWordRPC(req, res) {
+    const { personalVocabId } = req.body;
+    if (!personalVocabId) {
+      return res.status(400).json({ error: "Missing or invalid parameters" });
+    }
+    try {
+      const { data, error } = await vocabularyService.resetReviewWordRPC(
+        personalVocabId
+      );
+      if (error) {
+        return res
+          .status(500)
+          .json({ error: "Error resetting review word via RPC" });
+      }
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Error in resetReviewWordRPC:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
+  async deletePersonalVocabRPC(req, res) {
+    const { personalVocabId } = req.body;
+    if (!personalVocabId) {
+      return res.status(400).json({ error: "Missing or invalid parameters" });
+    }
+    try {
+      const { data, error } = await vocabularyService.deletePersonalVocabRPC(
+        personalVocabId
+      );
+      if (error) {
+        return res
+          .status(500)
+          .json({ error: "Error deleting personal vocab via RPC" });
+      }
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Error in deletePersonalVocabRPC:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
+  async deleteUserVocabErrorsRPC(req, res) {
+    const { userId, word } = req.body;
+    if (!userId || !word) {
+      return res.status(400).json({ error: "Missing or invalid parameters" });
+    }
+    try {
+      const { data, error } = await vocabularyService.deleteUserVocabErrorsRPC(
+        userId,
+        word
+      );
+      if (error) {
+        return res
+          .status(500)
+          .json({ error: "Error deleting user vocab errors via RPC" });
+      }
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Error in deleteUserVocabErrorsRPC:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
+  async getVocabDetailsForReviewRPC(req, res) {
+    const { personalVocabId } = req.params;
+    if (!personalVocabId) {
+      return res.status(400).json({ error: "Missing or invalid parameters" });
+    }
+    try {
+      const { data, error } =
+        await vocabularyService.getVocabDetailsForReviewRPC(personalVocabId);
+      if (error) {
+        return res
+          .status(500)
+          .json({ error: "Error fetching vocab details for review via RPC" });
+      }
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Error in getVocabDetailsForReviewRPC:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
 };
 
 module.exports = vocabularyController;

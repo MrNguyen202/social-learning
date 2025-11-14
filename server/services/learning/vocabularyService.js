@@ -63,7 +63,7 @@ const vocabularyService = {
     return { data, error };
   },
 
-  // Lấy danh sách từ vựng cá nhân của người dùng dựa trên userId và created_related_words = true và related_words đã được tạo ( đã generate related_words )
+  // Lấy danh sách từ vựng cá nhân của người dùng dựa trên userId và created_related_words = true và related_words đã được tạo ( đã generate related_words ) và chưa bị ẩn
   async getListPersonalVocabByUserIdAndCreated(userId) {
     const { data, error } = await supabase
       .from("personalVocab")
@@ -78,6 +78,7 @@ const vocabularyService = {
       )
       .eq("userId", userId)
       .eq("created_related_words", true)
+      .eq("is_archived", false)
       .gte("error_count", 5);
 
     if (error) throw error;
@@ -180,6 +181,62 @@ const vocabularyService = {
       user_id: userId,
       word_input: word,
     });
+
+    if (error) throw error;
+
+    return { data, error };
+  },
+
+  // ẩn từ vựng cá nhân bằng rpc
+  async archiveMasteredWordRPC(personalVocabId) {
+    const { data, error } = await supabase.rpc("archive_mastered_word", {
+      p_personal_vocab_id: personalVocabId,
+    });
+    if (error) throw error;
+
+    return { data, error };
+  },
+
+  // khi nhắc nhở luyện tập và thất bại (reset về 70%)
+  async resetReviewWordRPC(personalVocabId) {
+    const { data, error } = await supabase.rpc("reset_review_word", {
+      p_personal_vocab_id: personalVocabId,
+    });
+    if (error) throw error;
+
+    return { data: null, error: null };
+  },
+
+  // khi nhắc nhở luyện tập và thành công (xóa ở personalVocab)
+  async deletePersonalVocabRPC(personalVocabId) {
+    const { data, error } = await supabase.rpc("delete_personal_vocab", {
+      p_personal_vocab_id: personalVocabId,
+    });
+
+    if (error) throw error;
+
+    return { data: null, error: null };
+  },
+
+  // khi nhắc nhở luyện tập và thành công (xóa ở userVocabErrors)
+  async deleteUserVocabErrorsRPC(userId, word) {
+    const { data, error } = await supabase.rpc("delete_user_vocab_errors", {
+      user_id: userId,
+      word_error: word,
+    });
+
+    if (error) throw error;
+
+    return { data: null, error: null };
+  },
+
+  // // lấy dữ liệu cho bài tập khi bấm thông báo
+  async getVocabDetailsForReviewRPC(personalVocabId) {
+    const { data, error } = await supabase
+      .from("personalVocab")
+      .select("word") // Chỉ lấy những gì cần cho bài tập
+      .eq("id", personalVocabId)
+      .single();
 
     if (error) throw error;
 

@@ -169,7 +169,7 @@ export default function VocabularyPage() {
 
   return (
     <>
-      <div className="flex-1 px-6 py-6 pb-20 sm:ml-10">
+      <div className="mx-auto w-full max-w-md pt-4 pb-8 sm:max-w-2xl lg:max-w-3xl xl:max-w-6xl pr-5 sm:pl-10">
         {/* Background */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <motion.div
@@ -285,6 +285,7 @@ export default function VocabularyPage() {
           </motion.div>
 
           {/* Tabs */}
+
           <Tabs
             defaultValue="overview"
             className="relative z-10"
@@ -293,22 +294,22 @@ export default function VocabularyPage() {
               if (v !== "topics") setSelectedTopic(null);
             }}
           >
-            <TabsList className="bg-white/80 backdrop-blur-sm rounded-4xl p-6 border border-gray-200 mb-4">
+            <TabsList className="bg-white/80 backdrop-blur-sm rounded-4xl p-6 border border-gray-200 mb-4 max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto flex justify-center gap-4 shadow-md">
               <TabsTrigger
                 value="overview"
-                className="cursor-pointer text-lg p-4 rounded-2xl"
+                className="cursor-pointer text-sm sm:text-lg p-4 rounded-2xl"
               >
                 {t("learning.overview")}
               </TabsTrigger>
               <TabsTrigger
                 value="mastered"
-                className="cursor-pointer text-lg p-4 rounded-2xl"
+                className="cursor-pointer text-sm sm:text-lg p-4 rounded-2xl"
               >
                 {t("learning.mastered")}
               </TabsTrigger>
               <TabsTrigger
                 value="topics"
-                className="cursor-pointer text-lg p-4 rounded-2xl"
+                className="cursor-pointer text-sm sm:text-lg p-4 rounded-2xl"
               >
                 {t("learning.byTopic")}
               </TabsTrigger>

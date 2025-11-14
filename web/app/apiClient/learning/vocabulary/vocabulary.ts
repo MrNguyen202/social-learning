@@ -82,3 +82,38 @@ export const updateMasteryScoreRPC = async ({ userId, word }: { userId: string; 
   });
   return response.data;
 }
+
+export const archiveMasteredWordRPC = async ({ personalVocabId }: { personalVocabId: string}) => {
+  const response = await api.post(`/api/learning/vocabulary/archive_mastered_word_rpc`, {
+    personalVocabId,
+  });
+  return response.data;
+}
+
+export const resetReviewWordRPC = async ({ personalVocabId }: { personalVocabId: string }) => {
+  const response = await api.post(`/api/learning/vocabulary/reset_review_word_rpc`, {
+    personalVocabId,
+  }
+  );
+  return response.data;
+}
+
+export const deletePersonalVocabRPC = async ({ personalVocabId }: { personalVocabId: string}) => {
+  const response = await api.delete(`/api/learning/vocabulary/delete_personal_vocab_rpc`, {
+    data: { personalVocabId }
+  }
+  );
+  return response.data;
+}
+
+export const deleteUserVocabErrorsRPC = async ({ userId, word }: { userId: string; word: string }) => {
+  const response = await api.delete(`/api/learning/vocabulary/delete_user_vocab_errors_rpc`, {
+    data: { userId , word }
+  });
+  return response.data;
+}
+
+export const getVocabDetailsForReviewRPC = async ({ personalVocabId }: { personalVocabId: string }) => {
+  const response = await api.get(`/api/learning/vocabulary/vocab_details_for_review/${personalVocabId}`);
+  return response.data;
+}

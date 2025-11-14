@@ -45,6 +45,9 @@
   "no": "Không, reset chuỗi",
   "startLearning": "Bắt đầu học hôm nay để tạo chuỗi học mới!",
   "back": "Quay lại",
+  "preparingReview": "Đang chuẩn bị bài ôn tập...",
+  "startingReview": "Bắt đầu ôn tập!",
+  "reviewLoadError": "Không thể tải bài ôn tập. Vui lòng thử lại!",
 
   "yourAchievements": "Thành tích của bạn",
   "practiceScore": "Điểm luyện tập",
@@ -270,14 +273,14 @@
   "writingExercises": "Bài tập viết",
 
   "fillAllFields": "Vui lòng điền đầy đủ thông tin.",
-  "failedSaveAchievement":"Lỗi khi lưu thành tích",
-  "noAchievementsFound":"Không tìm thấy thành tích",
-  "createTileAchievement":"Tiêu đề",
+  "failedSaveAchievement": "Lỗi khi lưu thành tích",
+  "noAchievementsFound": "Không tìm thấy thành tích",
+  "createTileAchievement": "Tiêu đề",
   "description": "Mô tả",
   "targetAchievement": "Điểm mục tiêu",
   "typeAchievement": "Loại mục tiêu",
   "save": "Lưu",
-  "createNew":"Tạo mới",
+  "createNew": "Tạo mới",
   "deleting": "Đang xóa...",
   "creating": "Đang tạo...",
   "noComment": "Không có bình luận nào"

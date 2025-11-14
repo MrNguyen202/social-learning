@@ -12,4 +12,8 @@ router.put("/learning/:notificationLearningId/read", notificationController.mark
 
 router.get("/learning/:userId", notificationController.fetchNotificationsLearning);
 
+router.post("/learning/check-due-reviews/:userId", notificationController.checkForDueReviews);
+
+router.delete("/learning/:notificationId/:personalVocabId", notificationController.deleteNotificationLearning);
+
 module.exports = router;

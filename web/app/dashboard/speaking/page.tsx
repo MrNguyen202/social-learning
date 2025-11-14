@@ -121,7 +121,7 @@ export default function SpeakingPage() {
 
   return (
     <>
-      <div className="flex-1 px-6 py-6 pb-36 sm:ml-10">
+      <div className="mx-auto w-full max-w-md pt-4 sm:max-w-2xl lg:max-w-3xl xl:max-w-6xl pr-5 sm:pl-10">
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <motion.div
             className="absolute -top-20 -right-20 w-96 h-96 bg-gradient-to-br from-orange-300/30 to-pink-300/30 rounded-full blur-3xl"

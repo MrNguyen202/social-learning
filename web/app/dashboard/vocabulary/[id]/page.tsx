@@ -224,7 +224,9 @@ export default function VocabularyDetailPage() {
                       <span className="bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-3xl font-bold text-transparent">
                         {personalVocab.error_count}
                       </span>
-                      <span className="text-xs text-gray-500">{t("learning.times")}</span>
+                      <span className="text-xs text-gray-500">
+                        {t("learning.times")}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -238,6 +240,15 @@ export default function VocabularyDetailPage() {
                       "practiceWords",
                       JSON.stringify(getWords)
                     );
+                    // ID của từ gốc
+                    sessionStorage.setItem("masteryReviewId", personalVocab.id);
+
+                    // Độ thông thạo của từ gốc
+                    sessionStorage.setItem(
+                      "masteryReviewScore",
+                      personalVocab.mastery_score.toString()
+                    );
+
                     router.push("/dashboard/vocabulary/wordPracticesAI");
                   }}
                   className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer"
@@ -259,6 +270,9 @@ export default function VocabularyDetailPage() {
                   <Volume2 className="mr-2 h-4 w-4" />
                   {t("learning.listenSample")}
                 </Button>
+              </div>
+              <div className="mt-4 text-red-500 italic">
+                {t("learning.relatedWordsNote")}
               </div>
             </CardContent>
           </Card>

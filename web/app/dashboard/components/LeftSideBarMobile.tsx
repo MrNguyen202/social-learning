@@ -53,6 +53,7 @@ import { NotificationsPanel } from "./Notifications";
 import { CreateOrUpdatePostModal } from "./CreateOrUpdatePost";
 import { fetchTotalUnreadMessages } from "@/app/apiClient/chat/conversation/conversation";
 import { getSocket } from "@/socket/socketClient";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function LeftSidebarMobile() {
   const { user } = useAuth();
@@ -304,109 +305,120 @@ export function LeftSidebarMobile() {
       </div>
 
       {/* Main Navigation */}
-      <div className="flex-1 py-4">
-        {!user ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-          </div>
-        ) : user.role === "admin" ? (
-          <nav className="space-y-1 px-3">
-            {adminNavItems.map((item, index) => (
-              <Button
-                key={item.label}
-                variant="ghost"
-                className={`w-full justify-start h-12 px-3 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${pathname === item.path
-                  ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
-                  : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
-                  }`}
-                style={{ animationDelay: `${index * 100}ms` }}
-                onClick={() => handleMenuClick(item.path)}
-              >
-                <item.icon
-                  className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${pathname === item.path ? "text-orange-600" : ""
-                    }`}
-                />
-                <span className="text-base font-medium">{item.label}</span>
-              </Button>
-            ))}
-          </nav>
-        ) : (
-          <>
+      <ScrollArea className="h-[calc(100vh-160px)]">
+        <div className="flex-1 pb-4">
+          {!user ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+            </div>
+          ) : user.role === "admin" ? (
             <nav className="space-y-1 px-3">
-              {mainNavItems.map((item, index) => {
-                const isNotification = item.path === "/dashboard/notifications";
-                const isMessages = item.path === "/dashboard/chat";
-                return (
-                  <Button
-                    key={item.label}
-                    variant="ghost"
-                    className={`w-full justify-start h-12 px-3 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${pathname === item.path
+              {adminNavItems.map((item, index) => (
+                <Button
+                  key={item.label}
+                  variant="ghost"
+                  className={`w-full justify-start h-12 px-3 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${
+                    pathname === item.path
                       ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
                       : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
-                      }`}
-                    style={{ animationDelay: `${index * 100}ms` }}
-                    onClick={() =>
-                      isNotification
-                        ? openNotificationPanel()
-                        : handleMenuClick(item.path)
-                    }
-                  >
-                    <div className="relative">
-                      <item.icon
-                        className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${pathname === item.path ? "text-orange-600" : ""
-                          }`}
-                      />
-                      {isNotification && notificationCount > 0 && (
-                        <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0 animate-pulse">
-                          {notificationCount}
-                        </Badge>
-                      )}
-                      {isMessages && messagesCount > 0 && (
-                        <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0 animate-pulse">
-                          {messagesCount}
-                        </Badge>
-                      )}
-                    </div>
-                    <span className="text-base font-medium">{item.label}</span>
-                  </Button>
-                );
-              })}
+                  }`}
+                  style={{ animationDelay: `${index * 100}ms` }}
+                  onClick={() => handleMenuClick(item.path)}
+                >
+                  <item.icon
+                    className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${
+                      pathname === item.path ? "text-orange-600" : ""
+                    }`}
+                  />
+                  <span className="text-base font-medium">{item.label}</span>
+                </Button>
+              ))}
             </nav>
-
-            <Separator className="my-4 mx-3 opacity-50" />
-
-            {user && user.role !== "admin" && (
-              <div className="px-3">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
-                  {t("dashboard.learningSection")}
-                </p>
-                <nav className="space-y-1">
-                  {learningNavItems.map((item, index) => (
+          ) : (
+            <>
+              <nav className="space-y-1 px-3">
+                {mainNavItems.map((item, index) => {
+                  const isNotification =
+                    item.path === "/dashboard/notifications";
+                  const isMessages = item.path === "/dashboard/chat";
+                  return (
                     <Button
                       key={item.label}
                       variant="ghost"
-                      className={`w-full justify-start h-12 px-3 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${pathname === item.path
-                        ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
-                        : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
-                        }`}
-                      style={{ animationDelay: `${(index + 6) * 100}ms` }}
-                      onClick={() => handleMenuClick(item.path)}
+                      className={`w-full justify-start h-12 px-3 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${
+                        pathname === item.path
+                          ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
+                          : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
+                      }`}
+                      style={{ animationDelay: `${index * 100}ms` }}
+                      onClick={() =>
+                        isNotification
+                          ? openNotificationPanel()
+                          : handleMenuClick(item.path)
+                      }
                     >
-                      <item.icon
-                        className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${pathname === item.path ? "text-orange-600" : ""
+                      <div className="relative">
+                        <item.icon
+                          className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${
+                            pathname === item.path ? "text-orange-600" : ""
                           }`}
-                      />
+                        />
+                        {isNotification && notificationCount > 0 && (
+                          <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0 animate-pulse">
+                            {notificationCount}
+                          </Badge>
+                        )}
+                        {isMessages && messagesCount > 0 && (
+                          <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0 animate-pulse">
+                            {messagesCount}
+                          </Badge>
+                        )}
+                      </div>
                       <span className="text-base font-medium">
                         {item.label}
                       </span>
                     </Button>
-                  ))}
-                </nav>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+                  );
+                })}
+              </nav>
+
+              <Separator className="my-4 opacity-50" />
+
+              {user && user.role !== "admin" && (
+                <div className="px-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
+                    {t("dashboard.learningSection")}
+                  </p>
+                  <nav className="space-y-1">
+                    {learningNavItems.map((item, index) => (
+                      <Button
+                        key={item.label}
+                        variant="ghost"
+                        className={`w-full justify-start h-12 px-3 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${
+                          pathname === item.path
+                            ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
+                            : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
+                        }`}
+                        style={{ animationDelay: `${(index + 6) * 100}ms` }}
+                        onClick={() => handleMenuClick(item.path)}
+                      >
+                        <item.icon
+                          className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${
+                            pathname === item.path ? "text-orange-600" : ""
+                          }`}
+                        />
+                        <span className="text-base font-medium">
+                          {item.label}
+                        </span>
+                      </Button>
+                    ))}
+                  </nav>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </ScrollArea>
 
       {/* Dropdown */}
       <DropdownMenu>

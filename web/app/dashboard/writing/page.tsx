@@ -84,8 +84,8 @@ export default function WritingPage() {
           </motion.p>
         </motion.div>
 
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-20">
+        <div className="max-w-4xl mx-auto xl:pl-10 lg:pl-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:mt-20 md:mt-10">
             <CardTypeEx />
           </div>
         </div>

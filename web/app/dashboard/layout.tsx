@@ -38,7 +38,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       {/* Left Sidebar */}
       {compactWriting || isTablet ? (
         <LeftSideBarHiddenLabel />

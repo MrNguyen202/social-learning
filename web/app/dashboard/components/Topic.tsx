@@ -67,8 +67,7 @@ export function Topic({ selectedTopic, setSelectedTopic }: TopicProps) {
       >
         {t("dashboard.selectTopic")}
       </motion.h2>
-
-      <div className="grid grid-cols-4 gap-4 mt-4 min-h-44 relative z-10">
+      <div className="grid grid-cols-2 gap-4 mt-4 min-h-44 relative z-10 2xl:grid-cols-4 md:grid-cols-3">
         {topics.map((topic, index) => (
           <motion.div
             key={topic.id}

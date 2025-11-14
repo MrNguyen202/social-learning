@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import useAuth from "@/hooks/useAuth";
 import {
+  archiveMasteredWordRPC,
+  deletePersonalVocabRPC,
+  deleteUserVocabErrorsRPC,
   generateExerciseByVocabList,
+  resetReviewWordRPC,
   updateMasteryScoreRPC,
 } from "@/app/apiClient/learning/vocabulary/vocabulary";
 import { ProgressBar } from "../components/ProgressBar";
@@ -25,6 +29,7 @@ import { useLanguage } from "@/components/contexts/LanguageContext";
 import LivesIndicator from "../components/LivesIndicator";
 import OutOfLivesModal from "../components/OutOfLivesModal";
 import { toast } from "react-toastify";
+import { deleteNotificationLearning } from "@/app/apiClient/notification/notification";
 
 const shuffle = (array: any[]) => {
   let currentIndex = array.length,
@@ -56,6 +61,7 @@ export default function WordPracticeAI() {
   const [error, setError] = useState("");
   const [words, setWords] = useState<string[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [graduationType, setGraduationType] = useState<string | null>(null);
   const { width, height } = useWindowSize();
   const [feedbackStatus, setFeedbackStatus] = useState<FeedbackStatus>(null);
   const [lives, setLives] = useState(3);
@@ -114,7 +120,39 @@ export default function WordPracticeAI() {
       setCurrent((c) => c + 1);
     } else {
       // Đã đến câu cuối cùng
+      // Lấy tín hiệu
+      const firstGraduationId = sessionStorage.getItem("masteryReviewId"); // Luyện 100%
+      const firstGraduationScore = sessionStorage.getItem("masteryReviewScore"); // Lấy điểm thông thạo từ page detail [id]
+
+      const reviewGraduationId = JSON.parse(
+        sessionStorage.getItem("reviewGraduationId") || "null"
+      ); // Luyện tập sau 7 ngày (lấy từ notification)
+
+      // Dọn dẹp session
+      sessionStorage.removeItem("masteryReviewId");
+      sessionStorage.removeItem("masteryReviewScore");
+      sessionStorage.removeItem("reviewGraduationId");
+
+      // Lấy điểm
+      const score = parseInt(firstGraduationScore || "0", 10);
+
+      // ------------------------------------
+      //  USER THẤT BẠI (có wrongPile)
+      // ------------------------------------
       if (wrongPile.length > 0) {
+        if (reviewGraduationId) {
+          // Thất bại "Luyện tập Tái tốt nghiệp" (7 ngày)
+          // -> Reset điểm thông thạo về 70%
+          resetReviewWordRPC({ personalVocabId: reviewGraduationId });
+          setGraduationType("review_fail"); // Đặt thông báo thất bại
+        } else if (firstGraduationId && score === 100) {
+          // Thất bại "Luyện tập để ẩn từ"
+          setGraduationType("first_fail"); // Đặt thông báo thất bại
+        } else {
+          // Thất bại "Luyện tập bình thường"
+          // -> Chỉ vào vòng lặp thử thách
+          setGraduationType(null);
+        }
         // Bắt đầu Vòng lặp Thử thách
         toast.info(
           `Bắt đầu vòng thử thách! Bạn sẽ làm lại ${wrongPile.length} câu đã sai.`,
@@ -124,19 +162,39 @@ export default function WordPracticeAI() {
         setWrongPile([]); // Xóa pile cũ
         setCurrent(0); // Bắt đầu lại từ câu 0
       } else {
-        // HOÀN THÀNH XUẤT SẮC
-        // Nếu có từ khó đã được ghi nhận, đây là lúc gửi lên server
-        if (implicitlyHardWords.length > 0) {
-          console.log("Gửi các từ khó này về server:", implicitlyHardWords);
-          // TODO: GỌI API
-          // e.g., markWordsAsHard(user.id, implicitlyHardWords);
-        }
+        // ------------------------------------
+        //  USER THÀNH CÔNG (không có wrongPile)
+        // ------------------------------------
 
-        if (words && user) {
+        if (reviewGraduationId) {
+          // Thành công "Luyện tập Tái tốt nghiệp" (7 ngày)
+          // -> XÓA từ vựng
+          deletePersonalVocabRPC({ personalVocabId: reviewGraduationId }); // xóa từ vựng khỏi bộ nhớ cá nhân
+          deleteUserVocabErrorsRPC({ userId: user.id, word: words[0] }); // xóa từ khỏi lỗi từ vựng
+          const notifiIdParsed = JSON.parse(
+            sessionStorage.getItem("notifiId") || "null"
+          );
+
+          if (notifiIdParsed) {
+            deleteNotificationLearning(notifiIdParsed, reviewGraduationId); // xóa notification
+            sessionStorage.removeItem("notifiId");
+          }
+
+          setGraduationType("review_pass_delete"); // Thông báo XÓA thành công
+        } else if (firstGraduationId && score === 100) {
+          // Thành công "Luyện tập Lần đầu để ẩn từ"
+          // -> ẨN từ vựng
+          archiveMasteredWordRPC({ personalVocabId: firstGraduationId }); // ẩn từ vựng và xuất hiện sau 7 ngày
+          setGraduationType("first_pass_archive"); // Thông báo ẨN
+        } else {
+          // Thành công "Luyện tập bình thường"
           words.forEach((word: string) => {
             update_mastery_on_success(user.id, word);
           });
+          setGraduationType("normal_pass"); // Thông báo bình thường
         }
+
+        // Hiển thị chúc mừng
         setShowCelebration(true);
       }
     }
@@ -387,11 +445,24 @@ export default function WordPracticeAI() {
               >
                 <Trophy className="w-24 h-24 drop-shadow-2xl" />
               </motion.div>
+
               <DialogTitle className="text-4xl font-bold mb-3 drop-shadow-lg">
-                {t("learning.congratulations")}
+                {/* Tiêu đề động */}
+                {graduationType === "review_pass_delete" &&
+                  "Đã hoàn toàn làm chủ!"}
+                {graduationType === "first_pass_archive" &&
+                  "Chúc mừng Tốt nghiệp!"}
+                {graduationType === "normal_pass" && "Chúc mừng bạn!"}
               </DialogTitle>
+
               <DialogDescription className="text-2xl mb-8 font-semibold text-white/90">
-                {t("learning.completedAllSentences")}
+                {/* Mô tả động */}
+                {graduationType === "review_pass_delete" &&
+                  "Bạn đã ghi nhớ từ này rất sâu. Từ vựng này sẽ được xóa khỏi bộ nhớ cá nhân."}
+                {graduationType === "first_pass_archive" &&
+                  "Bạn đã làm chủ từ này. Từ vựng sẽ được ẩn và hẹn ngày ôn tập."}
+                {graduationType === "normal_pass" &&
+                  "Bạn đã hoàn thành tất cả các câu."}
               </DialogDescription>
             </DialogHeader>
 
@@ -404,7 +475,10 @@ export default function WordPracticeAI() {
               }}
               className="mx-auto mt-4 px-10 py-4 rounded-xl bg-white text-purple-600 hover:bg-gray-50 transition-all font-bold text-xl shadow-2xl border-2 border-purple-200"
             >
-              {t("learning.practiceNewWords")}
+              {/* Text nút động */}
+              {graduationType === "normal_pass"
+                ? "Luyện tập từ mới"
+                : "Tuyệt vời!"}
             </motion.button>
           </DialogContent>
         </Dialog>

@@ -33,6 +33,8 @@
   "progress": "Tiến độ",
   "congratulations": "Chúc mừng!",
   "completedAllSentences": "Bạn đã hoàn thành tất cả các câu!",
+  "graduatedTitle": "Chúc mừng bạn đã nắm vững từ vựng này!",
+  "graduatedDesc": "Bạn đã hoàn toàn làm chủ từ vựng này. Từ này sẽ được chuyển vào danh sách ôn tập!",
   "tryAnother": "Thử chủ đề khác",
   "ipaTitle": "Bảng phiên âm IPA",
   "ipaDescription": "Học cách phát âm các âm tiếng Anh chuẩn với bảng phiên âm quốc tế",
@@ -152,6 +154,7 @@
   "times": "lần",
   "ipaTable": "Bảng IPA",
   "relatedWords": "Từ liên quan",
+  "relatedWordsNote": "Lưu ý: Để luyện tập hiệu quả, hãy xem thêm các từ liên quan bên dưới.",
 
   "myVocabulary": "Từ vựng của tôi",
   "myVocabularyDescription": "Làm chủ bộ sưu tập từ vựng cá nhân của bạn và theo dõi tiến trình học tập",
@@ -179,6 +182,10 @@
   "byTopic": "Theo chủ đề",
   "prePage": "Trước",
   "nextPage": "Tiếp",
+  "practiceAll": "Luyện tập tất cả",
+  "practiceSelected": "Luyện tập đã chọn",
+  "selectAll": "Chọn tất cả",
+  "clearSelection": "Xóa lựa chọn",
 
   "creatingExercise": "Đang tạo bài tập...",
   "submittingExercise": "Đang nộp bài...",

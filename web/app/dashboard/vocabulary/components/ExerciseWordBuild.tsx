@@ -70,14 +70,16 @@ export default function ExerciseWordBuild({
 
   const handleCheck = () => {
     const word = currentWord.map((l) => l.char).join("");
-    const isCorrect = word === answer;
+    const isCorrect = word.toLowerCase() === answer.toLowerCase();
     onCheck(isCorrect, answer);
   };
 
   const getBorderColor = () => {
     if (!isChecking) return "border-gray-200";
     const word = currentWord.map((l) => l.char).join("");
-    return word === answer ? "border-green-500" : "border-red-500";
+    return word.toLowerCase() === answer.toLowerCase()
+      ? "border-green-500"
+      : "border-red-500";
   };
 
   return (

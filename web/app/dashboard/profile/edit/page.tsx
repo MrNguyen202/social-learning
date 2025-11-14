@@ -295,7 +295,6 @@ export default function ProfileEditPage() {
   }
 
   return (
-    // <div className="mx-auto w-full max-w-md pt-6 sm:max-w-2xl lg:max-w-3xl max-xl:ml-10 max-lg:mx-auto max-md:ml-5 max-sm:ml-5 px-4">
     <div className="mx-auto w-full max-w-md pt-4 sm:max-w-2xl lg:max-w-3xl pr-5 sm:pl-10">
 
       <div className="fixed inset-0 overflow-hidden pointer-events-none">

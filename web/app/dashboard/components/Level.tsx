@@ -56,7 +56,7 @@ export function Level({ selectedLevel, setSelectedLevel }: LevelProps) {
   return (
     <div className="flex-1">
       <h2 className="text-xl font-semibold">{t("dashboard.selectLevel")}</h2>
-      <div className="grid grid-cols-3 gap-4 mt-4 min-h-36">
+      <div className="grid grid-cols-1 gap-4 mt-4 min-h-36 2xl:grid-cols-3 md:grid-cols-2">
         {levels.map((level) => {
           return (
             <motion.div
@@ -76,7 +76,7 @@ export function Level({ selectedLevel, setSelectedLevel }: LevelProps) {
                 }
                 key={level.id}
                 className={`
-                                flex flex-row justify-between gap-4 px-4 
+                                flex flex-row justify-start gap-4 px-4 h-full
                                 transition-all duration-300 
                                 border-2 
                                 ${
