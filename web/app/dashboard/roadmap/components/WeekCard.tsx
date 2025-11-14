@@ -141,7 +141,7 @@ const WeekCard = ({
             }}
         >
             <h2 className="font-semibold text-xl text-emerald-800 mb-3">
-                {week.isCompleted ? "✅" : ""} {t("learning.roadmap.week")} {week.week}: <span className="text-sky-700">{week[`focus_${language}`]}</span>
+                {week.isCompleted ? "✅" : isLocked ? "🔒" : ""} {t("learning.roadmap.week")} {week.week}: <span className="text-sky-700">{week[`focus_${language}`]}</span>
             </h2>
 
             <AnimatePresence>

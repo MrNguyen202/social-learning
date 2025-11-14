@@ -253,6 +253,7 @@ export default function LearningPathPage() {
                                             <WeekTimeline
                                                 totalWeeks={path?.totalWeeks || 12}
                                                 currentWeek={path?.currentweek || 1}
+                                                isUsed={path?.isUsed}
                                             />
                                         </div>
                                     </CardContent>
