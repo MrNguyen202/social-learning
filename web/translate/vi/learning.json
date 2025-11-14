@@ -147,11 +147,8 @@
   "times": "lần",
   "ipaTable": "Bảng IPA",
   "relatedWords": "Từ liên quan",
-<<<<<<< HEAD
   "relatedWordsNote": "Lưu ý: Để luyện tập hiệu quả, hãy xem thêm các từ liên quan bên dưới.",
 
-=======
->>>>>>> 5b9ddcdd7f464e48079dd9badf2a991559134723
   "myVocabulary": "Từ vựng của tôi",
   "myVocabularyDescription": "Làm chủ bộ sưu tập từ vựng cá nhân của bạn và theo dõi tiến trình học tập",
   "totalWords": "Tổng số từ",
@@ -176,14 +173,11 @@
   "byTopic": "Theo chủ đề",
   "prePage": "Trước",
   "nextPage": "Tiếp",
-<<<<<<< HEAD
   "practiceAll": "Luyện tập tất cả",
   "practiceSelected": "Luyện tập đã chọn",
   "selectAll": "Chọn tất cả",
   "clearSelection": "Xóa lựa chọn",
 
-=======
->>>>>>> 5b9ddcdd7f464e48079dd9badf2a991559134723
   "creatingExercise": "Đang tạo bài tập...",
   "submittingExercise": "Đang nộp bài...",
   "noExercise": "Không có bài tập nào.",

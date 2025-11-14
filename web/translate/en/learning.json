@@ -79,13 +79,10 @@
   "selectListeningMode": "Select Listening Mode",
   "personalListening": "Personal Listening Practice",
   "sentenceListening": "Sentence Listening Practice",
-<<<<<<< HEAD
   "graduatedTitle": "Congratulations on mastering this vocabulary!",
   "graduatedDesc": "You have fully mastered this vocabulary. It will be moved to the review list!",
 
 
-=======
->>>>>>> 5b9ddcdd7f464e48079dd9badf2a991559134723
   "score": "Score",
   "accuracy": "Accuracy",
   "suggest": "Suggestions",
@@ -152,11 +149,8 @@
   "times": "times",
   "ipaTable": "IPA Table",
   "relatedWords": "Related Words",
-<<<<<<< HEAD
   "relatedWordsNote": "Note: For effective practice, please also review the related words below.",
 
-=======
->>>>>>> 5b9ddcdd7f464e48079dd9badf2a991559134723
   "myVocabulary": "My Vocabulary",
   "myVocabularyDescription": "Master your personal vocabulary collection and track your learning progress",
   "totalWords": "Total Words",
@@ -181,14 +175,11 @@
   "byTopic": "By Topic",
   "prePage": "Previous",
   "nextPage": "Next",
-<<<<<<< HEAD
   "practiceAll": "Practice All",
   "practiceSelected": "Practice Selected",
   "selectAll": "Select All",
   "clearSelection": "Clear Selection",
 
-=======
->>>>>>> 5b9ddcdd7f464e48079dd9badf2a991559134723
   "creatingExercise": "Creating exercise...",
   "submittingExercise": "Submitting exercise...",
   "noExercise": "No exercise available.",
