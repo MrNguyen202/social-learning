@@ -19,12 +19,24 @@ const scoreUserService = {
 
   // Cộng điểm vào score detail cho user
   async addSkillScore(userId, skill, scoreToAdd) {
+    // tìm id score
+    const { data: scoreRow, error: scoreError } = await supabase
+      .from("score")
+      .select("id")
+      .eq("userId", userId)
+      .single();
+
+    if (scoreError) throw scoreError;
+
+    const scoreId = scoreRow.id;
+
     const { data: inserted, error: insertError } = await supabase
       .from("scoreDetail")
       .insert({
         userId,
         skill,
         score: scoreToAdd,
+        scoreId,
       })
       .select()
       .single();
