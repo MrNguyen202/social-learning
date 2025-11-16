@@ -29,17 +29,82 @@ const authService = {
   },
 
   async login(email, password) {
-    // 1. Đăng nhập với Supabase Auth
+    // 1. Check trong bảng loginAttempts
+    const { data: attempt, error: attemptError } = await supabase
+      .from("loginAttempts")
+      .select("*")
+      .eq("email", email)
+      .maybeSingle();
+
+    // Kiểm tra và xóa nếu khóa đã HẾT HẠN
+    if (attempt?.locked_until && new Date(attempt.locked_until) <= new Date()) {
+      // Khóa đã hết hạn, xóa bản ghi
+      await supabase.from("loginAttempts").delete().eq("id", attempt.id);
+
+      // Đặt 'attempt' về null, coi như người này chưa thử lần nào
+      attempt = null;
+    }
+
+    // 2. Nếu đang khóa (khóa CÒN HẠN) → return luôn
+    if (attempt?.locked_until && new Date(attempt.locked_until) > new Date()) {
+      return {
+        data: null,
+        error: { message: "Bạn đã bị khóa đăng nhập trong 15 phút." },
+      };
+    }
+
+    // 3. Đăng nhập với Supabase Auth
     const { data: loginData, error: loginError } =
       await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-    if (loginError) throw loginError;
+    // 4.Nếu đăng nhập thất bại, cập nhật bảng loginAttempts
+    if (loginError) {
+      // Nếu chưa có bản ghi, tạo mới
+      if (!attempt) {
+        await supabase.from("loginAttempts").insert({
+          email,
+          attempts: 1,
+        });
+      } else {
+        // Nếu đã có bản ghi, tăng số lần thử
+        const newAttempts = attempt.attempts + 1;
 
-    // 2. ĐÃ ĐĂNG NHẬP THÀNH CÔNG
-    // Bây giờ, lấy 'role' từ bảng 'users' của bạn
+        // Nếu đạt 5 lần, khóa trong 15 phút
+        if (newAttempts >= 5) {
+          await supabase
+            .from("loginAttempts")
+            .update({
+              attempts: newAttempts,
+              locked_until: new Date(Date.now() + 15 * 60000).toISOString(),
+            })
+            .eq("id", attempt.id);
+
+          return {
+            data: null,
+            error: { message: "Bạn đã bị khóa đăng nhập trong 15 phút." },
+          };
+        }
+
+        // Cập nhật số lần thử
+        await supabase
+          .from("loginAttempts")
+          .update({ attempts: newAttempts })
+          .eq("id", attempt.id);
+      }
+
+      return {
+        data: null,
+        error: { message: "Sai mật khẩu. Vui lòng thử lại." },
+      };
+    }
+
+    // 5. Nếu đăng nhập đúng mà record vẫn còn → nghĩa là user từng sai → xóa đi
+    await supabase.from("loginAttempts").delete().eq("email", email);
+
+    // 6. ĐÃ ĐĂNG NHẬP THÀNH CÔNG lấy 'role' từ bảng 'users'
     const { data: profileData, error: profileError } = await supabase
       .from("users")
       .select("role") // Chỉ cần lấy cột 'role'
@@ -47,21 +112,18 @@ const authService = {
       .single(); // Lấy 1 dòng duy nhất
 
     if (profileError) {
-      // Lỗi này xảy ra nếu trigger của bạn bị lỗi
-      // hoặc user tồn tại trong 'auth.users' nhưng không có trong 'public.users'
-      console.error(
-        "Lỗi nghiêm trọng: Không tìm thấy profile cho user:",
-        loginData.user.id
-      );
-      throw new Error("Không tìm thấy thông tin hồ sơ người dùng.");
+      return {
+        data: null,
+        error: { message: "Không tìm thấy thông tin người dùng." },
+      };
     }
 
-    // 3. Gộp kết quả và trả về
+    // 7. Gộp kết quả và trả về
     return {
       data: {
         session: loginData.session,
         user: loginData.user,
-        role: profileData.role, // <-- Đây là mấu chốt!
+        role: profileData.role, // Thêm role vào kết quả trả về
       },
       error: null,
     };

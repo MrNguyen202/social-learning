@@ -60,7 +60,7 @@ export default function ProfileHeader() {
       const res = await uploadFile("profiles", file, "image");
 
       if (res?.success === false) {
-        toast.error(res.msg || t("dashboard.uploadFailed"), {
+        toast.error(res.msg || t("dashboard.photoUploadFailed"), {
           autoClose: 1500,
         });
         return;
@@ -69,12 +69,12 @@ export default function ProfileHeader() {
       const updateData = { avatar: res.data.path };
       await updateUserData(user.id, updateData);
 
-      toast.success(t("dashboard.uploadSuccess"), { autoClose: 1500 });
+      toast.success(t("dashboard.photoUploadSuccess"), { autoClose: 1500 });
 
       setUser({ ...user, avatar: res.data.path });
       setOpen(false);
     } catch (err: any) {
-      toast.error(t("dashboard.uploadError"), { autoClose: 1500 });
+      toast.error(t("dashboard.photoUploadFailed"), { autoClose: 1500 });
     } finally {
       setIsLoading(false);
     }
@@ -166,7 +166,7 @@ export default function ProfileHeader() {
               <div className="flex flex-col divide-y">
                 <label className="py-3 text-blue-600 border-t font-medium hover:bg-gray-50 text-center cursor-pointer transition-colors">
                   {isLoading
-                    ? t("dashboard.uploading")
+                    ? t("dashboard.uploadingPhoto")
                     : t("dashboard.selectPhoto")}
                   <input
                     type="file"

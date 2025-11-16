@@ -9,7 +9,7 @@ export default function ChatPage() {
     <div className="flex flex-col justify-center items-center h-full">
       <h1 className="text-2xl font-bold">{t("dashboard.chat")}</h1>
       <p className="my-4">{t("dashboard.startChat")}</p>
-      <ModalSearchNewChat />
+      {/* <ModalSearchNewChat /> */}
     </div>
   );
 }

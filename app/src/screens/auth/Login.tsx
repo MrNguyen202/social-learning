@@ -13,12 +13,14 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import Toast from 'react-native-toast-message';
 import { login } from '../../api/auth/route';
 import { supabase } from '../../../lib/supabase';
+import DeviceInfo from 'react-native-device-info';
 
 const Login = () => {
   const navigation = useNavigation<any>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const deviceId = DeviceInfo.getUniqueId();
 
   const handleLogin = async () => {
     // Xử lý đăng nhập ở đây
@@ -32,7 +34,10 @@ const Login = () => {
     }
 
     try {
-      const res = await login({ email, password });
+      const res = await login({
+        email,
+        password,
+      });
 
       if (!res.success || !res?.data?.session) {
         Toast.show({

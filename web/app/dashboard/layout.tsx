@@ -65,7 +65,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         }`}
       >
         <div
-          className={`flex flex-1 overflow-hidden ${
+          className={`flex flex-1 min-h-screen overflow-hidden ${
             compactWriting ? "container mx-auto" : ""
           }`}
         >
