@@ -8,52 +8,46 @@ const google = createGoogleGenerativeAI({
 
 export const runtime = "edge";
 
-const generateId = () => Math.random().toString(36).slice(2, 10);
-
-// System prompt để định hướng AI
-const SYSTEM_PROMPT = `Bạn là một trợ lý AI thông minh và hữu ích. Hãy:
-- Trả lời bằng tiếng Anh một cách tự nhiên và dễ hiểu
-- Cung cấp thông tin chính xác và hữu ích
-- Giữ câu trả lời súc tích nhưng đầy đủ
-- Thân thiện và lịch sự trong giao tiếp
-- Nếu không chắc chắn về thông tin, hãy thành thật nói rằng bạn không biết`;
-
-const buildOptimizedPrompt = (messages: Message[]): Message[] => {
-  // Tạo system message
-  const systemMessage: Message = {
-    id: generateId(),
-    role: "system",
-    content: SYSTEM_PROMPT,
-  };
-
-  // Xử lý messages từ user và assistant
-  const processedMessages = messages.map((msg) => ({
-    id: msg.id || generateId(),
-    role: msg.role,
-    content: msg.content,
-  }));
-
-  return [systemMessage, ...processedMessages];
-};
-
 export async function POST(request: Request) {
   try {
-    const { messages } = await request.json();
+    const { messages, topic, level } = await request.json();
 
-    // Validation
     if (!messages || !Array.isArray(messages)) {
       return new Response("Invalid messages format", { status: 400 });
     }
 
+    const systemPrompt = `You are a friendly and encouraging AI English tutor.
+    The student wants to practice speaking.
+    The chosen topic is: "${topic}".
+    The student's self-assessed level is: "${level}".
+    
+    Your role:
+    1.  Engage in a natural, spoken-style conversation about the topic.
+    2.  Keep your responses concise (1-2 sentences) to feel like a real chat.
+    3.  Ask follow-up questions to keep the conversation going.
+    4.  Adapt your vocabulary and complexity to the student's "${level}" level.
+    5.  DO NOT correct the student's grammar unless they explicitly ask. Just be a conversation partner.
+    6.  Speak ONLY in English.`;
+
+    // Xây dựng mảng tin nhắn để gửi cho AI
+    const messagesForAI: Message[] = [
+      {
+        id: "system-prompt",
+        role: "system",
+        content: systemPrompt,
+      },
+      ...messages, // Thêm lịch sử chat của user
+    ];
+
+    console.log("System Prompt Sent to AI:", messagesForAI);
+
     const stream = await streamText({
-      model: google("gemini-2.0-flash"),
-      messages: buildOptimizedPrompt(messages),
+      model: google("models/gemini-2.0-flash"),
+      messages: messagesForAI, // Gửi prompt đã tối ưu
       temperature: 0.7,
-      maxTokens: 1000, // Giới hạn độ dài response
-      topP: 0.9, // Tăng tính đa dạng
-      frequencyPenalty: 0.1, // Tránh lặp lại
-      presencePenalty: 0.1, // Khuyến khích topic mới
+      maxTokens: 1000,
     });
+    console.log("System Prompt Sent to AI:", stream);
 
     return stream?.toDataStreamResponse();
   } catch (error) {
