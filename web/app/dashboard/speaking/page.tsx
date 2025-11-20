@@ -51,15 +51,15 @@ export default function SpeakingPage() {
     setLoading(false);
   };
 
-  // const handleConversationPractice = () => {
-  //   setLoading(true);
-  //   if (selectedLevel && selectedTopic) {
-  //     router.push(
-  //       `/dashboard/speaking/conversationPractice?level=${selectedLevel.id}&topic=${selectedTopic.id}`
-  //     );
-  //   }
-  //   setLoading(false);
-  // };
+  const handleConversationRealTimeAI = () => {
+    setLoading(true);
+    if (selectedLevel && selectedTopic) {
+      router.push(
+        `/dashboard/speaking/list?level=${selectedLevel.slug}&topic=${selectedTopic.slug}`
+      );
+    }
+    setLoading(false);
+  };
 
   const handleConversationPracticeAI = () => {
     setLoading(true);
@@ -316,14 +316,14 @@ export default function SpeakingPage() {
                         <Sparkles className="w-4 h-4 mr-2" />
                         Generate AI
                       </Button>
-                      {/* <Button
-                        onClick={handleConversationPractice}
+                      <Button
+                        onClick={handleConversationRealTimeAI}
                         disabled={loading}
                         className="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white cursor-pointer"
                       >
-                        {t("learning.start")}
+                        {t("learning.realTimePractice")}
                         <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button> */}
+                      </Button>
                     </div>
                   </div>
                 </motion.div>

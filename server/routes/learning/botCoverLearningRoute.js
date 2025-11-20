@@ -26,4 +26,6 @@ router.post('/generate-words-practice-by-AI', botCoverLearningController.createG
 // Route to create or update topic vocabularies
 router.post("/generate-topics", botCoverLearningController.generateTopicsForUser);
 
+router.post("/generate-topic-speaking", botCoverLearningController.generateTopicSpeaking);
+
 module.exports = router;

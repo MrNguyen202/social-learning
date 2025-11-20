@@ -3,6 +3,7 @@ const learningService = require("../../services/learning/learningService");
 const promptGenerateParagraph = require("../../utils/prompt/generateParagraph");
 const promptGenerateListening = require("../../utils/prompt/generateListening");
 const promptGenerateSpeaking = require("../../utils/prompt/generateSpeaking");
+const promptGenerateTopicSpeaking = require("../../utils/prompt/generateTopicSpeaking");
 const promptGeneratePersonalWord = require("../../utils/prompt/generateVocabulary");
 const promptGenerateConversationPractice = require("../../utils/prompt/generateConversationPractice");
 const promptGenerateWordsPractice = require("../../utils/prompt/generateWordsPractice");
@@ -166,7 +167,7 @@ const botCoverLearningController = {
     const prompt = promptGenerateListening(level.name_vi, topic.name_vi);
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash"});
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       const result = await model.generateContent(prompt);
 
       const text = result.response.text();
@@ -547,6 +548,53 @@ const botCoverLearningController = {
     } catch (error) {
       console.error("Error generating topics:", error);
       res.status(500).json({ error: error.message });
+    }
+  },
+
+  // Generate speaking exercise
+  generateTopicSpeaking: async (req, res) => {
+    const { topic_slug } = req.body;
+
+    if (!topic_slug) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Lấy thông tin topic từ Supabase
+    const topic = await learningService.getTopicBySlug(topic_slug);
+    if (!topic) {
+      return res.status(400).json({ error: "Invalid topic_slug" });
+    }
+
+    // Prompt để gọi Gemini
+    const prompt = promptGenerateTopicSpeaking(topic.name_vi);
+
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const result = await model.generateContent(prompt);
+
+      const text = result.response.text();
+      // Lọc JSON thuần từ Gemini
+      const jsonMatch = text.match(/```json\s*([\s\S]*?)```/i);
+      if (!jsonMatch) {
+        return res
+          .status(500)
+          .json({ error: "Gemini không trả JSON hợp lệ", raw: text });
+      }
+
+      let json;
+      try {
+        json = JSON.parse(jsonMatch[1]);
+      } catch (e) {
+        console.error("Lỗi parse JSON:", e);
+        return res
+          .status(500)
+          .json({ error: "Lỗi phân tích JSON", raw: jsonMatch[1] });
+      }
+
+      res.json({ message: "Tạo bài tập nói thành công", data: json });
+    } catch (error) {
+      console.error("Error generating content:", error);
+      return res.status(500).json({ error: "Error generating content" });
     }
   },
 };

@@ -39,3 +39,13 @@ export const generateConversationPracticeByAI = async (
   );
   return response.data;
 };
+
+export const generateTopicSpeaking = async (topic_slug: string) => {
+  const response = await api.post(
+    `/api/bot-cover-learning/generate-topic-speaking`,
+    {
+      topic_slug,
+    }
+  );
+  return response.data;
+};

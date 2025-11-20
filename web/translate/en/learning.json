@@ -73,6 +73,7 @@
   "sentenceSpeaking": "Sentence Speaking Practice",
   "aiSpeaking": "AI Speaking Practice",
   "conversationAI": "AI Conversation Practice",
+  "realTimePractice": "Interact with AI",
   "selectWritingMode": "Select Writing Mode",
   "personalWriting": "Personal Writing Practice",
   "sentenceWriting": "Sentence Writing Practice",
@@ -81,7 +82,6 @@
   "sentenceListening": "Sentence Listening Practice",
   "graduatedTitle": "Congratulations on mastering this vocabulary!",
   "graduatedDesc": "You have fully mastered this vocabulary. It will be moved to the review list!",
-
 
   "score": "Score",
   "accuracy": "Accuracy",
@@ -150,7 +150,7 @@
   "ipaTable": "IPA Table",
   "relatedWords": "Related Words",
   "relatedWordsNote": "Note: For effective practice, please also review the related words below.",
-
+  "mission": "Your Mission:",
   "myVocabulary": "My Vocabulary",
   "myVocabularyDescription": "Master your personal vocabulary collection and track your learning progress",
   "totalWords": "Total Words",
@@ -181,6 +181,7 @@
   "clearSelection": "Clear Selection",
 
   "creatingExercise": "Creating exercise...",
+  "creatingTopics": "Creating topics...",
   "submittingExercise": "Submitting exercise...",
   "noExercise": "No exercise available.",
   "practiceNewWords": "Practice new words",
@@ -270,7 +271,7 @@
     "upcoming": "Upcoming",
     "createNewRoadmap": "Create New Roadmap",
     "isUsed": "Applying",
-    "apply" : "Apply",
+    "apply": "Apply",
     "createRoadmapTitle": "Create Your Learning Roadmap",
     "step": "Step",
     "personalizeYourLearningPath": "Personalize your learning path",
@@ -296,5 +297,30 @@
     "complete": "COMPLETED",
     "generateWithAI": "Generate with AI",
     "startLesson": "System Exercise"
-  }
+  },
+  "noteTopicSpeaking": "Note: Since this topic is AI-generated, once you select \"Start,\" you won't be able to go back and choose a different topic as it may change.",
+  "currentScenario": "Current Scenario",
+  "conversationPartner": "Conversation Partner",
+  "goal": "Goal",
+  "resolveSituationNaturally": "Resolve the situation naturally",
+  "voiceSettings": "Voice Settings",
+  "aiVoice": "AI Voice",
+  "loadingVoices": "Loading voices...",
+  "speakingRate": "Speaking Rate",
+  "slow": "Slow",
+  "normal": "Normal",
+  "fast": "Fast",
+  "conversationSummary": "Conversation Summary",
+  "sessionReview": "Session Review",
+  "loadingSummary": "Loading summary...",
+  "translation": "Translation:",
+  "speechRecognitionNotSupported": "Browser does not support Speech Recognition.",
+  "pleaseUseSupportedBrowsers": "Please use Google Chrome or Microsoft Edge.",
+  "practiceSpeakingInContext": "Practice speaking in context",
+  "turns": "Turns",
+  "feedback": "Feedback",
+  "aiComments": "AI Comments",
+  "better": "Better",
+  "analyzingConversationPatterns": "Analyzing conversation patterns...",
+  "noSummaryAvailable": "No summary available yet. Finish the conversation to see the report."
 }
