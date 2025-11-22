@@ -141,7 +141,7 @@ const roadMapController = {
     applyRoadmapForUser: async (req, res) => {
         try {
             const { userId, roadmapId, roadmapOldId } = req.body;
-            if (!userId || !roadmapId || !roadmapOldId) {
+            if (!userId || !roadmapId) {
                 return res.status(400).json({ error: "Thiếu userId hoặc roadmapId hoặc roadmapOldId" });
             }
             await roadmapService.applyRoadmapForUser(roadmapId, roadmapOldId);

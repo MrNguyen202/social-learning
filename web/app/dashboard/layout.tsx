@@ -56,7 +56,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           compactWriting
             ? "ml-0"
             : isTablet
-            ? "ml-0"
+            ? "ml-20"
             : isMobile
             ? "ml-5"
             : compact

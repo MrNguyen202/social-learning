@@ -7,10 +7,10 @@ const messageController = {
     // Lưu tin nhắn mới
     saveMessage: async (req, res) => {
         try {
-            const { conversationId, senderId, text } = req.body;
+            const { conversationId, senderId, text, replyTo } = req.body;
             const files = req.files || []; // từ multer
 
-            const message = await messageService.saveMessage({ conversationId, senderId, text, files });
+            const message = await messageService.saveMessage({ conversationId, senderId, text, files, replyTo });
 
             // custom message với sender info
             const { data: user } = await userService.getUserData(senderId);
@@ -38,7 +38,8 @@ const messageController = {
                     id: user.id,
                     name: user.name,
                     avatar: user.avatar
-                } : null
+                } : null,
+                replyTo: message.replyTo
             };
 
             // Gửi socket tới các thành viên trong conversation (nếu có)

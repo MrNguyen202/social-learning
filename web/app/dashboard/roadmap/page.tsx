@@ -66,6 +66,8 @@ export default function LearningPathPage() {
         // Gọi API để áp dụng lộ trình học
         // Giả sử bạn có hàm applyRoadmapForUser trong apiClient
         if (!user?.id) return;
+        console.log("🚀 Áp dụng lộ trình với ID:", pathId);
+        console.log("Người dùng ID:", user.id);
         setLoadingApply(true);
         try {
             const currentUsedPath = paths.find(path => path.isUsed);
@@ -188,7 +190,7 @@ export default function LearningPathPage() {
                                             className="absolute top-4 right-8"
                                         >
                                             <button
-                                                className="px-4 py-1 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 transition-colors hover:cursor-progress"
+                                                className="px-4 py-1 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 transition-colors"
                                                 onClick={(e) => {
                                                     // Handle apply button click
                                                     e.stopPropagation();

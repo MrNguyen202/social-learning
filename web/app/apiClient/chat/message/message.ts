@@ -22,12 +22,14 @@ export async function sendMessage({
   senderId,
   text,
   files,
+  replyTo,
 }: any) {
   try {
     const formData = new FormData();
     formData.append("conversationId", conversationId);
     formData.append("senderId", senderId);
     if (text) formData.append("text", text);
+    if (replyTo) formData.append("replyTo", replyTo);
     if (files && files.length > 0) {
       for (let i = 0; i < files.length; i++) {
         formData.append("files", files[i]);

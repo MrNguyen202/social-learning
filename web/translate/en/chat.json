@@ -15,5 +15,9 @@
     "isOnline":"Online",
     "calling_you":"calling you...",
     "accept_call":"Accept",
-    "decline_call":"Decline"
+    "decline_call":"Decline",
+    "image": "Image",
+    "file": "File",
+    "call": "Call",
+    "video": "Video"
 }

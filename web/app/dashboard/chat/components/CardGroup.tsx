@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import AvatarGroup from "./AvatarGroup";
 import useAuth from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
-import { getSocket } from "@/socket/socketClient";
 import { fetchUnreadCount } from "@/app/apiClient/chat/conversation/conversation";
 import { convertToTime } from "@/utils/formatTime";
 import { useLanguage } from "@/components/contexts/LanguageContext";
@@ -53,6 +52,8 @@ export default function CardGroup({ conversation, onClick }: CardGroupProps) {
 
   const [unreadCount, setUnreadCount] = useState(0);
 
+  console.log("Last Message:", conversation.lastMessage);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -100,12 +101,17 @@ export default function CardGroup({ conversation, onClick }: CardGroupProps) {
                 {conversation.lastMessage?.senderId === user?.id
                   ? `${t("dashboard.you")}: `
                   : conversation.members.find(
-                      (m) => m.id === conversation.lastMessage?.senderId
-                    )?.name + ": "}
+                    (m) => m.id === conversation.lastMessage?.senderId
+                  )?.name + ": "}
                 {typeof conversation.lastMessage?.content === "string"
                   ? conversation.lastMessage?.content
-                  : conversation.lastMessage?.content?.text ||
-                    t("dashboard.unsupportedContent")}
+                  : conversation.lastMessage?.content.type === "text" ?
+                    conversation.lastMessage?.content.text
+                    : conversation.lastMessage?.content.type === "file" ?
+                      `[${t("chat.file")}]`
+                      : conversation.lastMessage?.content.type === "image" ?
+                        `[${t("chat.image")}]`
+                        : t("dashboard.unsupportedContent")}
               </p>
             </div>
             <span className="text-gray-400 text-xs">

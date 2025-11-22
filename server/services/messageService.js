@@ -1,10 +1,12 @@
 const Message = require("../models/Message");
 const Conversation = require("../models/Conversation");
 const userService = require("./userService");
+const cloudinary = require("../config/cloudinaryConfig");
+const fs = require("fs");
 
 const messageService = {
     // Lưu tin nhắn mới
-    async saveMessage({ conversationId, senderId, text, files }) {
+    async saveMessage({ conversationId, senderId, text, files, replyTo }) {
         // Kiểm tra conversation tồn tại
         const conversation = await Conversation.findById(conversationId);
         if (!conversation) throw new Error("Conversation not found");
@@ -18,13 +20,50 @@ const messageService = {
         let file = null;
 
         if (files && files.length > 0) {
-            files.forEach(f => {
-                if (f.mimetype.startsWith("image/")) {
-                    images.push({ url: `/uploads/${f.filename}`, filename: f.originalname });
-                } else {
-                    file = { url: `/uploads/${f.filename}`, filename: f.originalname, size: f.size, mimeType: f.mimetype };
+            // Dùng Promise.all để upload nhiều file cùng lúc cho nhanh
+            const uploadPromises = files.map(async (f) => {
+                try {
+                    // Upload lên Cloudinary
+                    // f.path là đường dẫn tạm do Multer tạo ra
+                    const result = await cloudinary.uploader.upload(f.path, {
+                        folder: "social-learning/message_uploads", // Tên folder trên Cloudinary
+                        resource_type: "auto"      // Tự động nhận diện ảnh/video/raw file
+                    });
+
+                    // Xóa file tạm trên server sau khi upload thành công để tiết kiệm dung lượng
+                    if (fs.existsSync(f.path)) {
+                        fs.unlinkSync(f.path);
+                    }
+
+                    return {
+                        originalFile: f,
+                        cloudinaryResult: result
+                    };
+                } catch (err) {
+                    console.error("Cloudinary upload error:", err);
+                    throw err;
                 }
             });
+
+            const uploadedFiles = await Promise.all(uploadPromises);
+
+            // Phân loại file sau khi có kết quả từ Cloudinary
+            uploadedFiles.forEach(({ originalFile, cloudinaryResult }) => {
+                if (originalFile.mimetype.startsWith("image/")) {
+                    images.push({
+                        url: cloudinaryResult.secure_url, // URL từ Cloudinary
+                        filename: originalFile.originalname
+                    });
+                } else {
+                    file = {
+                        url: cloudinaryResult.secure_url, // URL từ Cloudinary
+                        filename: originalFile.originalname,
+                        size: originalFile.size,
+                        mimeType: originalFile.mimetype
+                    };
+                }
+            });
+
             if (images.length > 0 && text) type = "image"; // caption + ảnh
             else if (images.length > 0) type = "image";
             else type = "file";
@@ -42,10 +81,18 @@ const messageService = {
                 text: text || "",
                 images,
                 file
-            }
+            },
+            replyTo: replyTo || null
         });
 
         await message.save();
+
+        if (replyTo) {
+            await message.populate({
+                path: 'replyTo',
+                select: 'senderId content', // Chỉ lấy thông tin cần thiết
+            });
+        }
 
         // Cập nhật lại lastMessage
         conversation.lastMessage = message._id;
@@ -68,28 +115,39 @@ const messageService = {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
+            .populate({
+                path: 'replyTo',
+                select: 'senderId content' // Lấy nội dung tin gốc
+            })
             .lean();
-
         // B2: Lấy danh sách unique senderId
-        const senderIds = [...new Set(messages.map(m => m.senderId))];
-
-        if (senderIds.length === 0) return messages;
-
-        // B3: Lấy thông tin user từ Supabase (dùng in)
-        const { data: users, error } = await userService.getUsersByIds(senderIds);
-
-        if (error) throw new Error("Failed to fetch user data");
-
-        // B4: Merge thông tin sender vào message
-        const userMap = {};
-        users.forEach(u => {
-            userMap[u.id] = u;
+        const senderIds = new Set(messages.map(m => m.senderId));
+        messages.forEach(m => {
+            if (m.replyTo && m.replyTo.senderId) {
+                senderIds.add(m.replyTo.senderId);
+            }
         });
 
-        const messagesWithSender = messages.map(m => ({
-            ...m,
-            sender: userMap[m.senderId] || null,
-        }));
+        const { data: users, error } = await userService.getUsersByIds([...senderIds]);
+        if (error) throw new Error("Failed to fetch user data");
+
+        const userMap = {};
+        users.forEach(u => userMap[u.id] = u);
+
+        const messagesWithSender = messages.map(m => {
+            // Map sender cho tin nhắn chính
+            const msg = {
+                ...m,
+                sender: userMap[m.senderId] || null,
+            };
+
+            // Map sender cho tin nhắn được reply (nếu có)
+            if (msg.replyTo) {
+                msg.replyTo.sender = userMap[msg.replyTo.senderId] || null;
+            }
+
+            return msg;
+        });
 
         return messagesWithSender;
     },

@@ -15,5 +15,9 @@
     "isOnline":"Đang online",
     "calling_you":"đang gọi bạn...",
     "accept_call":"Chấp nhận",
-    "decline_call":"Từ chối"
+    "decline_call":"Từ chối",
+    "image": "Hình ảnh",
+    "file": "File",
+    "call": "Cuộc gọi",
+    "video": "Video"
 }

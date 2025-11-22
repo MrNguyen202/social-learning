@@ -275,6 +275,8 @@ const roadmapService = {
                     .eq("id", week.id);
                 if (weekError) throw new Error("Lỗi khi cập nhật tuần lộ trình học tập cũ: " + weekError.message);
             }
+        } else {
+            return;
         }
     }
 };
