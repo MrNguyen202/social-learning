@@ -43,6 +43,8 @@ export default function ChatDetail() {
     setInitialMessages,
     retryMessage,
     setMessages,
+    handleRevokeMessage,
+    handleDeleteMessage
   } = useChat(selectedConversation?.id, user);
 
   const [replyingTo, setReplyingTo] = useState<any | null>(null);
@@ -71,10 +73,12 @@ export default function ChatDetail() {
     const socket = getSocket();
     const conversationId = selectedConversation?.id;
 
+    // Tham gia room khi vào conversation
     if (conversationId) {
       socket.emit("joinRoom", conversationId);
     }
 
+    // Lắng nghe tin nhắn mới từ server
     socket.on("newMessage", (newMessage: any) => {
       if (newMessage.senderId === user?.id) return;
       addMessage(newMessage);
@@ -84,6 +88,7 @@ export default function ChatDetail() {
       }
     });
 
+    // Lắng nghe sự kiện đánh dấu đã đọc
     socket.on("markMessagesAsRead", ({ userId, seenAt, messageIds }: { userId: string; seenAt: string; messageIds: string[] }) => {
       if (setMessages) {
         setMessages((prevMessages) =>
@@ -103,9 +108,31 @@ export default function ChatDetail() {
       }
     });
 
+    // Lắng nghe sự kiện thu hồi tin nhắn
+    socket.on("messageRevoked", ({ messageId }: { messageId: string }) => {
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) => {
+          if (msg._id === messageId) {
+            return {
+              ...msg,
+              revoked: true,
+              content: {
+                type: "text",
+                text: "Tin nhắn đã bị thu hồi",
+                images: [],
+                file: null,
+              },
+            };
+          }
+          return msg;
+        })
+      );
+    });
+
     return () => {
       socket.off("newMessage");
       socket.off("markMessagesAsRead");
+      socket.off("messageRevoked");
       if (conversationId) {
         socket.emit("leaveRoom", conversationId);
       }
@@ -502,6 +529,8 @@ export default function ChatDetail() {
                   showTimestamp={showTimestamp}
                   isLastInSequence={isLastInSequence}
                   onReply={() => handleReply(message)}
+                  onRevoke={() => handleRevokeMessage(message._id)}
+                  onDelete={() => handleDeleteMessage(message._id)}
                 />
               ) : (
                 <MessageReceiver
@@ -510,6 +539,7 @@ export default function ChatDetail() {
                   showAvatar={showAvatar}
                   isLastInSequence={isLastInSequence}
                   onReply={() => handleReply(message)}
+                  onDelete={() => handleDeleteMessage(message._id)}
                 />
               )}
             </div>

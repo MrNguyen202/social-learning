@@ -4,6 +4,8 @@ const userService = require("./userService");
 const cloudinary = require("../config/cloudinaryConfig");
 const fs = require("fs");
 
+const REVOKE_TIME_LIMIT = 60 * 60 * 1000;
+
 const messageService = {
     // Lưu tin nhắn mới
     async saveMessage({ conversationId, senderId, text, files, replyTo }) {
@@ -107,11 +109,17 @@ const messageService = {
     },
 
     // Lấy danh sách tin nhắn trong cuộc trò chuyện với phân trang
-    async getMessagesByConversationId(conversationId, { page = 1, limit = 20 }) {
+    async getMessagesByConversationId(conversationId, userId, { page = 1, limit = 20 }) {
         const skip = (page - 1) * limit;
 
+        // Điều kiện: mảng 'removed' KHÔNG chứa userId
+        const query = {
+            conversationId,
+            "removed.userId": { $ne: userId } // $ne: not equal (không tồn tại trong mảng)
+        };
+
         // B1: Lấy messages trong MongoDB
-        const messages = await Message.find({ conversationId })
+        const messages = await Message.find(query)
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
@@ -181,6 +189,55 @@ const messageService = {
         );
 
         return { modifiedCount: result.modifiedCount, data: messages, seenAt: seenAtTime };
+    },
+
+    // Thu hồi tin nhắn
+    async revokeMessage(messageId, userId) {
+        const message = await Message.findById(messageId);
+        if (!message) throw new Error("Tin nhắn không tồn tại");
+
+        // 1. Kiểm tra tin nhắn đã bị thu hồi chưa
+        if (message.revoked) {
+            throw new Error("Tin nhắn đã bị thu hồi trước đó");
+        }
+
+        // 2. Kiểm tra quyền: Chỉ người gửi mới được thu hồi
+        if (message.senderId.toString() !== userId) {
+            throw new Error("Bạn không có quyền thu hồi tin nhắn này");
+        }
+
+        // 3. [MỚI] Kiểm tra thời gian giới hạn
+        const now = new Date();
+        const messageTime = new Date(message.createdAt);
+        const timeDiff = now.getTime() - messageTime.getTime();
+
+        if (timeDiff > REVOKE_TIME_LIMIT) {
+            throw new Error("Đã quá thời gian cho phép thu hồi tin nhắn (1 giờ)");
+        }
+
+        // Logic cập nhật (Giữ nguyên như bạn đã sửa: Chỉ đổi cờ revoked)
+        message.revoked = true;
+
+        // Lưu ý: KHÔNG sửa content ở đây (như thảo luận trước)
+        await message.save();
+        return message;
+    },
+
+    // Xóa tin nhắn (nếu cần)
+    async deleteMessageForUser(messageId, userId) {
+        const message = await Message.findByIdAndUpdate(
+            messageId,
+            {
+                $addToSet: {
+                    removed: {
+                        userId: userId,
+                        removedAt: new Date()
+                    }
+                }
+            },
+            { new: true }
+        );
+        return message;
     }
 };
 

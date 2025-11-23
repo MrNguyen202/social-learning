@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { sendMessage as apiSendMessage } from "@/app/apiClient/chat/message/message";
+import { sendMessage as apiSendMessage, deleteMessageForUser, revokeMessage } from "@/app/apiClient/chat/message/message";
 import { toast } from "react-toastify";
 
 // Định nghĩa type mở rộng cho tin nhắn local
@@ -169,6 +169,44 @@ export const useChat = (conversationId: string | undefined, user: any) => {
         }
     };
 
+    // 5. Hàm Thu hồi tin nhắn (Thêm mới)
+    const handleRevokeMessage = async (messageId: string) => {
+        if (!user) return;
+
+        try {
+            await revokeMessage(messageId, user.id);
+
+            // Update UI Optimistic (Cập nhật ngay lập tức trước khi socket trả về để mượt hơn)
+            setMessages((prev) =>
+                prev.map((msg) =>
+                    msg._id === messageId
+                        ? {
+                            ...msg,
+                            revoked: true, // Cần thêm field này vào type LocalMessage
+                            content: { ...msg.content, text: "Tin nhắn đã bị thu hồi", images: [], file: null }
+                        }
+                        : msg
+                )
+            );
+        } catch (error) {
+            console.error("Thu hồi thất bại:", error);
+            toast.error("Không thể thu hồi tin nhắn");
+        }
+    };
+
+    const handleDeleteMessage = async (messageId: string) => {
+        if (!user) return;
+
+        setMessages((prev) => prev.filter((msg) => msg._id !== messageId));
+
+        try {
+            await deleteMessageForUser(messageId);
+        } catch (error) {
+            console.error("Xóa thất bại:", error);
+            toast.error("Không thể xóa tin nhắn");
+        }
+    };
+
     return {
         messages,
         addMessage,
@@ -176,5 +214,7 @@ export const useChat = (conversationId: string | undefined, user: any) => {
         sendMessage,
         retryMessage,
         setMessages,
+        handleRevokeMessage,
+        handleDeleteMessage
     };
 };

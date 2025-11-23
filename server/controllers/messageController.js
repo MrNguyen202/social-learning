@@ -70,8 +70,34 @@ const messageController = {
         try {
             const { conversationId } = req.params;
             const { page, limit } = req.query;
-            const messages = await messageService.getMessagesByConversationId(conversationId, { page: parseInt(page) || 1, limit: parseInt(limit) || 20 });
-            res.status(200).json(messages);
+
+            // Nếu bạn chưa có middleware auth, có thể tạm lấy từ query params: req.query.userId
+            const userId = req.user.id;
+
+            if (!userId) {
+                return res.status(401).json({ error: "Unauthorized: User ID required" });
+            }
+
+            // Truyền userId vào service
+            const messages = await messageService.getMessagesByConversationId(
+                conversationId,
+                userId,
+                { page: parseInt(page) || 1, limit: parseInt(limit) || 20 }
+            );
+
+            // [LOGIC CHE NỘI DUNG THU HỒI - Như đã làm ở bước trước]
+            const safeMessages = messages.map(msg => {
+                if (msg.revoked) {
+                    return {
+                        ...msg,
+                        content: { type: "text", text: null, images: [], file: null },
+                        replyTo: msg.replyTo
+                    };
+                }
+                return msg;
+            });
+
+            res.status(200).json(safeMessages);
         } catch (error) {
             console.error("Error fetching messages:", error);
             res.status(500).json({ error: error.message });
@@ -113,7 +139,58 @@ const messageController = {
             console.error("Error marking messages as read:", error);
             res.status(500).json({ error: error.message });
         }
-    }
+    },
+
+    // Thu hồi tin nhắn
+    revokeMessage: async (req, res) => {
+        try {
+            const { messageId } = req.params;
+            const { userId } = req.body; // Lấy từ middleware auth hoặc req.body
+
+            const updatedMessage = await messageService.revokeMessage(messageId, userId);
+
+            // Masking: Tạo object trả về cho client đã bị che nội dung
+            const safeMessage = {
+                ...updatedMessage.toObject(),
+                content: {
+                    type: "text",
+                    text: null, // Che nội dung gốc
+                    images: [],
+                    file: null
+                }
+            };
+
+            // Gửi Socket thông báo cho tất cả thành viên trong room
+            const io = getIO();
+            io.to(safeMessage.conversationId.toString()).emit("messageRevoked", {
+                messageId: safeMessage._id,
+                conversationId: safeMessage.conversationId
+            });
+
+            res.status(200).json(safeMessage);
+        } catch (error) {
+            console.error("Error revoking message:", error);
+            res.status(500).json({ error: error.message });
+        }
+    },
+
+    // Xóa tin nhắn (nếu cần)
+    deleteMessageForUser: async (req, res) => {
+        try {
+            const { messageId } = req.params;
+           
+            const userId = req.user.id; 
+
+            await messageService.deleteMessageForUser(messageId, userId);
+
+            // Trả về success, không cần gửi socket cho người khác 
+            // vì hành động này chỉ ảnh hưởng cá nhân
+            res.status(200).json({ message: "Deleted successfully", messageId });
+        } catch (error) {
+            console.error("Error deleting message:", error);
+            res.status(500).json({ error: error.message });
+        }
+    },
 };
 
 module.exports = messageController;

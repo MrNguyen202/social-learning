@@ -16,6 +16,8 @@ interface MessageSenderProps {
     showTimestamp?: boolean;
     isLastInSequence?: boolean;
     onReply?: () => void;
+    onRevoke?: () => void;
+    onDelete?: () => void;
 }
 
 export default function MessageSender({
@@ -23,9 +25,11 @@ export default function MessageSender({
     onRetry,
     showTimestamp = false,
     isLastInSequence = false,
-    onReply
+    onReply,
+    onRevoke,
+    onDelete
 }: MessageSenderProps) {
-    const { status, createdAt, seens } = message; // Lấy thêm mảng seens
+    const { status, createdAt, seens, revoked } = message; // Lấy thêm mảng seens
     const { selectedConversation } = useConversation(); // Lấy thông tin cuộc trò chuyện
     const { user } = useAuth();
 
@@ -60,13 +64,17 @@ export default function MessageSender({
     const handleReply = () => {
         onReply?.();
     };
-    const handleDelete = () => console.log("Delete for me", message._id);
-    const handleRevoke = () => console.log("Revoke", message._id);
+    const handleDelete = () => {
+        onDelete?.();
+    };
+    const handleRevoke = () => {
+        onRevoke?.();
+    };
 
     return (
         <div className={`flex flex-row justify-end items-center ${marginBottom} w-full group/message`}>
             {/* --- ACTION BUTTONS (Bên Trái Bong Bóng) --- */}
-            {isSent && status !== "error" && (
+            {!revoked && isSent && status !== "error" && (
                 <div className={`
                             flex items-center gap-1 transition-opacity duration-200 
                             ${isMenuOpen ? "opacity-100" : "opacity-0 group-hover/message:opacity-100"}
@@ -91,6 +99,7 @@ export default function MessageSender({
                                 onReply={handleReply}
                                 onDelete={handleDelete}
                                 onRevoke={handleRevoke}
+                                createdAt={message.createdAt}
                             />
                         )}
                     </div>
@@ -107,43 +116,49 @@ export default function MessageSender({
                     </button>
                 )}
 
-                <div className={`bg-blue-100 text-blue-800 p-3 rounded-2xl shadow-sm flex flex-col transition-all min-w-[100px]
+                {revoked ? (
+                    <div className="bg-blue-100 text-blue-800 p-3 rounded-2xl shadow-sm flex flex-col transition-all min-w-[100px] italic text-sm sm:text-base">
+                        Tin nhắn đã bị thu hồi
+                    </div>
+                ) : (
+                    <div className={`bg-blue-100 text-blue-800 p-3 rounded-2xl shadow-sm flex flex-col transition-all min-w-[100px]
                         ${status === "sending" ? "opacity-60" : "opacity-100"} 
                         ${status === "error" ? "border border-red-400 bg-red-50" : ""}
                         ${!shouldShowStatus ? "rounded-br-md" : "rounded-br-2xl"}
                         ${isAdmin ? "border-2 border-yellow-400/30 bg-blue-50" : ""}
                     `}
-                >
-                    {isAdmin && (
-                        <div className="flex items-center justify-end gap-1 mb-1 pb-1 border-b border-blue-200/50 select-none w-full">
-                            <div className="bg-yellow-100 p-0.5 rounded-full border border-yellow-300 flex items-center justify-center">
-                                <Key size={10} className="text-yellow-600 fill-yellow-600" />
+                    >
+                        {isAdmin && (
+                            <div className="flex items-center justify-end gap-1 mb-1 pb-1 border-b border-blue-200/50 select-none w-full">
+                                <div className="bg-yellow-100 p-0.5 rounded-full border border-yellow-300 flex items-center justify-center">
+                                    <Key size={10} className="text-yellow-600 fill-yellow-600" />
+                                </div>
+                                <span className="text-[12px] font-bold text-blue-600 leading-none">Bạn</span>
                             </div>
-                            <span className="text-[12px] font-bold text-blue-600 leading-none">Bạn</span>
-                        </div>
-                    )}
+                        )}
 
-                    {message.replyTo && (
-                        <div className="mb-2 p-2 bg-blue-50/60 rounded-md border-l-4 border-blue-400 text-xs text-left relative">
-                            <p className="font-bold text-blue-700 mb-0.5">
-                                {message.replyTo.sender?.name || "Người dùng"}
+                        {message.replyTo && (
+                            <div className="mb-2 p-2 bg-blue-50/60 rounded-md border-l-4 border-blue-400 text-xs text-left relative">
+                                <p className="font-bold text-blue-700 mb-0.5">
+                                    {message.replyTo.sender?.name || "Người dùng"}
+                                </p>
+                                <p className="text-blue-900/70 truncate max-w-[180px]">
+                                    {message.replyTo.content?.text || (message.replyTo.content?.images?.length ? "[Hình ảnh]" : "[File]")}
+                                </p>
+                            </div>
+                        )}
+
+                        {message.content.text && (
+                            <p className="text-sm sm:text-base break-words whitespace-pre-wrap w-full text-letf">
+                                {message.content.text}
                             </p>
-                            <p className="text-blue-900/70 truncate max-w-[180px]">
-                                {message.replyTo.content?.text || (message.replyTo.content?.images?.length ? "[Hình ảnh]" : "[File]")}
-                            </p>
+                        )}
+
+                        <div className="w-full flex justify-end">
+                            <MessageAttachments images={message.content.images} file={message.content.file} />
                         </div>
-                    )}
-
-                    {message.content.text && (
-                        <p className="text-sm sm:text-base break-words whitespace-pre-wrap w-full text-letf">
-                            {message.content.text}
-                        </p>
-                    )}
-
-                    <div className="w-full flex justify-end">
-                        <MessageAttachments images={message.content.images} file={message.content.file} />
                     </div>
-                </div>
+                )}
 
                 {/* DÒNG TRẠNG THÁI & ĐÃ XEM */}
                 {shouldShowStatus && (
