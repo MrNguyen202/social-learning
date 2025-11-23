@@ -85,3 +85,16 @@ export async function deleteMessageForUser(messageId: any) {
     throw error;
   }
 }
+
+// Hàm để thích / bỏ thích tin nhắn
+export async function toggleLikeMessage(messageId: any) {
+  try {
+    const response = await api.post(
+      `/api/messages/like/${messageId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error toggling like on message:", error);
+    throw error;
+  }
+}

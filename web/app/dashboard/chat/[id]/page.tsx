@@ -1,6 +1,6 @@
 "use client";
 import useAuth from "@/hooks/useAuth";
-import { Info, Paperclip, Phone, Reply, Smile, Video, X } from "lucide-react";
+import { Info, Mic, Paperclip, Phone, Reply, Send, Smile, Trash2, Video, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import MessageSender from "./components/MessageSender";
 import MessageReceiver from "./components/MessageReceiver";
@@ -20,6 +20,7 @@ import { toast } from "react-toastify";
 import EmojiPicker from 'emoji-picker-react';
 import getFileIconUrl from "@/utils/getIconTypeAttach";
 import { useChat } from "@/hooks/useChat";
+import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 
 export default function ChatDetail() {
   const { t } = useLanguage();
@@ -44,8 +45,17 @@ export default function ChatDetail() {
     retryMessage,
     setMessages,
     handleRevokeMessage,
-    handleDeleteMessage
+    handleDeleteMessage,
+    handleToggleLike
   } = useChat(selectedConversation?.id, user);
+
+  const {
+    isRecording,
+    formattedTime,
+    startRecording,
+    stopRecording,
+    cancelRecording
+  } = useAudioRecorder();
 
   const [replyingTo, setReplyingTo] = useState<any | null>(null);
   const [showNewMessageButton, setShowNewMessageButton] = useState(false);
@@ -69,6 +79,8 @@ export default function ChatDetail() {
       setNewMessageCount(0);
     }
   };
+
+  // Lắng nghe sự kiện Socket
   useEffect(() => {
     const socket = getSocket();
     const conversationId = selectedConversation?.id;
@@ -129,10 +141,20 @@ export default function ChatDetail() {
       );
     });
 
+    // Lắng nghe sự kiện thả yêu thích tin nhắn
+    socket.on("messageReactionUpdated", ({ messageId, likes }: { messageId: string, likes: any[] }) => {
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg._id === messageId ? { ...msg, likes: likes } : msg
+        )
+      );
+    });
+
     return () => {
       socket.off("newMessage");
       socket.off("markMessagesAsRead");
       socket.off("messageRevoked");
+      socket.off("messageReactionUpdated");
       if (conversationId) {
         socket.emit("leaveRoom", conversationId);
       }
@@ -173,7 +195,7 @@ export default function ChatDetail() {
     }
   }, [messages, initialLoad]);
 
-  // ===== XỬ LÝ INFINITE SCROLL =====
+  // XỬ LÝ INFINITE SCROLL
   const loadMoreMessages = async () => {
     if (!hasMore || isLoadingMore || !selectedConversation?.id || isLoadingRef.current) return;
 
@@ -279,7 +301,6 @@ export default function ChatDetail() {
   };
 
   // Giữ vị trí scroll sau khi load more - BỎ useEffect này vì đã xử lý trong loadMoreMessages
-
   const handleSendMessage = async () => {
     if (text.trim() === "" && files.length === 0) return;
 
@@ -338,6 +359,7 @@ export default function ChatDetail() {
     checkOnlineStatus();
   }, [selectedConversation, user?.id]);
 
+  // Hàm xử lý bắt đầu cuộc gọi
   const handleStartCall = () => {
     if (!onlineStatus) {
       const message =
@@ -360,6 +382,7 @@ export default function ChatDetail() {
     router.push(`/room/${selectedConversation?.id}`);
   };
 
+  // Ẩn hiện emoji picker
   useEffect(() => {
     const handleClickOutside = (e: any) => {
       if (emojiRef.current && !emojiRef.current.contains(e.target)) {
@@ -374,6 +397,7 @@ export default function ChatDetail() {
     };
   }, []);
 
+  // Xử lý chọn file
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const selected = Array.from(e.target.files);
@@ -383,9 +407,20 @@ export default function ChatDetail() {
     }, 0);
   };
 
+  // Xử lý trả lời tin nhắn
   const handleReply = (message: any) => {
     setReplyingTo(message);
     fileInputRef.current?.focus();
+  };
+
+  // Xử lý dừng ghi âm và gửi file
+  const handleStopAndSend = async () => {
+    const audioFile = await stopRecording(); // Chờ hook trả về file
+
+    if (audioFile) {
+      // Gọi hàm gửi tin nhắn có sẵn của bạn
+      sendMessage("", [audioFile], replyingTo);
+    }
   };
 
   return (
@@ -531,6 +566,7 @@ export default function ChatDetail() {
                   onReply={() => handleReply(message)}
                   onRevoke={() => handleRevokeMessage(message._id)}
                   onDelete={() => handleDeleteMessage(message._id)}
+                  onLike={() => handleToggleLike(message._id)}
                 />
               ) : (
                 <MessageReceiver
@@ -540,6 +576,7 @@ export default function ChatDetail() {
                   isLastInSequence={isLastInSequence}
                   onReply={() => handleReply(message)}
                   onDelete={() => handleDeleteMessage(message._id)}
+                  onLike={() => handleToggleLike(message._id)}
                 />
               )}
             </div>
@@ -608,74 +645,108 @@ export default function ChatDetail() {
           </div>
         )}
 
-        <Smile
-          onClick={() => setShowEmojiPicker((prev) => !prev)}
-          className="text-gray-500 w-8 h-8 hover:cursor-pointer"
-        />
+        {isRecording ? (
+          // UI GHI ÂM
+          <div className="flex-1 flex items-center gap-4 bg-gray-100 p-2 rounded-lg animate-in fade-in duration-200">
+            <div className="flex items-center gap-2 text-red-500 animate-pulse">
+              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              <span className="font-medium">{formattedTime}</span> {/* Dùng biến từ hook */}
+            </div>
+            <span className="flex-1 text-gray-500 text-sm">Đang ghi âm...</span>
 
-        {showEmojiPicker && (
-          <div ref={emojiRef} className="absolute bottom-20 left-2 z-50">
-            <EmojiPicker
-              onEmojiClick={(emojiData) => {
-                setText((prev) => prev + emojiData.emoji);
-              }}
+            <button
+              type="button"
+              onClick={cancelRecording}
+              className="p-2 text-gray-500 hover:bg-gray-200 rounded-full hover:text-red-500 transition"
+            >
+              <Trash2 size={20} />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleStopAndSend} // Gọi hàm wrapper
+              className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
+            >
+              <Send size={18} />
+            </button>
+          </div>
+        ) : (
+          <>
+            <Smile
+              onClick={() => setShowEmojiPicker((prev) => !prev)}
+              className="text-gray-500 w-8 h-8 hover:cursor-pointer"
             />
-          </div>
-        )}
 
-        <Paperclip
-          onClick={() => fileInputRef.current?.click()}
-          className="text-gray-500 w-8 h-8 hover:cursor-pointer"
-        />
-        <input
-          type="file"
-          multiple
-          ref={fileInputRef}
-          className="hidden"
-          onChange={(e) => handleFileChange(e)}
-          accept="image/*,video/*,application/pdf,.doc,.docx,.xlsx,.zip,.rar"
-        />
-        {files.length > 0 && (
-          <div className="absolute bottom-16 left-2 z-50 flex gap-2 p-2 flex-wrap">
-            {files.map((file, idx) => (
-              <div
-                key={idx}
-                className="relative flex items-center gap-2 w-40 p-2 bg-gray-300 rounded"
-              >
-                <img
-                  src={getFileIconUrl(file)}
-                  alt={file.name}
-                  className="w-6 h-6 flex-shrink-0"
+            {showEmojiPicker && (
+              <div ref={emojiRef} className="absolute bottom-20 left-2 z-50">
+                <EmojiPicker
+                  onEmojiClick={(emojiData) => {
+                    setText((prev) => prev + emojiData.emoji);
+                  }}
                 />
-                <span className="text-sm text-gray-700 truncate" title={file.name}>
-                  {file.name}
-                </span>
-                <button
-                  type="button"
-                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-1 text-xs"
-                  onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))}
-                >
-                  ×
-                </button>
               </div>
-            ))}
-          </div>
-        )}
+            )}
 
-        <input
-          type="text"
-          ref={textInputRef}
-          placeholder={t("dashboard.typeYourMessage")}
-          className="w-full p-2 border border-gray-300 rounded"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="p-2 bg-blue-500 text-white rounded hover:cursor-pointer"
-        >
-          Gửi
-        </button>
+            <Paperclip
+              onClick={() => fileInputRef.current?.click()}
+              className="text-gray-500 w-8 h-8 hover:cursor-pointer"
+            />
+            <input
+              type="file"
+              multiple
+              ref={fileInputRef}
+              className="hidden"
+              onChange={(e) => handleFileChange(e)}
+              accept="image/*,video/*,application/pdf,.doc,.docx,.xlsx,.zip,.rar"
+            />
+            {files.length > 0 && (
+              <div className="absolute bottom-16 left-2 z-50 flex gap-2 p-2 flex-wrap">
+                {files.map((file, idx) => (
+                  <div
+                    key={idx}
+                    className="relative flex items-center gap-2 w-40 p-2 bg-gray-300 rounded"
+                  >
+                    <img
+                      src={getFileIconUrl(file)}
+                      alt={file.name}
+                      className="w-6 h-6 flex-shrink-0"
+                    />
+                    <span className="text-sm text-gray-700 truncate" title={file.name}>
+                      {file.name}
+                    </span>
+                    <button
+                      type="button"
+                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-1 text-xs"
+                      onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <input
+              type="text"
+              ref={textInputRef}
+              placeholder={t("dashboard.typeYourMessage")}
+              className="w-full p-2 border border-gray-300 rounded"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
+            {text.trim() || files.length > 0 ? (
+              <button type="submit" className="p-2 bg-blue-500 text-white rounded hover:cursor-pointer"> <Send size={20} /> </button>
+            ) : (
+              <button
+                type="button"
+                onClick={startRecording} // Gọi hàm từ hook
+                className="p-2 bg-gray-200 text-gray-700 rounded hover:cursor-pointer"
+              >
+                <Mic size={24} />
+              </button>
+            )}
+          </>
+        )}
       </form>
     </div>
   );

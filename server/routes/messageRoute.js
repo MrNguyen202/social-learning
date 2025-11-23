@@ -20,4 +20,7 @@ router.post('/revoke/:messageId', messageController.revokeMessage);
 // Xóa tin nhắn đối với người dùng
 router.post('/remove/:messageId', authMiddleware, messageController.deleteMessageForUser);
 
+// Thích / bỏ thích tin nhắn
+router.post('/like/:messageId', authMiddleware, messageController.toggleLikeMessage);
+
 module.exports = router;

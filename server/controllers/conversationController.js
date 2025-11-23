@@ -51,7 +51,6 @@ const conversationController = {
         }
     },
 
-
     // Lấy danh sách cuộc trò chuyện của người dùng
     getUserConversations: async (req, res) => {
         // Lấy userId từ req.user (đã được authMiddleware thêm vào)
@@ -60,7 +59,7 @@ const conversationController = {
             const conversations = await conversationService.getUserConversations(userId);
             const formattedConversations = await Promise.all(
                 conversations.map(async (conversation) => {
-                    // Lấy thông tin members
+                    // ... Logic lấy members giữ nguyên ...
                     const members = await Promise.all(
                         conversation.members.map(async (member) => {
                             const user = await userService.getUserData(member.userId);
@@ -75,15 +74,31 @@ const conversationController = {
                         })
                     );
 
-                    // Tim last message
-                    const lastMessage = await getMessageById(conversation.lastMessage);
+                    // [LOGIC MỚI] Xử lý Last Message
+                    let lastMessage = null;
+
+                    // 1. Lấy lastMessage gốc được lưu trong Conversation
+                    const rawLastMessage = await getMessageById(conversation.lastMessage);
+
+                    // 2. Kiểm tra xem tin nhắn này có tồn tại và User có xóa nó không?
+                    if (rawLastMessage) {
+                        const isDeletedByMe = rawLastMessage.removed && rawLastMessage.removed.some(r => r.userId === userId);
+
+                        if (isDeletedByMe) {
+                            // 3. Nếu đã xóa, tìm tin nhắn gần nhất chưa bị xóa
+                            lastMessage = await conversationService.getLastVisibleMessage(conversation._id, userId);
+                        } else {
+                            // 4. Nếu chưa xóa, dùng luôn tin nhắn này
+                            lastMessage = rawLastMessage;
+                        }
+                    }
 
                     return {
                         id: conversation._id.toString(),
-                        name: conversation.name || "", // có thể để fallback từ member nếu là private
+                        name: conversation.name || "",
                         avatarUrl: conversation.avatar || "/default-avatar-profile-icon.jpg",
                         members,
-                        lastMessage: lastMessage,
+                        lastMessage: lastMessage, // Trả về tin nhắn đã xử lý
                         type: conversation.type
                     };
                 })
@@ -112,10 +127,11 @@ const conversationController = {
 
     // Kiểm tra xem cuộc trò chuyện có tồn tại không dựa vào userId1 và userId2 
     findConversationBetweenUsers: async (req, res) => {
-        const { userId1, userId2 } = req.params;
+        const { userId2 } = req.params;
+        // Lấy userId hiện tại từ req.user để kiểm tra quyền truy cập nếu cần
+        const currentUserId = req.user.id;
         try {
-            const conversation = await conversationService.findConversationBetweenUsers(userId1, userId2);
-
+            const conversation = await conversationService.findConversationBetweenUsers(currentUserId, userId2);
             if (!conversation) {
                 return res.status(200).json({ message: "No" });
             }
@@ -135,14 +151,32 @@ const conversationController = {
                 })
             );
 
-            const lastMessage = await getMessageById(conversation.lastMessage);
+            let lastMessage = null;
+
+            // Lấy tin nhắn cuối cùng gốc được lưu trong Conversation
+            const rawLastMessage = await getMessageById(conversation.lastMessage);
+
+            // Kiểm tra logic
+            if (rawLastMessage) {
+                // Kiểm tra xem user hiện tại có trong mảng `removed` không
+                const isDeletedByMe = rawLastMessage.removed && rawLastMessage.removed.some(r => r.userId === currentUserId);
+
+                if (isDeletedByMe) {
+                    // Nếu đã xóa, gọi service để tìm tin nhắn hợp lệ kế tiếp
+                    // (Đảm bảo bạn đã thêm hàm getLastVisibleMessage vào conversationService như hướng dẫn trước)
+                    lastMessage = await conversationService.getLastVisibleMessage(conversation._id, currentUserId);
+                } else {
+                    // Nếu chưa xóa, hiển thị bình thường
+                    lastMessage = rawLastMessage;
+                }
+            }
 
             const formattedConversation = {
                 id: conversation._id.toString(),
-                name: conversation.name || "", // có thể fallback từ member nếu là private
+                name: conversation.name || "",
                 avatarUrl: conversation.avatar || "/default-avatar-profile-icon.jpg",
                 members,
-                lastMessage,
+                lastMessage: lastMessage,
                 type: conversation.type,
             };
 

@@ -178,8 +178,8 @@ const messageController = {
     deleteMessageForUser: async (req, res) => {
         try {
             const { messageId } = req.params;
-           
-            const userId = req.user.id; 
+
+            const userId = req.user.id;
 
             await messageService.deleteMessageForUser(messageId, userId);
 
@@ -188,6 +188,32 @@ const messageController = {
             res.status(200).json({ message: "Deleted successfully", messageId });
         } catch (error) {
             console.error("Error deleting message:", error);
+            res.status(500).json({ error: error.message });
+        }
+    },
+
+    // Thích/ bỏ thích tin nhắn
+    toggleLikeMessage: async (req, res) => {
+        try {
+            const { messageId } = req.params;
+            // Lấy userId từ middleware auth
+            const userId = req.user.id; 
+
+            // 1. Gọi Service để xử lý Logic DB
+            const updatedMessage = await messageService.toggleLikeMessage(messageId, userId);
+
+            // 2. Gửi Socket update cho các thành viên trong room
+            const io = getIO();
+            io.to(updatedMessage.conversationId.toString()).emit("messageReactionUpdated", {
+                messageId: updatedMessage._id,
+                conversationId: updatedMessage.conversationId,
+                likes: updatedMessage.likes
+            });
+
+            // 3. Phản hồi API
+            res.status(200).json(updatedMessage);
+        } catch (error) {
+            console.error("Error toggling like:", error);
             res.status(500).json({ error: error.message });
         }
     },

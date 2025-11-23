@@ -32,7 +32,7 @@ export default function ListConversation() {
             if (!user?.id || loading) return;
             setLoadingConversations(true);
             try {
-                const res = await fetchConversations(user.id);
+                const res = await fetchConversations();
                 setConversations(res);
             } catch (error) {
                 console.error("Error fetching conversations:", error);
@@ -46,9 +46,13 @@ export default function ListConversation() {
             fetchData();
         });
 
+        // Lắng nghe sự kiện 'NotificationMessagesRead' từ server để cập nhật danh sách cuộc trò chuyện
         socket.on("notificationMessagesRead", () => {
             fetchData();
         });
+
+        // Lắng nghe sự kiện 'messageRevoked' từ server để cập nhật danh sách cuộc trò chuyện
+        socket.on("messageRevoked", fetchData);
 
         fetchData();
 
@@ -56,6 +60,7 @@ export default function ListConversation() {
         return () => {
             socket.off("notificationNewMessage");
             socket.off("notificationMessagesRead");
+            socket.off("messageRevoked");
         };
     }, [user?.id, loading]);
 

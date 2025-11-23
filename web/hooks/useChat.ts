@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { sendMessage as apiSendMessage, deleteMessageForUser, revokeMessage } from "@/app/apiClient/chat/message/message";
+import { sendMessage as apiSendMessage, deleteMessageForUser, revokeMessage, toggleLikeMessage } from "@/app/apiClient/chat/message/message";
 import { toast } from "react-toastify";
 
 // Định nghĩa type mở rộng cho tin nhắn local
@@ -27,6 +27,7 @@ export interface LocalMessage {
     status?: MessageStatus;
     filesData?: File[]; // Lưu file gốc để gửi lại nếu lỗi,
     replyTo?: any;
+    likes?: any[];
 }
 
 export const useChat = (conversationId: string | undefined, user: any) => {
@@ -169,7 +170,7 @@ export const useChat = (conversationId: string | undefined, user: any) => {
         }
     };
 
-    // 5. Hàm Thu hồi tin nhắn (Thêm mới)
+    // 5. Hàm Thu hồi tin nhắn
     const handleRevokeMessage = async (messageId: string) => {
         if (!user) return;
 
@@ -194,6 +195,7 @@ export const useChat = (conversationId: string | undefined, user: any) => {
         }
     };
 
+    // 6. Hàm Xóa tin nhắn đối với người dùng
     const handleDeleteMessage = async (messageId: string) => {
         if (!user) return;
 
@@ -207,6 +209,41 @@ export const useChat = (conversationId: string | undefined, user: any) => {
         }
     };
 
+    // 7. Hàm Toggle Like
+    const handleToggleLike = async (messageId: string) => {
+        if (!user) return;
+
+        try {
+            // Optimistic Update: Cập nhật UI ngay lập tức trước khi server phản hồi
+            setMessages((prev) =>
+                prev.map((msg) => {
+                    if (msg._id === messageId) {
+                        const likes = msg.likes || [];
+                        const isLiked = likes.some((l: any) => l.userId === user.id);
+
+                        let newLikes;
+                        if (isLiked) {
+                            // Nếu đã like -> Xóa like của mình
+                            newLikes = likes.filter((l: any) => l.userId !== user.id);
+                        } else {
+                            // Nếu chưa like -> Thêm like của mình
+                            newLikes = [...likes, { userId: user.id, likedAt: new Date().toISOString() }];
+                        }
+
+                        return { ...msg, likes: newLikes };
+                    }
+                    return msg;
+                })
+            );
+
+            // Gọi API
+            await toggleLikeMessage(messageId);
+        } catch (error) {
+            console.error("Like thất bại:", error);
+            toast.error("Thao tác thất bại");
+        }
+    };
+
     return {
         messages,
         addMessage,
@@ -215,6 +252,7 @@ export const useChat = (conversationId: string | undefined, user: any) => {
         retryMessage,
         setMessages,
         handleRevokeMessage,
-        handleDeleteMessage
+        handleDeleteMessage,
+        handleToggleLike
     };
 };
