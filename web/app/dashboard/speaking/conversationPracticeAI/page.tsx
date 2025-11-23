@@ -1,11 +1,12 @@
 "use client";
+
 import { useEffect, useRef, useState, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Sparkles, Trophy, Loader2 } from "lucide-react";
+import { ArrowLeft, Sparkles, Trophy, Loader2, Settings } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -23,20 +24,17 @@ import {
   insertOrUpdateVocabularyErrors,
   updateMasteryScoreRPC,
 } from "@/app/apiClient/learning/vocabulary/vocabulary";
-import { Button } from "@/components/ui/button";
 import { useWindowSize } from "react-use";
 import RoleSelector from "./components/RoleSelector";
 import ConversationPreview from "./components/ConversationPreview";
 import ChatHistory from "./components/ChatHistory";
 import ConversationControls from "./components/ConversationControls";
-import { getLevelBySlug, getTopicBySlug } from "@/app/apiClient/learning/learning";
+import {
+  getLevelBySlug,
+  getTopicBySlug,
+} from "@/app/apiClient/learning/learning";
 import { updateLessonCompletedCount } from "@/app/apiClient/learning/roadmap/roadmap";
-
-interface Line {
-  id: "A" | "B";
-  speaker: string;
-  content: string;
-}
+import SettingsModal from "./components/SettingsModal";
 
 function ConversationPracticeContent() {
   const router = useRouter();
@@ -45,7 +43,10 @@ function ConversationPracticeContent() {
   const searchParams = useSearchParams();
   const levelSlug = searchParams.get("level");
   const topicSlug = searchParams.get("topic");
-
+  const topicParent =
+    typeof window !== "undefined"
+      ? JSON.parse(sessionStorage.getItem("topicParent") || "null")
+      : null;
   const [dialogue, setDialogue] = useState<any[]>([]);
   const [description, setDescription] = useState("");
   const [role, setRole] = useState<"A" | "B" | null>(null);
@@ -55,7 +56,6 @@ function ConversationPracticeContent() {
   const [result, setResult] = useState<JSX.Element | null>(null);
   const [canRetry, setCanRetry] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [loading, setLoading] = useState(true);
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(
     new Set()
@@ -63,18 +63,17 @@ function ConversationPracticeContent() {
   const [detailedResult, setDetailedResult] = useState<JSX.Element | null>(
     null
   );
-
+  const [showSettings, setShowSettings] = useState(false);
+  const [speechRate, setSpeechRate] = useState(0.95);
   const { transcript, listening, resetTranscript } = useSpeechRecognition();
-
   const [isClient, setIsClient] = useState(false);
   const [browserSupports, setBrowserSupports] = useState(false);
   const wasListeningRef = useRef(false);
   const { width, height } = useWindowSize();
-
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceForSentence, setVoiceForSentence] =
     useState<SpeechSynthesisVoice | null>(null);
-
   const [isAISpeaking, setIsAISpeaking] = useState(false);
   const [isAITyping, setIsAITyping] = useState(false);
   const hasFetchedRef = useRef(false);
@@ -87,10 +86,8 @@ function ConversationPracticeContent() {
         .trim(),
     []
   );
-
   const update_mastery_on_success = useCallback(
     async (userId: string, word: string) => {
-      // Chỉ cập nhật nếu từ hợp lệ (không phải số)
       if (word && isNaN(Number(word))) {
         await updateMasteryScoreRPC({ userId, word });
       }
@@ -109,10 +106,14 @@ function ConversationPracticeContent() {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.voice = voiceForSentence;
-      utterance.rate = 0.95; // Tăng nhẹ tốc độ đọc
+
+      utterance.rate = speechRate;
+
+      utterance.onstart = () => setIsAISpeaking(true);
+      utterance.onend = () => setIsAISpeaking(false);
       window.speechSynthesis.speak(utterance);
     },
-    [voiceForSentence]
+    [voiceForSentence, speechRate]
   );
 
   const buildResultAndCheck = useCallback((): boolean => {
@@ -125,14 +126,12 @@ function ConversationPracticeContent() {
     let correctCount = 0;
 
     const comparedJSX = (
-      <div className="flex flex-wrap justify-center items-center gap-1">
+      <div className="flex flex-wrap gap-1.5 text-lg leading-relaxed">
         {sampleWords.map((word: string, i: number) => {
           const spokenWord = spokenWords[i];
           const isCorrect = spokenWord === word;
           if (isCorrect) {
-            if (user?.id) {
-              update_mastery_on_success(user.id, word);
-            }
+            if (user?.id) update_mastery_on_success(user.id, word);
             correctCount++;
           } else {
             if (user?.id && word && isNaN(Number(word))) {
@@ -149,32 +148,23 @@ function ConversationPracticeContent() {
           return (
             <motion.span
               key={i}
+              initial={{ opacity: 0, y: 5 }}
               animate={{
+                opacity: 1,
+                y: 0,
                 color: isCorrect ? "#16a34a" : "#dc2626",
-                scale: isCorrect ? [1, 1.1, 1] : 1,
               }}
-              transition={{ duration: 0.3 }}
-              className="font-semibold mx-1"
+              transition={{ delay: i * 0.05 }}
+              className={`font-bold px-1 rounded ${
+                isCorrect
+                  ? "bg-green-50"
+                  : "bg-red-50 underline decoration-red-300"
+              }`}
             >
-              {spokenWord || "___"}
+              {word}
             </motion.span>
           );
         })}
-        {/* Handle extra words */}
-        {spokenWords.length > sampleWords.length &&
-          spokenWords
-            .slice(sampleWords.length)
-            .map((word: string, i: number) => (
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-                key={`extra-${i}`}
-                className="font-semibold mx-1 line-through text-red-600"
-              >
-                {word}
-              </motion.span>
-            ))}
       </div>
     );
 
@@ -185,18 +175,19 @@ function ConversationPracticeContent() {
     setAccuracyScore(score);
     const canPass = score >= 80;
     setCanRetry(!canPass);
-
     setDetailedResult(comparedJSX);
 
     setResult(
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className={`mt-2 font-bold text-lg flex items-center justify-center gap-2 ${canPass ? "text-green-600" : "text-orange-600"
-          }`}
-        aria-live="assertive"
+        initial={{ scale: 0.8 }}
+        animate={{ scale: 1 }}
+        className={`px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 shadow-sm ${
+          canPass
+            ? "bg-green-100 text-green-700"
+            : "bg-orange-100 text-orange-700"
+        }`}
       >
-        <Trophy className="w-5 h-5" /> {t("learning.accuracy")} {score}%
+        <Trophy className="w-4 h-4" /> Accuracy: {score}%
       </motion.div>
     );
     return canPass;
@@ -216,44 +207,32 @@ function ConversationPracticeContent() {
         .getVoices()
         .filter((v) => v.lang.startsWith("en-"));
       setVoices(availableVoices);
-      // Chọn giọng đọc tốt hơn (ưu tiên Google, sau đó US, sau đó bất kỳ)
-      let bestVoice: SpeechSynthesisVoice | undefined = availableVoices.find(
-        (v) => v.name === "Google US English"
-      );
-      if (!bestVoice)
-        bestVoice = availableVoices.find((v) => v.lang === "en-US");
-      if (!bestVoice) bestVoice = availableVoices[0];
+      let bestVoice =
+        availableVoices.find((v) => v.name === "Google US English") ||
+        availableVoices.find((v) => v.lang === "en-US") ||
+        availableVoices[0];
       setVoiceForSentence(bestVoice || null);
     };
-    // Đảm bảo voices được load
-    if (synth.getVoices().length === 0) {
-      synth.onvoiceschanged = updateVoices;
-    } else {
-      updateVoices();
-    }
+    if (synth.getVoices().length === 0) synth.onvoiceschanged = updateVoices;
+    else updateVoices();
     return () => {
       synth.onvoiceschanged = null;
     };
   }, []);
 
   useEffect(() => {
-    if (hasFetchedRef.current) return; // Đã gọi rồi thì không gọi lại
+    if (hasFetchedRef.current) return;
     hasFetchedRef.current = true;
-
-    // useEffect setup client/browser
     setIsClient(true);
     setBrowserSupports(SpeechRecognition.browserSupportsSpeechRecognition());
-    setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-    const handleResize = () => {
+    const handleResize = () =>
       setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-    };
+    setWindowSize({ width: window.innerWidth, height: window.innerHeight });
     window.addEventListener("resize", handleResize);
-
-    if (levelSlug && topicSlug) {
-      getLessons(levelSlug, topicSlug);
-    } // Truyền slug
+    if (levelSlug && topicSlug)
+      getLessons(String(levelSlug), String(topicSlug));
     return () => window.removeEventListener("resize", handleResize);
-  }, []); // Chỉ chạy 1 lần
+  }, []);
 
   const getLessons = useCallback(
     async (levelSlug: string, topicSlug: string) => {
@@ -262,15 +241,15 @@ function ConversationPracticeContent() {
         const res = await generateConversationPracticeByAI(
           levelSlug,
           topicSlug
-        ); // Dùng slug
+        );
         setDialogue(res.data?.content || []);
         setDescription(res.data?.description || "");
         setCurrentIndex(0);
         setCompletedLessons(new Set());
-        setRole(null); // Reset role khi load bài mới
+        setRole(null);
         setHasStarted(false);
       } catch (error) {
-        console.error("Error fetching lessons:", error);
+        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -296,11 +275,18 @@ function ConversationPracticeContent() {
 
     if (isLastSentence) {
       setShowCelebration(true);
-      if (user?.id) addSkillScore(user.id, "speaking", 10);
-      // update roadmap
-      const level = await getLevelBySlug(String(levelSlug));
-      const topic = await getTopicBySlug(String(topicSlug));
-      await updateLessonCompletedCount(user.id, String(level.id), String(topic.id), "Speaking");
+      if (user?.id) {
+        addSkillScore(user.id, "speaking", 10);
+        // update roadmap
+        const level = await getLevelBySlug(String(levelSlug));
+        const topic = await getTopicBySlug(String(topicParent));
+        await updateLessonCompletedCount(
+          user.id,
+          String(level.id),
+          String(topic.id),
+          "Speaking"
+        );
+      }
     } else {
       resetTranscript();
       setAccuracyScore(null);
@@ -311,6 +297,7 @@ function ConversationPracticeContent() {
       setCurrentIndex(nextIndex);
 
       const nextLine = dialogue[nextIndex];
+
       if (nextLine && nextLine.id !== role) {
         setIsAITyping(true);
         setTimeout(() => {
@@ -332,9 +319,7 @@ function ConversationPracticeContent() {
 
   const handleReplay = useCallback(() => {
     const current = dialogue[currentIndex];
-    if (current) {
-      speak(current.content);
-    }
+    if (current) speak(current.content);
   }, [dialogue, currentIndex, speak]);
 
   if (!isClient || loading)
@@ -399,7 +384,7 @@ function ConversationPracticeContent() {
   const isUserTurn = dialogue[currentIndex]?.id === role;
 
   return (
-    <div className="flex-1 py-6 px-4 sm:px-6 lg:px-8">
+    <div className="relative w-full h-[calc(100vh)] flex flex-col overflow-hidden lg:ml-10 md:ml-20 max-sm:pt-16">
       {showCelebration && (
         <Confetti
           width={width}
@@ -408,10 +393,10 @@ function ConversationPracticeContent() {
           numberOfPieces={600}
           gravity={0.2}
           style={{ zIndex: 9999 }}
-          tweenDuration={5000}
         />
       )}
 
+      {/* Background Decorative */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
           className="absolute -top-20 -right-20 w-96 h-96 bg-gradient-to-br from-orange-300/30 to-pink-300/30 rounded-full blur-3xl"
@@ -439,52 +424,72 @@ function ConversationPracticeContent() {
         />
       </div>
 
-      <div className="max-w-5xl mx-auto relative z-10 flex flex-col h-[calc(100vh-100px)]">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-4 flex-shrink-0"
-        >
-          <Button
-            variant="outline"
-            onClick={() => router.back()}
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" /> {t("learning.back")}
-          </Button>
-          <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
-            <Sparkles className="w-5 h-5 text-orange-500" />
-            <span className="font-semibold text-gray-800">
-              {t("learning.conversationAI")}
+      {/* Header */}
+      <header className="flex-none h-16 px-4 sm:px-6 flex items-center justify-between">
+        <div className="w-full mx-auto flex items-center justify-end">
+          <div className="flex items-center gap-2 bg-white/50 px-3 py-1.5 rounded-full shadow-sm border border-white/60">
+            <Sparkles className="w-4 h-4 text-orange-500" />
+            <span className="text-sm font-bold text-slate-700">
+              Roleplay AI
             </span>
           </div>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white/80 backdrop-blur-xl rounded-t-3xl shadow-xl border border-gray-200 flex flex-col flex-grow overflow-hidden" // Increased blur
-        >
+
+          {/* Nút Mở Settings */}
+          <button
+            onClick={() => setShowSettings(true)}
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/5 text-slate-600 transition-colors"
+          >
+            <Settings size={22} />
+          </button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto p-4 relative scroll-smooth pb-48 z-0">
+        {/* <div className="max-w-3xl mx-auto w-full h-full flex flex-col"> */}
+        <AnimatePresence mode="wait">
           {!role ? (
-            <RoleSelector onSelectRole={setRole} t={t} />
+            <motion.div
+              key="selector"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="flex-1 flex flex-col justify-center"
+            >
+              <RoleSelector onSelectRole={setRole} t={t} />
+            </motion.div>
           ) : !hasStarted ? (
-            <ConversationPreview
-              t={t}
-              role={role}
-              description={description}
-              dialogue={dialogue}
-              onStart={() => {
-                setHasStarted(true);
-                if (dialogue[0]?.id !== role) {
-                  setIsAITyping(true);
-                  setTimeout(() => {
-                    setIsAITyping(false);
-                    speak(dialogue[0].content);
-                  }, 700);
-                }
-              }}
-            />
+            <motion.div
+              key="preview"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.05 }}
+              className="flex-1 flex flex-col justify-center"
+            >
+              <ConversationPreview
+                t={t}
+                role={role}
+                description={description}
+                dialogue={dialogue}
+                onStart={() => {
+                  setHasStarted(true);
+                  if (dialogue[0]?.id !== role) {
+                    setIsAITyping(true);
+                    setTimeout(() => {
+                      setIsAITyping(false);
+                      speak(dialogue[0].content);
+                    }, 700);
+                  }
+                }}
+              />
+            </motion.div>
           ) : (
-            <>
+            <motion.div
+              key="chat"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex-1 flex flex-col gap-4"
+            >
               <ChatHistory
                 t={t}
                 user={user}
@@ -496,29 +501,39 @@ function ConversationPracticeContent() {
                 isAITyping={isAITyping}
                 detailedResult={detailedResult}
               />
-              <ConversationControls
-                t={t}
-                isUserTurn={isUserTurn}
-                listening={listening}
-                transcript={transcript}
-                result={result}
-                accuracyScore={accuracyScore}
-                canRetry={canRetry}
-                isAISpeaking={isAISpeaking}
-                onStartListening={() =>
-                  SpeechRecognition.startListening({
-                    continuous: false,
-                    language: "en-US",
-                  })
-                }
-                onRetry={handleRetry}
-                onNext={handleNext}
-                onReplay={handleReplay}
-              />
-            </>
+            </motion.div>
           )}
-        </motion.div>
-      </div>
+        </AnimatePresence>
+        {/* </div> */}
+      </main>
+
+      {/* Controls */}
+      {role && hasStarted && (
+        <div className="absolute bottom-0 left-0 w-full z-20">
+          <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#F0F4F8] via-[#F0F4F8]/95 to-transparent pointer-events-none" />
+          <div className="relative max-w-3xl mx-auto w-full px-6 pb-6 pt-4">
+            <ConversationControls
+              t={t}
+              isUserTurn={isUserTurn}
+              listening={listening}
+              transcript={transcript}
+              result={result}
+              accuracyScore={accuracyScore}
+              canRetry={canRetry}
+              isAISpeaking={isAISpeaking}
+              onStartListening={() =>
+                SpeechRecognition.startListening({
+                  continuous: false,
+                  language: "en-US",
+                })
+              }
+              onRetry={handleRetry}
+              onNext={handleNext}
+              onReplay={handleReplay}
+            />
+          </div>
+        </div>
+      )}
 
       <Dialog open={showCelebration} onOpenChange={setShowCelebration}>
         <DialogContent className="max-w-lg rounded-3xl bg-gradient-to-br from-yellow-400 via-orange-500 to-pink-500 text-white shadow-2xl border-4 border-white">
@@ -543,7 +558,7 @@ function ConversationPracticeContent() {
             whileTap={{ scale: 0.95 }}
             onClick={() => {
               setShowCelebration(false);
-              router.back();
+              router.replace("/dashboard/speaking");
             }}
             className="mx-auto mt-4 px-10 py-4 rounded-xl bg-white text-purple-600 hover:bg-gray-50 transition-all font-bold text-xl shadow-2xl border-2 border-purple-200"
           >
@@ -551,6 +566,16 @@ function ConversationPracticeContent() {
           </motion.button>
         </DialogContent>
       </Dialog>
+
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        voices={voices}
+        selectedVoice={voiceForSentence}
+        onVoiceChange={setVoiceForSentence}
+        rate={speechRate}
+        onRateChange={setSpeechRate}
+      />
     </div>
   );
 }
@@ -559,11 +584,8 @@ export default function ConversationPracticePage() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="mt-4 text-gray-600">Loading...</p>
-          </div>
+        <div className="flex h-screen items-center justify-center">
+          <Loader2 className="animate-spin" />
         </div>
       }
     >

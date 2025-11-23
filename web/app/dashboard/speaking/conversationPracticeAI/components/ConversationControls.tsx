@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mic, RotateCcw, ChevronRight, Volume2 } from "lucide-react";
+import { Mic, RotateCcw, ChevronRight, Volume2, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { JSX } from "react/jsx-runtime";
 
@@ -35,96 +35,95 @@ export default function ConversationControls({
   onReplay,
 }: Props) {
   return (
-    <div className="p-4 md:p-6 border-t border-gray-200 bg-white/60 backdrop-blur-sm flex-shrink-0 rounded-b-3xl">
-      <div className="min-h-[60px] mb-4 text-center" aria-live="assertive">
-        {result && accuracyScore !== null && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <div className="bg-white/80 backdrop-blur-md rounded-3xl p-4 shadow-2xl shadow-slate-200/50 border border-white">
+      {/* Status Text */}
+      <div className="min-h-[24px] mb-4 flex justify-center items-center text-sm font-medium">
+        {result && accuracyScore !== null ? (
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
             {result}
           </motion.div>
-        )}
-
-        {(listening || (!result && transcript)) && !result && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-sm text-gray-600 italic mt-1"
-            aria-label={`Bạn đã nói: ${transcript}`}
-          >
+        ) : listening ? (
+          <span className="text-indigo-600 animate-pulse">
+            {t("learning.speakNow")}
+          </span>
+        ) : transcript ? (
+          <span className="text-slate-500 italic line-clamp-1">
             "{transcript}"
-          </motion.div>
-        )}
-        {!listening && !result && !transcript && isUserTurn && (
-          <p className="text-sm text-gray-400 italic">
-            {t("learning.pressMic")}
-          </p>
-        )}
-        {!listening && !result && !isUserTurn && (
-          <p className="text-sm text-gray-400 italic">{t("learning.aiTurn")}</p>
+          </span>
+        ) : isUserTurn ? (
+          <span className="text-slate-400">
+            {t("learning.pressMicToSpeak")}
+          </span>
+        ) : (
+          <span className="text-slate-400 flex items-center gap-2">
+            <Volume2 size={14} className="animate-pulse" />{" "}
+            {t("learning.aiIsSpeaking")}
+          </span>
         )}
       </div>
 
-      <div className="flex justify-center items-center gap-4 min-h-[52px]">
-        {" "}
+      {/* Buttons */}
+      <div className="flex items-center justify-center gap-6">
         {isUserTurn ? (
           <>
             {!result && !listening && (
               <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={onStartListening}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-5 rounded-full bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                aria-label="Bắt đầu nói"
                 disabled={isAISpeaking}
+                className="w-16 h-16 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-xl flex items-center justify-center hover:shadow-indigo-500/30 transition-all disabled:opacity-50 disabled:grayscale"
               >
-                <Mic className="w-6 h-6" />
+                <Mic size={28} />
               </motion.button>
             )}
-
             {listening && (
-              <div className="flex items-center justify-center gap-2 text-gray-500 p-4">
-                <Mic className="w-6 h-6 text-blue-500 animate-pulse" />
-                <span className="font-semibold">{t("learning.listening")}</span>
-              </div>
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ repeat: Infinity }}
+                className="w-16 h-16 rounded-full bg-red-500 text-white shadow-xl shadow-red-500/30 flex items-center justify-center"
+              >
+                <Mic size={28} />
+              </motion.div>
             )}
-
-            {result && accuracyScore !== null && (
-              <div className="flex items-center gap-3">
+            {result && (
+              <>
                 {canRetry && (
                   <Button
                     onClick={onRetry}
-                    variant="outline"
-                    className="gap-2 border-orange-300 text-orange-600 hover:bg-orange-50 cursor-pointer"
+                    size="icon"
+                    className="rounded-full w-12 h-12 bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 shadow-sm"
                   >
-                    <RotateCcw className="w-4 h-4" /> {t("learning.reTry")}
+                    <RotateCcw size={20} />
                   </Button>
                 )}
                 <Button
                   onClick={onNext}
-                  className="gap-2 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 cursor-pointer"
+                  className="rounded-full px-6 py-6 bg-slate-900 text-white hover:bg-slate-800 font-bold shadow-lg"
                 >
-                  {t("learning.next")} <ChevronRight className="w-4 h-4" />
+                  {t("learning.next")} <ChevronRight size={18} />
                 </Button>
-              </div>
+              </>
             )}
           </>
         ) : (
-          <div className="flex items-center gap-3">
+          <>
             <Button
               onClick={onReplay}
               variant="outline"
-              className="gap-2 cursor-pointer"
+              className="rounded-full w-12 h-12 p-0 border-slate-200"
               disabled={isAISpeaking}
             >
-              <Volume2 className="w-4 h-4" /> {t("learning.replay")}
+              <Volume2 size={20} />
             </Button>
             <Button
               onClick={onNext}
-              className="gap-2 cursor-pointer"
+              className="rounded-full px-6 h-12 bg-slate-900 text-white hover:bg-slate-800"
               disabled={isAISpeaking}
             >
-              {t("learning.next")} <ChevronRight className="w-4 h-4" />
+              {t("learning.next")} <ChevronRight size={18} />
             </Button>
-          </div>
+          </>
         )}
       </div>
     </div>

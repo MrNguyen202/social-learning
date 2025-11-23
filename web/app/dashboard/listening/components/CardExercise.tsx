@@ -1,45 +1,66 @@
 import { useLanguage } from "@/components/contexts/LanguageContext";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { useRouter } from "next/navigation";
+import { CheckCircle2 } from "lucide-react";
 
 interface ListeningParagraph {
-    id: string;
-    title_en: string;
-    title_vi: string;
-    description: string;
-    text_content: string;
-    audio_url: string;
-    created_at: string;
-    progress: number;
+  id: string;
+  title_en: string;
+  title_vi: string;
+  description: string;
+  text_content: string;
+  audio_url: string;
+  created_at: string;
+  progress: number;
 }
 
-export default function CardExercise({ exercise, handleStart }: { exercise: ListeningParagraph, handleStart: () => void }) {
-    const { t, language } = useLanguage();
-    const isCompleted = exercise.progress === 100;
+export default function CardExercise({
+  exercise,
+  handleStart,
+}: {
+  exercise: ListeningParagraph;
+  handleStart: () => void;
+}) {
+  const { t, language } = useLanguage();
+  const isCompleted = exercise.progress === 100;
 
-    return (
-        <div className="relative p-4 flex flex-col rounded-lg shadow-sm hover:shadow-lg hover:border-orange-500 border-2 transition-all duration-300 hover:-translate-y-1 gap-3">
-            {/* Title */}
-            <div className="flex items-center justify-between">
-                <span className="font-bold truncate max-w-[70%] text-lg">{exercise[`title_${language}`]}</span>
-            </div>
-            {/* Description */}
-            <p className="text-sm text-gray-600 h-12 overflow-hidden">{exercise.description}</p>
-            {/* Progress */}
-            {isCompleted ? (
-                <div className="flex items-center gap-4">
-                    <Progress value={exercise.progress} max={100} className="w-full h-2 rounded-lg bg-gray-200 [&>div]:bg-gradient-to-r [&>div]:from-orange-500 [&>div]:to-pink-500" />
-                    <span className="text-sm text-gray-500">{exercise.progress}%</span>
-                </div>
-            ) :(
-                <div className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-sm font-semibold rounded-lg">
-                    {t("learning.new")}
-                </div>
-            )}
-            <div className="flex justify-start">
-                <Button variant={"default"} className="hover:cursor-pointer" onClick={handleStart}>{t("learning.start")}</Button>
-            </div>
+  return (
+    <div
+      onClick={handleStart}
+      className="group relative bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer overflow-hidden"
+    >
+      <div className="absolute top-0 right-0 p-0">
+        {isCompleted ? (
+          <div className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-bl-xl text-xs font-bold flex items-center gap-1">
+            <CheckCircle2 size={14} /> Done
+          </div>
+        ) : (
+          <div className="bg-orange-100 text-orange-700 px-3 py-1 rounded-bl-xl text-xs font-bold">
+            {t("learning.new")}
+          </div>
+        )}
+      </div>
+
+      <div className="mb-4">
+        <h3 className="text-lg font-bold text-slate-800 mb-2 line-clamp-1 bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text group-hover:text-transparent transition-colors">
+          {exercise[`title_${language}`]}
+        </h3>
+        <p className="text-slate-500 text-sm line-clamp-2 h-10 leading-relaxed">
+          {exercise.description}
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+        <div className="flex items-center gap-2 text-sm font-bold text-slate-400 bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text group-hover:text-transparent transition-colors">
+          {t("learning.start")}
         </div>
-    )
+        {isCompleted && (
+          <div className="flex items-center gap-2 w-24">
+            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-500 w-full" />
+            </div>
+            <span className="text-xs font-bold text-emerald-600">100%</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

@@ -51,38 +51,21 @@ export default function WritingPage() {
         </div>
 
         {/* Header Section */}
-        <motion.div
-          className="flex flex-col items-center justify-center text-center gap-3 md:gap-4 mt-4 md:mt-8 relative z-10"
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
+        <div className="text-center mb-10">
           <motion.div
-            className="flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-orange-500 to-pink-500 rounded-2xl md:rounded-3xl shadow-lg"
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center justify-center ml-14 p-3 bg-white rounded-2xl shadow-sm border border-slate-100 mb-4 -translate-x-1/2 animate-bounce"
           >
-            <PencilLine className="w-8 h-8 md:w-10 md:h-10 text-white" />
+            <PencilLine className="w-8 h-8 md:w-10 md:h-10 text-orange-500" />
           </motion.div>
-
-          <motion.h1
-            className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-black bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
             {t("learning.titleParagraphExercise")}
-          </motion.h1>
-
-          <motion.p
-            className="text-sm md:text-base lg:text-lg text-gray-600 max-w-2xl px-4 leading-relaxed"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
+          </h1>
+          <p className="text-slate-500 text-lg max-w-2xl mx-auto">
             {t("learning.descriptionParagraphExercise")}
-          </motion.p>
-        </motion.div>
+          </p>
+        </div>
 
         <div className="max-w-4xl mx-auto xl:pl-10 lg:pl-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:mt-20 md:mt-10">

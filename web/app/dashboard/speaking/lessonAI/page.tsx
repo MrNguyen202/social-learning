@@ -45,7 +45,10 @@ import {
 } from "@/app/apiClient/learning/vocabulary/vocabulary";
 import ClickToSpeak from "../../vocabulary/components/ClickToSpeak";
 import { generateSpeakingExerciseByAI } from "@/app/apiClient/learning/speaking/speaking";
-import { getLevelBySlug, getTopicBySlug } from "@/app/apiClient/learning/learning";
+import {
+  getLevelBySlug,
+  getTopicBySlug,
+} from "@/app/apiClient/learning/learning";
 import { updateLessonCompletedCount } from "@/app/apiClient/learning/roadmap/roadmap";
 
 interface Lesson {
@@ -301,7 +304,12 @@ function LessonAIContent() {
               // update roadmap
               const level = await getLevelBySlug(String(levelSlug));
               const topic = await getTopicBySlug(String(topicSlug));
-              await updateLessonCompletedCount(user.id, String(level.id), String(topic.id), "Speaking");
+              await updateLessonCompletedCount(
+                user.id,
+                String(level.id),
+                String(topic.id),
+                "Speaking"
+              );
             }
           }
         }, 1500);
@@ -413,18 +421,17 @@ function LessonAIContent() {
         />
       </div>
 
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => router.back()}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-700 hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl font-semibold border border-gray-200 mb-4 cursor-pointer"
-      >
-        <ArrowLeft className="w-5 h-5" />
-        {t("learning.back")}
-      </motion.button>
-
       <div className="flex flex-row gap-6">
         <div className="flex-1 px-4 md:px-8 lg:px-12">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => router.back()}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-700 hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl font-semibold border border-gray-200 mb-4 cursor-pointer max-sm:mt-1"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            {t("learning.back")}
+          </motion.button>
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex items-center justify-between gap-4">
               <motion.button

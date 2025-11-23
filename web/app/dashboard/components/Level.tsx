@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/components/contexts/LanguageContext";
+import { CheckCircle2 } from "lucide-react";
 
 type Level = {
   id: number;
@@ -32,75 +33,78 @@ interface LevelProps {
   ) => void;
 }
 
+interface LevelProps {
+  selectedLevel: { id: number; slug: string; name: string } | null;
+  setSelectedLevel: (
+    level: { id: number; slug: string; name: string } | null
+  ) => void;
+}
+
 export function Level({ selectedLevel, setSelectedLevel }: LevelProps) {
   const { t, language } = useLanguage();
-  const [levels, setLevels] = useState<Level[]>([]);
+  const [levels, setLevels] = useState<any[]>([]);
 
-  // Lấy list level
   useEffect(() => {
-    const fetchLevels = async () => {
-      try {
-        const data = await getAllLevels();
-        if (Array.isArray(data)) {
-          setLevels(data);
-        } else {
-          console.error("No levels found in the fetched data");
-        }
-      } catch (error) {
-        console.error("Error fetching levels:", error);
-      }
-    };
-    fetchLevels();
+    getAllLevels().then((data) => Array.isArray(data) && setLevels(data));
   }, []);
 
   return (
-    <div className="flex-1">
-      <h2 className="text-xl font-semibold">{t("dashboard.selectLevel")}</h2>
+    <div>
+      <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-900 text-white text-xs">
+          1
+        </span>
+        {t("dashboard.selectLevel")}
+      </h2>
       <div className="grid grid-cols-1 gap-4 mt-4 min-h-36 2xl:grid-cols-3 md:grid-cols-2">
         {levels.map((level) => {
+          const isSelected = selectedLevel?.slug === level.slug;
           return (
             <motion.div
               key={level.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: level.id * 0.1 }}
-              viewport={{ amount: 0.3 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() =>
+                setSelectedLevel({
+                  id: level.id,
+                  slug: level.slug,
+                  name: level[`name_${language}`],
+                })
+              }
+              className={`cursor-pointer relative p-5 rounded-2xl border-2 transition-all duration-300 ${
+                isSelected
+                  ? "border-indigo-500 shadow-lg shadow-indigo-100 bg-indigo-50"
+                  : "border-slate-200 hover:border-indigo-200 hover:shadow-md"
+              }`}
             >
-              <Card
-                onClick={() =>
-                  setSelectedLevel({
-                    id: level.id,
-                    slug: level.slug,
-                    name: level[`name_${language}`],
-                  })
-                }
-                key={level.id}
-                className={`
-                                flex flex-row justify-start gap-4 px-4 h-full
-                                transition-all duration-300 
-                                border-2 
-                                ${
-                                  selectedLevel &&
-                                  selectedLevel.slug === level.slug
-                                    ? "shadow-lg -translate-y-1 border-black"
-                                    : "hover:shadow-lg hover:-translate-y-1 hover:border-black"
-                                }
-                            `}
-              >
-                <div className="flex items-center justify-center bg-gray-200 rounded-full h-fit p-4">
+              <div className="flex items-start gap-4">
+                <div
+                  className={`p-3 rounded-xl ${
+                    isSelected ? "text-indigo-600" : " text-slate-500"
+                  }`}
+                >
                   <Icon
                     name={level.icon.name}
                     color={level.icon.color}
-                    className={"h-6 w-6"}
+                    className="h-6 w-6"
                   />
                 </div>
-
-                <div className="flex flex-col gap-2">
-                  <h3 className="text-lg font-semibold">{level[`name_${language}`]}</h3>
-                  <p className="text-md text-gray-500">{level[`description_${language}`]}</p>
-                  <p className="text-sm text-gray-500">{level.time_advice}</p>
+                <div className="flex-1">
+                  <h3
+                    className={`font-bold text-lg ${
+                      isSelected ? "text-indigo-900" : "text-slate-800"
+                    }`}
+                  >
+                    {level[`name_${language}`]}
+                  </h3>
+                  <p className="text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">
+                    {level.time_advice}
+                  </p>
+                  <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">
+                    {level[`description_${language}`]}
+                  </p>
                 </div>
-              </Card>
+              </div>
             </motion.div>
           );
         })}

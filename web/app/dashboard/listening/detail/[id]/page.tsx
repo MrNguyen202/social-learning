@@ -1,10 +1,18 @@
 "use client";
 
-import { use, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { listeningService } from "@/app/apiClient/learning/listening/listening";
 import { useLanguage } from "@/components/contexts/LanguageContext";
-import { CircleEqual, Loader2, Notebook, Snowflake } from "lucide-react";
+import {
+  Bot,
+  CircleEqual,
+  Loader2,
+  Notebook,
+  Pause,
+  Play,
+  Snowflake,
+} from "lucide-react";
 import {
   RadialBarChart,
   RadialBar,
@@ -31,6 +39,7 @@ import {
   deductSnowflakeFromUser,
   getScoreUserByUserId,
 } from "@/app/apiClient/learning/score/score";
+import AudioPlayer from "../../components/AudioPlayer";
 
 export default function ListeningDetailPage() {
   const { user } = useAuth();
@@ -175,7 +184,7 @@ export default function ListeningDetailPage() {
 
     const randomPos =
       unansweredPositions[
-      Math.floor(Math.random() * unansweredPositions.length)
+        Math.floor(Math.random() * unansweredPositions.length)
       ];
     const correctWord = hiddenMap[parseInt(randomPos)];
 
@@ -372,52 +381,49 @@ export default function ListeningDetailPage() {
         </div>
 
         {/* Audio player */}
-        {exercise.audio_url ? (
-          <div className="flex justify-center my-6 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-4 rounded-2xl shadow-md">
-            <audio controls src={exercise.audio_url} className="w-full" />
-          </div>
-        ) : (
-          <div className="flex justify-center gap-4 my-6">
-            <button
-              onClick={() => {
-                if (speechSynthesis.speaking) {
-                  speechSynthesis.cancel();
-                }
-                const utterance = new SpeechSynthesisUtterance(
-                  exercise.text_content
-                );
-                utterance.lang = "en-US";
-                utterance.rate = 1;
-                utterance.pitch = 1;
-                speechSynthesis.speak(utterance);
-              }}
-              className="px-4 py-2 rounded-lg bg-purple-500 text-white hover:bg-purple-600"
-            >
-              ▶️ Phát
-            </button>
+        <div className="mb-8">
+          {exercise.audio_url ? (
+            <AudioPlayer src={exercise.audio_url} t={t} />
+          ) : (
+            /* Fallback cho TTS (Text-to-Speech) khi không có file audio */
+            <div className="bg-white rounded-3xl p-6 shadow-xl shadow-orange-100 border border-orange-50 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                  <Bot size={24} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-800">AI Voice Reader</h3>
+                  <p className="text-xs text-slate-500">
+                    No audio file available
+                  </p>
+                </div>
+              </div>
 
-            <button
-              onClick={() => speechSynthesis.pause()}
-              className="px-4 py-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600"
-            >
-              ⏸ Tạm dừng
-            </button>
-
-            <button
-              onClick={() => speechSynthesis.resume()}
-              className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600"
-            >
-              🔄 Tiếp tục
-            </button>
-
-            <button
-              onClick={() => speechSynthesis.cancel()}
-              className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
-            >
-              ⏹ Dừng
-            </button>
-          </div>
-        )}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    window.speechSynthesis.cancel();
+                    const u = new SpeechSynthesisUtterance(
+                      exercise.text_content
+                    );
+                    u.lang = "en-US";
+                    u.rate = 0.9;
+                    window.speechSynthesis.speak(u);
+                  }}
+                  className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 shadow-lg transition-all flex items-center gap-2"
+                >
+                  <Play size={16} fill="currentColor" /> Play
+                </button>
+                <button
+                  onClick={() => window.speechSynthesis.pause()}
+                  className="p-3 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all"
+                >
+                  <Pause size={20} fill="currentColor" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Đoạn văn với ô trống */}
         <div className="bg-blue-100 p-6 rounded-lg shadow-md leading-relaxed flex flex-wrap gap-2">
@@ -439,14 +445,16 @@ export default function ListeningDetailPage() {
                     width: `${length}rem`,
                   }}
                   className={`border-b-2 text-center bg-white px-1 py-0.5 rounded-sm tracking-widest
-                                    ${isCorrect === true
-                      ? "border-green-500"
-                      : ""
-                    }
-                                    ${isCorrect === false
-                      ? "border-red-500"
-                      : "border-gray-400"
-                    }`}
+                                    ${
+                                      isCorrect === true
+                                        ? "border-green-500"
+                                        : ""
+                                    }
+                                    ${
+                                      isCorrect === false
+                                        ? "border-red-500"
+                                        : "border-gray-400"
+                                    }`}
                   value={answers[position] || ""}
                   onChange={(e) =>
                     setAnswers({ ...answers, [position]: e.target.value })

@@ -3,6 +3,8 @@
 import { getActivityHeatmap } from "@/app/apiClient/learning/score/score";
 import React, { useEffect, useState } from "react";
 import ActivityCalendar from "react-activity-calendar";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CalendarDays } from "lucide-react";
 
 interface ActivityHeatmapProps {
   user: any;
@@ -11,42 +13,17 @@ interface ActivityHeatmapProps {
 
 export default function ActivityHeatmap({ user, t }: ActivityHeatmapProps) {
   const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
   const [year, setYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
-    if (!user) return;
-    fetchData();
-  }, [user, year]); // <== Lắng nghe năm thay đổi
-
-  // const fetchData = async () => {
-  //   setLoading(true);
-  //   const res = await getActivityHeatmap(user?.id);
-  //   // giả sử API trả về tất cả các năm, có thể lọc theo year hiện tại
-  //   const filtered = res.filter(
-  //     (item: any) => new Date(item.date).getFullYear() === year
-  //   );
-
-  //   const processedData = filtered.map((item: any) => ({
-  //     date: item.date,
-  //     count: item.count,
-  //     level: Math.min(Math.ceil(item.count / 3), 4),
-  //   }));
-
-  //   setData(processedData);
-  //   setLoading(false);
-  // };
+    if (user) fetchData();
+  }, [user, year]);
 
   const fetchData = async () => {
-    setLoading(true);
     const res = await getActivityHeatmap(user?.id);
-
-    // Lọc dữ liệu theo năm được chọn
     const filtered = res.filter(
       (item: any) => new Date(item.date).getFullYear() === year
     );
-
-    // Tạo danh sách đầy đủ các ngày trong năm
     const startDate = new Date(`${year}-01-01`);
     const endDate = new Date(`${year}-12-31`);
     const allDays: any[] = [];
@@ -64,81 +41,86 @@ export default function ActivityHeatmap({ user, t }: ActivityHeatmapProps) {
         level: found ? Math.min(Math.ceil(found.count / 3), 4) : 0,
       });
     }
-
     setData(allDays);
-    setLoading(false);
   };
 
-  const years = [2024, 2025]; // hoặc sinh động dựa vào dữ liệu API
+  // Custom theme màu Cam
+  const customTheme = {
+    light: ["#f1f5f9", "#fed7aa", "#fdba74", "#fb923c", "#ea580c"],
+    dark: ["#1e293b", "#431407", "#7c2d12", "#c2410c", "#ea580c"],
+  };
+
+  // Custom theme màu Xanh Lá
+  // const customTheme={{
+  //   light: ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"],
+  //   dark: ["#161b22", "#0e4429", "#006d32", "#26a641", "#39d353"],
+  // }}
 
   return (
-    <div className="flex flex-col gap-4 p-6 bg-white dark:bg-gray-800 rounded-lg">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">
+    <Card className="border-0 shadow-lg shadow-slate-200/50 h-full rounded-2xl">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-lg font-bold flex items-center gap-2 text-slate-800">
+          <CalendarDays className="text-orange-500" />{" "}
           {t("learning.activityHistory")}
-        </h1>
-
+        </CardTitle>
         <select
-          className="border border-gray-300 rounded-md px-3 py-1 dark:bg-gray-700"
+          className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none"
           value={year}
           onChange={(e) => setYear(Number(e.target.value))}
         >
-          {years.map((y) => (
+          {[2024, 2025].map((y) => (
             <option key={y} value={y}>
-              {t("learning.year")} {y}
+              {y}
             </option>
           ))}
         </select>
-      </div>
-      {loading ? (
-        <p>{t("learning.loadingData")}</p>
-      ) : data.length > 0 ? (
-        <div className="m-auto">
-          <ActivityCalendar
-            data={data}
-            blockSize={16} // ✅ tăng kích thước ô (mặc định là 10)
-            blockMargin={4} // ✅ khoảng cách giữa các ô
-            fontSize={14} // ✅ tăng font nếu có text hiển thị
-            labels={{
-              legend: { less: t("learning.less"), more: t("learning.more") },
-              months: [
-                `${t("learning.jan")}`,
-                `${t("learning.feb")}`,
-                `${t("learning.mar")}`,
-                `${t("learning.apr")}`,
-                `${t("learning.may")}`,
-                `${t("learning.jun")}`,
-                `${t("learning.jul")}`,
-                `${t("learning.aug")}`,
-                `${t("learning.sep")}`,
-                `${t("learning.oct")}`,
-                `${t("learning.nov")}`,
-                `${t("learning.dec")}`,
-              ],
-              weekdays: [
-                `${t("learning.sun")}`,
-                `${t("learning.mon")}`,
-                `${t("learning.tue")}`,
-                `${t("learning.wed")}`,
-                `${t("learning.thu")}`,
-                `${t("learning.fri")}`,
-                `${t("learning.sat")}`,
-              ],
-              totalCount: `{{count}} ${t("learning.activity")} {{year}}`,
-            }}
-            theme={{
-              light: ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"],
-              dark: ["#161b22", "#0e4429", "#006d32", "#26a641", "#39d353"],
-            }}
-            hideTotalCount={false}
-            showWeekdayLabels
-          />
-        </div>
-      ) : (
-        <p>
-          {t("learning.noDataInYear")} {year}.
-        </p>
-      )}
-    </div>
+      </CardHeader>
+      <CardContent className="flex items-center justify-center min-h-[200px]">
+        {data.length > 0 ? (
+          <div className="w-full overflow-x-auto pb-2">
+            <ActivityCalendar
+              data={data}
+              blockSize={13} // tăng kích thước ô (mặc định là 10)
+              blockMargin={4} // khoảng cách giữa các ô
+              fontSize={14} // tăng font nếu có text hiển thị
+              labels={{
+                legend: { less: t("learning.less"), more: t("learning.more") },
+                months: [
+                  `${t("learning.jan")}`,
+                  `${t("learning.feb")}`,
+                  `${t("learning.mar")}`,
+                  `${t("learning.apr")}`,
+                  `${t("learning.may")}`,
+                  `${t("learning.jun")}`,
+                  `${t("learning.jul")}`,
+                  `${t("learning.aug")}`,
+                  `${t("learning.sep")}`,
+                  `${t("learning.oct")}`,
+                  `${t("learning.nov")}`,
+                  `${t("learning.dec")}`,
+                ],
+                weekdays: [
+                  `${t("learning.sun")}`,
+                  `${t("learning.mon")}`,
+                  `${t("learning.tue")}`,
+                  `${t("learning.wed")}`,
+                  `${t("learning.thu")}`,
+                  `${t("learning.fri")}`,
+                  `${t("learning.sat")}`,
+                ],
+                totalCount: `{{count}} ${t("learning.activity")} {{year}}`,
+              }}
+              theme={customTheme}
+              hideTotalCount={false}
+              showWeekdayLabels
+            />
+          </div>
+        ) : (
+          <p className="text-slate-400 text-sm italic">
+            {t("learning.noDataInYear")} {year}.
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 }

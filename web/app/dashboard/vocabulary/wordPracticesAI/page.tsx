@@ -30,6 +30,11 @@ import LivesIndicator from "../components/LivesIndicator";
 import OutOfLivesModal from "../components/OutOfLivesModal";
 import { toast } from "react-toastify";
 import { deleteNotificationLearning } from "@/app/apiClient/notification/notification";
+import {
+  deductSnowflakeFromUser,
+  getScoreUserByUserId,
+} from "@/app/apiClient/learning/score/score";
+import { get } from "http";
 
 const shuffle = (array: any[]) => {
   let currentIndex = array.length,
@@ -257,18 +262,31 @@ export default function WordPracticeAI() {
         status: "incorrect",
         correctAnswer: correctAnswer,
       });
-      // ✨ Tự động chuyển sau 2.5 giây
+      // Tự động chuyển sau 2.5 giây
       setTimeout(handleNext, PRACTICE_DELAY.INCORRECT);
     }
   };
 
+  const getSnowFlakeBalance = async (userId: string) => {
+    try {
+      const res = await getScoreUserByUserId(userId);
+      return res.data ? res.data.number_snowflake : 0;
+    } catch (error) {
+      console.error("Error fetching snowflake balance:", error);
+      return 0;
+    }
+  };
+
   // Xử lý khi người dùng chọn "Mua mạng"
-  const handleRefillLives = () => {
-    // 1. Gọi API kiểm tra xem user.snowflakes >= 5
-    // 2. Gọi API trừ 5 bông tuyết
-    // 3. Nếu thành công:
-    // Giả lập API thành công:
-    toast.success("Bạn đã dùng 5 ❄️ và được cộng 1 mạng!");
+  const handleRefillLives = async () => {
+    if (!user) return;
+    const balance = await getSnowFlakeBalance(user.id);
+    if (balance < 5) {
+      toast.error("Bạn không đủ ❄️ để mua mạng. Vui lòng nạp thêm!");
+      return;
+    }
+    await deductSnowflakeFromUser(user.id, -5);
+    toast.success("Bạn đã dùng 5 ❄️ và được cộng 1 mạng!", { autoClose: 1500 });
     setLives(1);
     setHasUsedRefill(true);
     setShowOutOfLivesModal(false);

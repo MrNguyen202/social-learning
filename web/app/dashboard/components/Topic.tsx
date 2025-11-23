@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/components/contexts/LanguageContext";
+import { CheckCircle2 } from "lucide-react";
 
 type Topic = {
   id: number;
@@ -33,61 +34,31 @@ type TopicProps = {
 
 export function Topic({ selectedTopic, setSelectedTopic }: TopicProps) {
   const { t, language } = useLanguage();
-  const [topics, setTopics] = useState<Topic[]>([]);
+  const [topics, setTopics] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchTopics = async () => {
-      try {
-        const data = await getAllTopics();
-        if (Array.isArray(data)) {
-          setTopics(data);
-        } else {
-          console.error("No topics found in the fetched data");
-        }
-      } catch (error) {
-        console.error("Error fetching topics:", error);
-      }
-    };
-    fetchTopics();
+    getAllTopics().then((data) => Array.isArray(data) && setTopics(data));
   }, [language]);
 
   return (
-    <div className="flex-1 relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute w-20 h-20 bg-orange-200/30 rounded-full blur-2xl top-[10%] left-[20%] animate-pulse" />
-        <div className="absolute w-24 h-24 bg-pink-200/30 rounded-full blur-2xl top-[60%] left-[70%] animate-pulse delay-1000" />
-        <div className="absolute w-16 h-16 bg-orange-100/30 rounded-full blur-2xl top-[80%] left-[30%] animate-pulse delay-2000" />
-      </div>
-
-      <motion.h2
-        className="text-xl font-semibold relative z-10"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
+    <div className="relative">
+      <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-900 text-white text-xs">
+          2
+        </span>
         {t("dashboard.selectTopic")}
-      </motion.h2>
+      </h2>
+
       <div className="grid grid-cols-2 gap-4 mt-4 min-h-44 relative z-10 2xl:grid-cols-4 md:grid-cols-3">
-        {topics.map((topic, index) => (
-          <motion.div
-            key={topic.id}
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-            whileInView={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{
-              duration: 0.6,
-              delay: index * 0.1,
-              type: "spring",
-              stiffness: 100,
-            }}
-            viewport={{ amount: 0.3 }}
-            whileHover={{
-              scale: 1.05,
-              rotateY: 5,
-              transition: { duration: 0.2 },
-            }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Card
+        {topics.map((topic, index) => {
+          const isSelected = selectedTopic?.slug === topic.slug;
+          return (
+            <motion.div
+              key={topic.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              viewport={{ once: true }}
               onClick={() =>
                 setSelectedTopic({
                   id: topic.id,
@@ -95,38 +66,48 @@ export function Topic({ selectedTopic, setSelectedTopic }: TopicProps) {
                   name: topic[`name_${language}`],
                 })
               }
-              className={`
-                flex flex-col h-full justify-start items-center gap-4 px-4 cursor-pointer
-                transition-all duration-300 border-2 backdrop-blur-sm
-                ${
-                  selectedTopic && selectedTopic.slug === topic.slug
-                    ? "shadow-xl -translate-y-2 border-orange-500 bg-gradient-to-br from-orange-50 to-pink-50"
-                    : "hover:shadow-xl hover:-translate-y-2 hover:border-orange-400 bg-white/80 hover:bg-gradient-to-br hover:from-orange-50/50 hover:to-pink-50/50"
-                }
-              `}
+              className={`cursor-pointer relative flex flex-col items-center text-center p-4 rounded-2xl border-2 transition-all duration-200 h-full ${
+                isSelected
+                  ? "bg-orange-50 border-orange-500 shadow-lg shadow-orange-100"
+                  : "bg-white border-slate-100 hover:border-orange-200 hover:shadow-md"
+              }`}
             >
+              {isSelected && (
+                <div className="absolute top-2 right-2 text-orange-500">
+                  <CheckCircle2
+                    size={18}
+                    fill="currentColor"
+                    className="text-white"
+                  />
+                </div>
+              )}
+
               <motion.div
-                className="flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-full w-fit p-4"
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.6 }}
+                whileHover={{ rotate: isSelected ? 0 : 10, scale: 1.1 }}
+                className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 shadow-sm ${
+                  isSelected ? "bg-white" : "bg-slate-50"
+                }`}
               >
                 <Icon
                   name={topic.icon.name}
                   color={topic.icon.color}
-                  className="h-6 w-6"
+                  className="h-7 w-7"
                 />
               </motion.div>
-              <div className="flex flex-col items-center gap-2">
-                <h3 className="text-lg font-semibold text-center">
-                  {topic[`name_${language}`]}
-                </h3>
-                <p className="text-md text-gray-500 text-center">
-                  {topic[`description_${language}`]}
-                </p>
-              </div>
-            </Card>
-          </motion.div>
-        ))}
+
+              <h3
+                className={`font-bold text-sm sm:text-base mb-1 leading-tight ${
+                  isSelected ? "text-orange-900" : "text-slate-700"
+                }`}
+              >
+                {topic[`name_${language}`]}
+              </h3>
+              <p className="text-xs text-slate-400 line-clamp-2">
+                {topic[`description_${language}`]}
+              </p>
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );

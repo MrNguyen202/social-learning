@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { User, Bot } from "lucide-react";
+import { Play, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Line {
@@ -25,76 +25,78 @@ export default function ConversationPreview({
   onStart,
 }: Props) {
   return (
-    <div className="flex-grow flex flex-col justify-center p-6 md:p-8">
-      <div className="space-y-6">
-        <div className="text-center space-y-4">
-          <h2 className="text-2xl font-bold text-gray-800">
-            {t("learning.roleSelected")}{" "}
-            <span className="text-orange-600">{t('learning.person')} {role}</span>
-          </h2>
-          <p className="text-gray-600 max-w-xl mx-auto">
-            {t("learning.preview")}
-          </p>
-          {description && (
-            <p className="text-gray-500 italic">"{description}"</p>
-          )}
-        </div>
+    <div className="flex flex-col h-full justify-center max-w-2xl mx-auto w-full">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-slate-800 mb-2">
+          {t("learning.roleSelected")}{" "}
+          <span className="text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">
+            Role {role}
+          </span>
+        </h2>
+        {description && (
+          <p className="text-slate-500 italic">"{description}"</p>
+        )}
+      </div>
 
-        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-2xl shadow-inner max-h-[500px] overflow-hidden">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
-              {t("learning.dialogueContent")}
-            </h3>
-            <span className="text-sm text-gray-500">{dialogue.length} câu</span>
+      <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden flex flex-col max-h-[60vh]">
+        <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+          <div className="flex items-center gap-2 text-sm font-bold text-slate-600 uppercase">
+            <FileText size={16} /> {t("learning.scriptPreview")}
           </div>
-          <div className="space-y-3">
-            {dialogue.slice(0, 4).map((line, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: line.id === "A" ? -20 : 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className={`flex ${
-                  line.id === "A" ? "justify-start" : "justify-end"
+          <span className="text-xs font-bold bg-slate-200 text-slate-600 px-2 py-1 rounded">
+            {dialogue.length} {t("learning.lines")}
+          </span>
+        </div>
+        <div className="overflow-y-auto p-6 space-y-4">
+          {dialogue.slice(0, 4).map((line, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className={`flex gap-3 ${
+                line.id === role ? "flex-row-reverse" : ""
+              }`}
+            >
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                  line.id === role
+                    ? "bg-indigo-100 text-indigo-700"
+                    : "bg-slate-200 text-slate-600"
                 }`}
               >
-                <div
-                  className={`inline-block max-w-[80%] ${
-                    line.id === "A"
-                      ? "bg-blue-100 text-blue-900"
-                      : "bg-green-100 text-green-900"
-                  } px-4 py-3 rounded-2xl shadow-sm ${
-                    line.id === role ? "ring-2 ring-orange-400" : ""
-                  }`}
-                >
-                  <p className="font-semibold text-xs mb-1 opacity-70">
-                    {line.id === "A"
-                      ? `${t("learning.roleA")} - ${line.speaker}`
-                      : `${t("learning.roleB")} - ${line.speaker}`}{" "}
-                    {line.id === role && `(${t("learning.you")})`}
-                  </p>
-                  <p className="text-md">{line.content}</p>
-                </div>
-              </motion.div>
-            ))}
-            {dialogue.length > 4 && (
-              <p className="text-center text-sm text-gray-500 italic mt-3">
-                ... {t("learning.and")} {dialogue.length - 4} {t("learning.moreSentences")}
-              </p>
-            )}
-          </div>
+                {line.id}
+              </div>
+              <div
+                className={`p-3 rounded-2xl text-sm max-w-[80%] ${
+                  line.id === role
+                    ? "bg-indigo-50 text-indigo-900 rounded-tr-none"
+                    : "bg-white border border-slate-100 text-slate-700 rounded-tl-none shadow-sm"
+                }`}
+              >
+                <p className="font-bold text-[10px] mb-1 opacity-50 uppercase">
+                  {line.speaker}
+                </p>
+                {line.content}
+              </div>
+            </motion.div>
+          ))}
+          {dialogue.length > 4 && (
+            <div className="text-center text-xs text-slate-400 py-2 italic">
+              ... {t("learning.and")} {dialogue.length - 4} {t("learning.moreSentences")}
+            </div>
+          )}
         </div>
+      </div>
 
-        {/* Start Button */}
-        <div className="flex justify-center pt-4">
-          <Button
-            onClick={onStart}
-            size="lg"
-            className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all rounded-3xl cursor-pointer"
-          >
-            {t("learning.start")}
-          </Button>
-        </div>
+      <div className="mt-8 flex justify-center">
+        <Button
+          onClick={onStart}
+          size="lg"
+          className="bg-slate-900 text-white hover:bg-slate-800 rounded-full px-10 py-6 text-lg font-bold shadow-lg shadow-slate-900/20 gap-2 transition-all hover:scale-105 active:scale-95"
+        >
+          <Play fill="currentColor" size={20} /> {t("learning.start")}
+        </Button>
       </div>
     </div>
   );

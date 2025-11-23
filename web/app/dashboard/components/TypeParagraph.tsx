@@ -56,8 +56,14 @@ export function TypeParagraph({
 
   return (
     <div className="flex-1">
-      <h2 className="text-xl font-semibold">{t("learning.selectTypeParagraphTitle")}</h2>
-      <div className="grid grid-cols-4 gap-4 mt-4 min-h-44">
+      <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-900 text-white text-xs">
+          2
+        </span>
+        {t("learning.selectTypeParagraphTitle")}
+      </h2>
+
+      <div className="grid grid-cols-2 gap-4 mt-4 min-h-44 relative z-10 2xl:grid-cols-4 md:grid-cols-3">
         {typeParagraphs.map((typeParagraph) => {
           return (
             <motion.div
@@ -77,13 +83,13 @@ export function TypeParagraph({
                 key={typeParagraph.id}
                 className={`
                                     flex flex-col h-full justify-start items-center gap-4 px-4
-                                transition-all duration-300 border-2
+                                transition-all duration-300 border-2 cursor-pointer
                                 ${
                                   selectedTypeParagraph &&
                                   selectedTypeParagraph.slug ===
                                     typeParagraph.slug
-                                    ? "shadow-lg -translate-y-1 border-black"
-                                    : "hover:shadow-lg hover:-translate-y-1 hover:border-black"
+                                    ? "bg-orange-50 border-orange-500 shadow-lg shadow-orange-100"
+                                    : "bg-white border-slate-100 hover:border-orange-200 hover:shadow-md"
                                 }
                             `}
               >

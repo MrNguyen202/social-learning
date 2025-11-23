@@ -11,11 +11,14 @@ import { generateWritingParagraphByAI } from "@/app/apiClient/learning/writing/w
 import { ArrowRight, Loader2, Pen, Sparkles, X } from "lucide-react"; // icon loading
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { AnimatePresence, motion } from "framer-motion";
+import { ModalByLesson } from "../../components/ModalByLesson";
 
 export default function Page() {
   const router = useRouter();
   const { t } = useLanguage();
   const { type } = useParams();
+  const [showByLesson, setShowByLesson] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<{
     id: number;
     slug: string;
@@ -46,7 +49,7 @@ export default function Page() {
     }
   };
 
-  const handleGenerateAI = async () => {
+  const executeGenerateAI = async () => {
     if (type === "writing-paragraph") {
       if (selectedLevel && selectedTypeParagraph) {
         try {
@@ -74,6 +77,11 @@ export default function Page() {
         `/dashboard/writing/${type}/${selectedLevel.slug}/sentence/${selectedTopic.slug}/generate`
       );
     }
+  };
+
+  const handleGenerateAI_Click = () => {
+    setPendingAction(() => executeGenerateAI);
+    setShowByLesson(true);
   };
 
   const handleClearSelection = () => {
@@ -258,7 +266,7 @@ export default function Page() {
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 w-full">
                       <Button
-                        onClick={handleGenerateAI}
+                        onClick={handleGenerateAI_Click}
                         disabled={loading}
                         className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white cursor-pointer"
                       >
@@ -287,6 +295,19 @@ export default function Page() {
           <RightSidebar />
         </div>
       </div>
+
+      <ModalByLesson
+        isOpen={showByLesson}
+        onClose={() => {
+          setShowByLesson(false);
+          setPendingAction(null);
+        }}
+        onConfirmAction={() => {
+          if (pendingAction) {
+            pendingAction();
+          }
+        }}
+      />
     </>
   );
 }
