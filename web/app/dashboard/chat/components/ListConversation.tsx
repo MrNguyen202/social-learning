@@ -41,26 +41,33 @@ export default function ListConversation() {
             }
         };
 
-        // Lắng nghe sự kiện 'newMessage' từ server để cập nhật danh sách cuộc trò chuyện
-        socket.on("notificationNewMessage", () => {
+        // Hàm handle khi có tin nhắn mới từ socket
+        const handleNotificationNewMessage = () => {
             fetchData();
-        });
-
-        // Lắng nghe sự kiện 'NotificationMessagesRead' từ server để cập nhật danh sách cuộc trò chuyện
-        socket.on("notificationMessagesRead", () => {
+        };
+        
+        // Hàm handle khi có người đọc tin nhắn từ socket
+        const handleNotificationMessagesRead = () => {
             fetchData();
-        });
+        };
 
-        // Lắng nghe sự kiện 'messageRevoked' từ server để cập nhật danh sách cuộc trò chuyện
-        socket.on("messageRevoked", fetchData);
+        // Hàm handle khi có tin nhắn bị thu hồi từ socket
+        const handleMessageRevoked = () => {
+            fetchData();
+        };
+
+        // Lắng nghe sự kiện từ socket
+        socket.on("notificationNewMessage", handleNotificationNewMessage);
+        socket.on("notificationMessagesRead", handleNotificationMessagesRead);
+        socket.on("messageRevoked", handleMessageRevoked);
 
         fetchData();
 
         // Đóng socket khi unmount
         return () => {
-            socket.off("notificationNewMessage");
-            socket.off("notificationMessagesRead");
-            socket.off("messageRevoked");
+            socket.off("notificationNewMessage", handleNotificationNewMessage);
+            socket.off("notificationMessagesRead", handleNotificationMessagesRead);
+            socket.off("messageRevoked", handleMessageRevoked);
         };
     }, [user?.id, loading]);
 

@@ -50,11 +50,8 @@ const messageController = {
             for (const member of conversationMembers) {
                 const userSocket = io.userSockets.get(member.userId);
                 if (userSocket) {
-                    io.to(userSocket.id).emit("notificationNewMessage", {
-                        type: "newMessage",
-                        conversationId,
-                        message: customMessage
-                    });
+                    // Gửi thông báo tin nhắn mới
+                    io.to(userSocket.id).emit("notificationNewMessage");
                 }
             }
 
@@ -108,9 +105,8 @@ const messageController = {
     markMessagesAsRead: async (req, res) => {
         try {
             const { conversationId } = req.params;
-            const { userId } = req.body;
-
-
+            // Lấy userId từ middleware auth
+            const userId = req.user.id;
 
             const result = await messageService.markMessagesAsRead(conversationId, userId);
 

@@ -12,7 +12,7 @@ router.post('/save', upload.array("files", 10), messageController.saveMessage);
 router.get('/conversation/:conversationId', authMiddleware, messageController.getMessagesByConversationId);
 
 // Đánh dấu đã đọc tin nhắn trong cuộc trò chuyện
-router.post('/markAsRead/:conversationId', messageController.markMessagesAsRead);
+router.post('/markAsRead/:conversationId', authMiddleware, messageController.markMessagesAsRead);
 
 // Thu hồi tin nhắn
 router.post('/revoke/:messageId', messageController.revokeMessage);

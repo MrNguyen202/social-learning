@@ -46,11 +46,10 @@ export async function sendMessage({
 }
 
 // Hàm để đánh dấu tin nhắn đã đọc
-export async function markMessagesAsRead(conversationId: any, userId: any) {
+export async function markMessagesAsRead(conversationId: any) {
   try {
     const response = await api.post(
-      `/api/messages/markAsRead/${conversationId}`,
-      { userId }
+      `/api/messages/markAsRead/${conversationId}`
     );
     return response.data;
   } catch (error) {

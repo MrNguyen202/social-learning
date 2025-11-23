@@ -6,7 +6,6 @@ import { useLanguage } from "@/components/contexts/LanguageContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import useAuth from "@/hooks/useAuth";
-import { getSocket } from "@/socket/socketClient";
 import { convertToTime } from "@/utils/formatTime";
 import { useEffect, useState } from "react";
 

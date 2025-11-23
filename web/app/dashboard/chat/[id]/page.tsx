@@ -96,12 +96,12 @@ export default function ChatDetail() {
       addMessage(newMessage);
 
       if (selectedConversation && user) {
-        markMessagesAsRead(selectedConversation.id, user.id);
+        markMessagesAsRead(selectedConversation.id);
       }
     });
 
     // Lắng nghe sự kiện đánh dấu đã đọc
-    socket.on("markMessagesAsRead", ({ userId, seenAt, messageIds }: { userId: string; seenAt: string; messageIds: string[] }) => {
+    socket.on("messagesMarkedAsRead", ({ userId, seenAt, messageIds }: { userId: string; seenAt: string; messageIds: string[] }) => {
       if (setMessages) {
         setMessages((prevMessages) =>
           prevMessages.map((msg) => {
@@ -181,7 +181,7 @@ export default function ChatDetail() {
       }
 
       if (user) {
-        await markMessagesAsRead(conversationId, user.id);
+        await markMessagesAsRead(conversationId);
       }
     };
     fetchDataMessages();
@@ -637,6 +637,7 @@ export default function ChatDetail() {
               </span>
             </div>
             <button
+              type="button"
               onClick={() => setReplyingTo(null)}
               className="p-1.5 hover:bg-gray-200 rounded-full text-gray-500 transition"
             >
