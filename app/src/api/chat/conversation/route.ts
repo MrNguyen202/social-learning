@@ -23,9 +23,9 @@ export async function fetchUnreadCount(conversationId: string) {
 }
 
 // Hàm để tìm cuộc trò chuyện giữa hai người dùng
-export async function findConversationBetweenUsers(userId1:any, userId2:any) {
+export async function findConversationBetweenUsers(userId2:any) {
     try {
-        const response = await api.get(`/api/conversations/between/${userId1}/${userId2}`);
+        const response = await api.get(`/api/conversations/between/${userId2}`);
         return response.data;
     } catch (error:any) {
         if (error.response && error.response.status === 404) {

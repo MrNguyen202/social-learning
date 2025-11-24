@@ -12,12 +12,15 @@ router.post('/save', upload.array("files", 10), messageController.saveMessage);
 router.get('/conversation/:conversationId', authMiddleware, messageController.getMessagesByConversationId);
 
 // Đánh dấu đã đọc tin nhắn trong cuộc trò chuyện
-router.post('/markAsRead/:conversationId', messageController.markMessagesAsRead);
+router.post('/markAsRead/:conversationId', authMiddleware, messageController.markMessagesAsRead);
 
 // Thu hồi tin nhắn
 router.post('/revoke/:messageId', messageController.revokeMessage);
 
 // Xóa tin nhắn đối với người dùng
 router.post('/remove/:messageId', authMiddleware, messageController.deleteMessageForUser);
+
+// Thích / bỏ thích tin nhắn
+router.post('/like/:messageId', authMiddleware, messageController.toggleLikeMessage);
 
 module.exports = router;

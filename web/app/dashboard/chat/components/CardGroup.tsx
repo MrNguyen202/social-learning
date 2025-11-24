@@ -52,8 +52,6 @@ export default function CardGroup({ conversation, onClick }: CardGroupProps) {
 
   const [unreadCount, setUnreadCount] = useState(0);
 
-  console.log("Last Message:", conversation.lastMessage);
-
   useEffect(() => {
     const fetchData = async () => {
       try {

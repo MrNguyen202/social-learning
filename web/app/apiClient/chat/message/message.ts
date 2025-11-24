@@ -46,11 +46,10 @@ export async function sendMessage({
 }
 
 // Hàm để đánh dấu tin nhắn đã đọc
-export async function markMessagesAsRead(conversationId: any, userId: any) {
+export async function markMessagesAsRead(conversationId: any) {
   try {
     const response = await api.post(
-      `/api/messages/markAsRead/${conversationId}`,
-      { userId }
+      `/api/messages/markAsRead/${conversationId}`
     );
     return response.data;
   } catch (error) {
@@ -82,6 +81,19 @@ export async function deleteMessageForUser(messageId: any) {
     return response.data;
   } catch (error) {
     console.error("Error deleting message for user:", error);
+    throw error;
+  }
+}
+
+// Hàm để thích / bỏ thích tin nhắn
+export async function toggleLikeMessage(messageId: any) {
+  try {
+    const response = await api.post(
+      `/api/messages/like/${messageId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error toggling like on message:", error);
     throw error;
   }
 }

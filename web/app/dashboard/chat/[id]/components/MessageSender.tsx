@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { RefreshCcw, AlertCircle, Key, Reply, MoreHorizontal } from "lucide-react";
+import { RefreshCcw, AlertCircle, Key, Reply, MoreHorizontal, Heart } from "lucide-react";
 import MessageAttachments from "./MessageAttachments";
 import { formatTime } from "@/utils/formatTime";
 import { useConversation } from "@/components/contexts/ConversationContext"; // 1. Import Context
@@ -9,6 +9,8 @@ import { getUserImageSrc } from "@/app/apiClient/image/image";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import useAuth from "@/hooks/useAuth"; // Import Auth để lấy ID của mình
 import MessageOptionMenu from "./MessageOptionMenu";
+import LikeListModal from "../../components/LikeListModal";
+import AudioPlayer from "../../components/AudioPlayer";
 
 interface MessageSenderProps {
     message: any;
@@ -18,6 +20,7 @@ interface MessageSenderProps {
     onReply?: () => void;
     onRevoke?: () => void;
     onDelete?: () => void;
+    onLike?: () => void;
 }
 
 export default function MessageSender({
@@ -27,11 +30,17 @@ export default function MessageSender({
     isLastInSequence = false,
     onReply,
     onRevoke,
-    onDelete
+    onDelete,
+    onLike
 }: MessageSenderProps) {
     const { status, createdAt, seens, revoked } = message; // Lấy thêm mảng seens
     const { selectedConversation } = useConversation(); // Lấy thông tin cuộc trò chuyện
     const { user } = useAuth();
+
+    const likes = message.likes || [];
+    const isLikedByMe = likes.some((l: any) => l.userId === user?.id);
+
+    const [isLikeModalOpen, setIsLikeModalOpen] = useState(false);
 
     // Fix status
     const isSent = !status || status === "sent";
@@ -72,9 +81,9 @@ export default function MessageSender({
     };
 
     return (
-        <div className={`flex flex-row justify-end items-center ${marginBottom} w-full group/message`}>
+        <div className={`flex flex-row gap-2 justify-end items-center ${marginBottom} w-full group/message`}>
             {/* --- ACTION BUTTONS (Bên Trái Bong Bóng) --- */}
-            {!revoked && isSent && status !== "error" && (
+            {isSent && status !== "error" && (
                 <div className={`
                             flex items-center gap-1 transition-opacity duration-200 
                             ${isMenuOpen ? "opacity-100" : "opacity-0 group-hover/message:opacity-100"}
@@ -100,16 +109,21 @@ export default function MessageSender({
                                 onDelete={handleDelete}
                                 onRevoke={handleRevoke}
                                 createdAt={message.createdAt}
+                                onLike={onLike}
+                                isLiked={isLikedByMe}
+                                isRevoked={revoked}
                             />
                         )}
                     </div>
 
-                    <button className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 transition" title="Trả lời" onClick={handleReply}>
-                        <Reply size={16} />
-                    </button>
+                    {!revoked && (
+                        <button className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 transition" title="Trả lời" onClick={handleReply}>
+                            <Reply size={16} />
+                        </button>
+                    )}
                 </div>
             )}
-            <div className="flex-col items-end gap-2 max-w-[70%]">
+            <div className="flex-col items-end gap-2 max-w-[70%] relative">
                 {status === "error" && (
                     <button onClick={onRetry} className="text-red-500 hover:bg-red-100 p-1 rounded-full">
                         <RefreshCcw size={16} />
@@ -148,16 +162,44 @@ export default function MessageSender({
                             </div>
                         )}
 
-                        {message.content.text && (
-                            <p className="text-sm sm:text-base break-words whitespace-pre-wrap w-full text-letf">
-                                {message.content.text}
-                            </p>
+                        {message.content.type === "audio" && message.content.file ? (
+                            <AudioPlayer src={message.content.file.url} isMe={true} />
+                        ) : (
+                            <>
+                                {message.content.text && (
+                                    <p className="text-sm sm:text-base break-words whitespace-pre-wrap w-full text-left">
+                                        {message.content.text}
+                                    </p>
+                                )}
+                                <div className="w-full flex justify-end">
+                                    <MessageAttachments images={message.content.images} file={message.content.file} />
+                                </div>
+                            </>
                         )}
-
-                        <div className="w-full flex justify-end">
-                            <MessageAttachments images={message.content.images} file={message.content.file} />
-                        </div>
                     </div>
+                )}
+
+                {!revoked && likes.length > 0 && (
+                    <div
+                        onClick={(e) => {
+                            e.stopPropagation(); // Ngăn chặn click lan ra ngoài
+                            setIsLikeModalOpen(true);
+                        }}
+                        className="absolute -bottom-2 -left-2 bg-white border border-gray-100 shadow-md rounded-full px-2 py-0.5 flex items-center gap-1 z-10 cursor-pointer hover:bg-gray-50 transition-colors select-none"
+                    >
+                        <Heart size={12} className="fill-red-500 stroke-red-500 text-red-500" />
+                        <span className="text-[11px] font-bold text-gray-600">{likes.length}</span>
+                    </div>
+                )}
+
+                {/* --- MODAL --- */}
+                {isLikeModalOpen && (
+                    <LikeListModal
+                        isOpen={isLikeModalOpen}
+                        onClose={() => setIsLikeModalOpen(false)}
+                        likes={likes}
+                        members={selectedConversation?.members || []}
+                    />
                 )}
 
                 {/* DÒNG TRẠNG THÁI & ĐÃ XEM */}

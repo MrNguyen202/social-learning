@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Copy, Reply, Trash2, RotateCcw, Forward } from "lucide-react";
+import { Copy, Reply, Trash2, RotateCcw, Forward, Heart } from "lucide-react";
 import useClickOutside from "@/hooks/useClickOutside";
 
 interface MessageOptionMenuProps {
@@ -11,8 +11,11 @@ interface MessageOptionMenuProps {
     onCopy: () => void;
     onDelete?: () => void;
     onRevoke?: () => void;
-    align?: "left" | "right";
+    isRevoked?: boolean;
+    align?: "left" | "right"; // Vị trí menu so với tin nhắn
     createdAt?: string;
+    onLike?: () => void;
+    isLiked?: boolean;
 }
 
 export default function MessageOptionMenu({
@@ -22,8 +25,11 @@ export default function MessageOptionMenu({
     onCopy,
     onDelete,
     onRevoke,
+    isRevoked = false,
     align = "right", // Mặc định là right (cho tin nhắn Sender)
     createdAt,
+    onLike,
+    isLiked,
 }: MessageOptionMenuProps) {
 
     const menuRef = useClickOutside(onClose);
@@ -48,24 +54,34 @@ export default function MessageOptionMenu({
             ref={menuRef}
             className={`absolute z-50 bg-white rounded-lg shadow-xl border border-gray-200 w-48 py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100 bottom-8 ${positionClass}`}
         >
-            {/* ... (Giữ nguyên nội dung các nút bên trong) ... */}
+            {/* CHỈ HIỆN NÚT LIKE/REPLY/COPY NẾU CHƯA THU HỒI */}
+            {!isRevoked && (
+                <>
+                    <button onClick={() => { onLike?.(); onClose(); }} className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 flex items-center gap-3 transition-colors ${isLiked ? "text-red-500 font-medium" : "text-gray-700"}`}>
+                        <Heart size={16} className={isLiked ? "fill-red-500 stroke-red-500" : ""} />
+                        <span>{isLiked ? "Bỏ thích" : "Yêu thích"}</span>
+                    </button>
 
-            <button onClick={() => { onReply(); onClose(); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 transition-colors">
-                <Reply size={16} /> <span>Trả lời</span>
-            </button>
+                    <button onClick={() => { onReply(); onClose(); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 transition-colors">
+                        <Reply size={16} /> <span>Trả lời</span>
+                    </button>
 
-            <button onClick={() => { onCopy(); onClose(); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 transition-colors">
-                <Copy size={16} /> <span>Sao chép</span>
-            </button>
+                    <button onClick={() => { onCopy(); onClose(); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 transition-colors">
+                        <Copy size={16} /> <span>Sao chép</span>
+                    </button>
 
-            <div className="h-px bg-gray-100 my-1"></div>
+                    <div className="h-px bg-gray-100 my-1"></div>
+                </>
+            )}
 
-            {isMe && onRevoke && canRevoke && (
+            {/* Nút Thu hồi chỉ hiện khi: Của mình + Có quyền + Chưa quá giờ + Chưa thu hồi */}
+            {isMe && onRevoke && canRevoke && !isRevoked && (
                 <button onClick={() => { onRevoke(); onClose(); }} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors">
                     <RotateCcw size={16} /> <span>Thu hồi</span>
                 </button>
             )}
 
+            {/* Nút Xóa luôn hiện (kể cả khi đã thu hồi) */}
             <button onClick={() => { onDelete?.(); onClose(); }} className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors">
                 <Trash2 size={16} /> <span>Xóa phía tôi</span>
             </button>

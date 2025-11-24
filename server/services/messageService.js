@@ -63,11 +63,16 @@ const messageService = {
                         size: originalFile.size,
                         mimeType: originalFile.mimetype
                     };
+
+                    if (originalFile.mimetype.startsWith("audio/")) {
+                        type = "audio";
+                    }
                 }
             });
 
             if (images.length > 0 && text) type = "image"; // caption + ảnh
             else if (images.length > 0) type = "image";
+            else if (type === "audio") type = "audio";
             else type = "file";
         } else if (text) {
             type = "text";
@@ -238,7 +243,30 @@ const messageService = {
             { new: true }
         );
         return message;
-    }
+    },
+
+    // Thích/ bỏ thích tin nhắn
+    toggleLikeMessage: async (messageId, userId) => {
+        // 1. Tìm tin nhắn
+        const message = await Message.findById(messageId);
+        if (!message) {
+            throw new Error("Message not found");
+        }
+
+        // 2. Kiểm tra xem user đã like chưa
+        const index = message.likes.findIndex(like => like.userId === userId);
+
+        if (index === -1) {
+            // Chưa like -> Thêm vào (Push)
+            message.likes.push({ userId, likedAt: new Date() });
+        } else {
+            // Đã like -> Xóa đi (Splice/Pull)
+            message.likes.splice(index, 1);
+        }
+
+        // 3. Lưu lại và trả về message mới nhất
+        return await message.save();
+    },
 };
 
 module.exports = messageService;

@@ -66,8 +66,16 @@ const conversationService = {
             totalUnread += unreadCount;
         }
         return totalUnread;
-    }
+    },
 
+    // Lấy tin nhắn cuối cùng mà user có thể thấy trong cuộc trò chuyện (không bao gồm tin đã xóa với user đó)
+    async getLastVisibleMessage(conversationId, userId) {
+        const message = await Message.findOne({
+            conversationId: conversationId,
+            "removed.userId": { $ne: userId }
+        }).sort({ createdAt: -1 });
+        return message;
+    },
 };
 
 module.exports = conversationService;

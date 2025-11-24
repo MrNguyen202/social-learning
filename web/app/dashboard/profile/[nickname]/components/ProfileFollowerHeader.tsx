@@ -124,7 +124,7 @@ export default function ProfileFollowerHeader({
 
   const handleOpenMessage = async () => {
     try {
-      const res = await findConversationBetweenUsers(user?.id, userSearch?.id);
+      const res = await findConversationBetweenUsers(userSearch?.id);
       if (res.message === "Yes") {
         setSelectedConversation(res.conversation);
         localStorage.setItem("selectedConversation", JSON.stringify(res.conversation));
