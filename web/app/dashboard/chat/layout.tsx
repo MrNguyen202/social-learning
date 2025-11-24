@@ -9,7 +9,7 @@ export default function ChatLayout({
     return (
         <div className="flex w-full max-h-[calc(100vh-0px)]">
             {/* List Conversations */}
-            <div className="h-full min-w-sm border-r border-gray-200">
+            <div className="h-full hidden min-w-sm border-r border-gray-200 xl:flex ">
                 <ListConversation />
             </div>
 

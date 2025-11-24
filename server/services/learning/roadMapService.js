@@ -199,7 +199,6 @@ const roadmapService = {
                 .single();
 
             if (!currentWeek) {
-                console.log("Không tìm thấy tuần hiện tại");
                 return;
             }
 
@@ -213,7 +212,6 @@ const roadmapService = {
                 .eq('week_roadmap_id', currentWeek.id);
 
             if (!lessons?.length) {
-                console.log("Không tìm thấy lesson cho tuần này");
                 return;
             }
 

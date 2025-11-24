@@ -14,6 +14,20 @@ export interface LocalMessage {
         text: string;
         images: { url: string; filename: string }[];
         file: any;
+        system?: {
+            action: "user_joined" | "user_left" | "conversation_renamed" | "member_added" | "member_removed" | "admin_transferred";
+            actor: {
+                id: string;
+                name: string;
+            };
+            target: [
+                {
+                    id: string;
+                    name: string;
+                },
+            ];
+            newName?: string;
+        };
     };
     sender: {
         id: string;

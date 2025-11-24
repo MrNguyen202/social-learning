@@ -18,20 +18,33 @@ interface User {
 interface Conversation {
   id: string;
   name: string;
-  avatarUrl: string;
+  avatar: string;
   members: User[];
   lastMessage: LastMessage | null;
 }
 
+interface SystemContent {
+  action: "user_joined" | "user_left" | "conversation_renamed" | "member_added" | "member_removed" | "admin_transferred" | "conversation_avatar_updated";
+  actor: {
+    id: string;
+    name: string;
+  };
+  target?: {
+    id: string;
+    name: string;
+  }[];
+  newName?: string;
+}
+
 type MessageContent = {
-  system?: boolean;
-  type: "text" | "image" | "file";
+  type: "text" | "image" | "file" | "system";
   text?: string;
   images?: string[];
   file?: {
     name: string;
     url: string;
   } | null;
+  system?: SystemContent;
 };
 
 type LastMessage = {
@@ -65,6 +78,74 @@ export default function CardUser({ conversation, onClick }: CardUserProps) {
 
     fetchData();
   }, [conversation.id, user?.id, conversation.lastMessage]);
+
+  const renderLastMessageContent = () => {
+    const lastMsg = conversation.lastMessage;
+    if (!lastMsg) return "";
+
+    const { type, content, senderId } = {
+      type: lastMsg.content.type,
+      content: lastMsg.content,
+      senderId: lastMsg.senderId
+    };
+
+    // --- TRƯỜNG HỢP 1: TIN NHẮN HỆ THỐNG ---
+    if (type === "system" && content.system) {
+      const sys = content.system;
+      // Logic hiển thị "Bạn" nếu actor là user hiện tại
+      const actorName = sys.actor.id === user?.id ? t("dashboard.you") : sys.actor.name;
+
+      // Logic hiển thị target (người bị tác động)
+      const targetName = sys.target && sys.target.length > 0
+        ? (sys.target[0].id === user?.id ? t("dashboard.you") : sys.target[0].name)
+        : "";
+
+      // Tùy chỉnh text hiển thị dựa trên action
+      switch (sys.action) {
+        case "user_left":
+          return `${actorName} đã rời nhóm`;
+        case "member_added":
+          return `${actorName} đã thêm ${targetName} vào nhóm`;
+        case "member_removed":
+          return `${actorName} đã mời ${targetName} ra khỏi nhóm`;
+        case "admin_transferred":
+          return `${actorName} đã chuyển quyền admin cho ${targetName}`;
+        case "conversation_renamed":
+          return `${actorName} đã đổi tên nhóm thành "${sys.newName}"`;
+        case "conversation_avatar_updated":
+          return `${actorName} đã đổi ảnh nhóm`;
+        case "user_joined":
+          return `${actorName} đã tham gia nhóm`;
+        default:
+          return "Thông báo hệ thống";
+      }
+    }
+
+    // --- TRƯỜNG HỢP 2: TIN NHẮN THƯỜNG (Cần hiện tên người gửi) ---
+    let senderName = "";
+    if (senderId === user?.id) {
+      senderName = `${t("dashboard.you")}: `;
+    } else {
+      const member = conversation.members.find((m) => m.id === senderId);
+      // Nếu tìm thấy member thì hiện tên, không thì hiện "Người dùng cũ" hoặc rỗng
+      senderName = member ? `${member.name}: ` : "";
+    }
+
+    // Nội dung tin nhắn
+    let messageText = "";
+    if (type === "image") messageText = `[${t("chat.image")}]`;
+    else if (type === "file") messageText = `[${t("chat.file")}]`;
+    else messageText = content.text || "";
+
+    return (
+      <>
+        <span className={senderId === user?.id ? "font-normal" : "font-medium text-gray-700"}>
+          {senderName}
+        </span>
+        {messageText}
+      </>
+    );
+  };
 
   return (
     <>
@@ -110,14 +191,8 @@ export default function CardUser({ conversation, onClick }: CardUserProps) {
           </div>
           <div className="flex items-center justify-between w-full text-sm text-gray-500">
             <div className="flex items-center">
-              <p className="truncate max-w-52">
-                {conversation.lastMessage?.senderId === user?.id
-                  ? `${t("dashboard.you")}: `
-                  : ""}
-                {typeof conversation.lastMessage?.content === "string"
-                  ? conversation.lastMessage?.content
-                  : conversation.lastMessage?.content?.text ||
-                    t("dashboard.unsupportedContent")}
+              <p className="truncate max-w-46">
+                {renderLastMessageContent()}
               </p>
             </div>
             <span className="text-gray-400 text-xs">

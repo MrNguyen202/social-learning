@@ -93,7 +93,7 @@ export default function MessageReceiver({
                             )}
 
                             {message.replyTo && (
-                                <div className="mb-2 p-2 bg-white/60 rounded-md border-l-4 border-gray-400 text-xs cursor-pointer hover:opacity-80 relative">
+                                <div className="mt-2 mb-2 p-2 bg-white/60 rounded-md border-l-4 border-gray-400 text-xs cursor-pointer hover:opacity-80 relative">
                                     <p className="font-bold text-gray-600 mb-0.5">
                                         {message.replyTo.sender?.name || "Người dùng"}
                                     </p>

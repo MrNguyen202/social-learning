@@ -228,7 +228,7 @@ export default function MessageSender({
                                                 <Avatar className="w-4 h-4 border border-white ring-1 ring-gray-100">
                                                     <AvatarImage src={getUserImageSrc(member.avatarUrl)} />
                                                     <AvatarFallback className="text-[8px] bg-gray-200">
-                                                        {member.name.charAt(0)}
+                                                        {member?.name?.charAt(0)}
                                                     </AvatarFallback>
                                                 </Avatar>
                                             </div>

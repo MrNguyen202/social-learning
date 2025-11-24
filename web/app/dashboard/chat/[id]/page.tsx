@@ -1,6 +1,6 @@
 "use client";
 import useAuth from "@/hooks/useAuth";
-import { Info, Mic, Paperclip, Phone, Reply, Send, Smile, Trash2, Video, X } from "lucide-react";
+import { Info, Mic, Paperclip, Phone, Reply, Send, Smile, Trash2, Users, Video, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import MessageSender from "./components/MessageSender";
 import MessageReceiver from "./components/MessageReceiver";
@@ -21,6 +21,8 @@ import EmojiPicker from 'emoji-picker-react';
 import getFileIconUrl from "@/utils/getIconTypeAttach";
 import { useChat } from "@/hooks/useChat";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
+import ConversationInfo from "../components/ConversationInfo";
+import MessageSystem from "./components/MessageSystem";
 
 export default function ChatDetail() {
   const { t } = useLanguage();
@@ -29,7 +31,7 @@ export default function ChatDetail() {
   const { user } = useAuth();
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { selectedConversation } = useConversation();
+  const { selectedConversation, setSelectedConversation } = useConversation();
   const [onlineStatus, setOnlineStatus] = useState<boolean>(false);
   const [offlineTime, setOfflineTime] = useState<string | null>(null);
   const router = useRouter();
@@ -70,6 +72,10 @@ export default function ChatDetail() {
   const isLoadingRef = useRef(false); // Tránh load trùng lặp
   const hasTriggeredLoad = useRef(false); // Đánh dấu đã trigger trong vùng threshold
 
+  const [isFetching, setIsFetching] = useState(false);
+
+  const [showInfo, setShowInfo] = useState(false);
+
   // Scroll xuống đáy (tin mới nhất)
   const scrollToBottom = () => {
     const container = messagesContainerRef.current;
@@ -97,6 +103,54 @@ export default function ChatDetail() {
 
       if (selectedConversation && user) {
         markMessagesAsRead(selectedConversation.id);
+      }
+    });
+
+    // Lắng nghe sự kiện system message (cập nhật nhóm)
+    socket.on("groupUpdated", (updatedData: any) => {
+      // Kiểm tra đúng conversation
+      const currentId = selectedConversation?.id;
+      const updateId = updatedData.id || updatedData._id;
+
+      if (currentId && currentId === updateId) {
+        setSelectedConversation((prev: any) => {
+          if (!prev) return null;
+
+          // 1. Merge danh sách thành viên
+          const mergedMembers = updatedData.members.map((newMemberData: any) => {
+            // Lấy ID chuẩn từ data mới (có thể là id hoặc userId)
+            const newMemberId = newMemberData.id || newMemberData.userId;
+
+            // Tìm thành viên cũ khớp ID
+            const existingMember = prev.members.find((m: any) => m.id === newMemberId);
+
+            if (existingMember) {
+              // Giữ nguyên tên/avatar cũ, chỉ update role
+              return {
+                ...existingMember,
+                role: newMemberData.role,
+                // Nếu backend có trả về admin mới thì update luôn
+              };
+            }
+
+            return {
+              ...newMemberData,
+              id: newMemberId, // Chuẩn hóa về 'id'
+              name: newMemberData.name || "Unknown", // Fallback tránh crash
+              avatarUrl: newMemberData.avatarUrl || ""
+            };
+          });
+
+          // 2. Trả về State mới
+          return {
+            ...prev,
+            ...updatedData,         // Update các thông tin chung
+            id: updateId,           // Đảm bảo id chuẩn
+            admin: updatedData.admin, // Cập nhật chủ phòng (quan trọng cho chuyển quyền)
+            members: mergedMembers,   // Danh sách đã merge
+            avatar: updatedData.avatar
+          };
+        });
       }
     });
 
@@ -158,6 +212,7 @@ export default function ChatDetail() {
       if (conversationId) {
         socket.emit("leaveRoom", conversationId);
       }
+      socket.off("groupUpdated")
     };
   }, [user?.id, selectedConversation?.id, addMessage, setMessages]);
 
@@ -165,6 +220,7 @@ export default function ChatDetail() {
   useEffect(() => {
     const fetchDataMessages = async () => {
       const conversationId = selectedConversation?.id;
+      setIsFetching(true);
       if (!conversationId) return;
 
       // Reset state khi chuyển conversation
@@ -174,6 +230,7 @@ export default function ChatDetail() {
 
       const data = await fetchMessages(conversationId, 1, 20);
       setInitialMessages(data);
+      setIsFetching(false);
 
       // Nếu số tin nhắn trả về < 20 => không còn tin cũ
       if (data.length < 20) {
@@ -423,332 +480,405 @@ export default function ChatDetail() {
     }
   };
 
+  // Lấy thông tin người đối diện trong chat riêng
+  const getPartner = () => {
+    if (!selectedConversation || !user) return null;
+    return selectedConversation.members.find((m: any) => m.id !== user.id);
+  };
+
+  // Toggle conversation info sidebar
+  const toggleInfo = () => {
+    setShowInfo(!showInfo);
+  };
+
   return (
-    <div className="flex flex-col h-full">
-      {/* Chat header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <div className="flex items-center gap-4">
-          {selectedConversation?.type === "private" ? (
-            <>
-              <Avatar className="w-10 h-10">
-                <AvatarImage
-                  src={getUserImageSrc(
-                    selectedConversation?.members.filter(
-                      (member: { id: string }) => member.id !== user?.id
-                    )[0]?.avatarUrl
+    <div className="flex flex-row h-full">
+      <div className="flex-1 flex flex-col h-full relative">
+        {/* Chat header */}
+        <div className={`flex items-center justify-between p-4 ${selectedConversation?.type === "private" ? "" : "py-2"} border-b border-gray-200`}>
+          <div className="flex items-center gap-4">
+            {selectedConversation?.type === "private" ? (
+              <>
+                <Avatar className="w-10 h-10">
+                  <AvatarImage
+                    src={getUserImageSrc(
+                      selectedConversation?.members.filter(
+                        (member: { id: string }) => member.id !== user?.id
+                      )[0]?.avatarUrl
+                    )}
+                    alt={user?.name}
+                    className="rounded-full"
+                  />
+                  <AvatarFallback className="bg-gray-300">
+                    {user?.name?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+              </>
+            ) : selectedConversation?.avatar === "" ? (
+              <>
+                <Avatar className="w-10 h-10">
+                  <AvatarImage
+                    src={getUserImageSrc(selectedConversation?.avatar)}
+                    alt={selectedConversation?.name}
+                    className="rounded-full"
+                  />
+                  <AvatarFallback className="bg-gray-300">
+                    {selectedConversation?.name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+              </>
+            ) : (
+              <AvatarGroup members={selectedConversation?.members || []} />
+            )}
+            {selectedConversation?.type === "private" ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-semibold">
+                    {
+                      selectedConversation?.members.filter(
+                        (member: { id: string }) => member.id !== user?.id
+                      )[0]?.name
+                    }
+                  </h2>
+                  {onlineStatus ? (
+                    <span className="w-3 h-3 bg-green-500 rounded-full mb-1"></span>
+                  ) : (
+                    <span className="w-3 h-3 bg-red-500 rounded-full mb-1"></span>
                   )}
-                  alt={user?.name}
-                  className="rounded-full"
-                />
-                <AvatarFallback className="bg-gray-300">
-                  {user?.name?.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-            </>
-          ) : selectedConversation?.avatar === "" ? (
-            <>
-              <Avatar className="w-10 h-10">
-                <AvatarImage
-                  src={getUserImageSrc(selectedConversation?.avatar)}
-                  alt={selectedConversation?.name}
-                  className="rounded-full"
-                />
-                <AvatarFallback className="bg-gray-300">
-                  {selectedConversation?.name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-            </>
-          ) : (
-            <AvatarGroup members={selectedConversation?.members || []} />
-          )}
-          {selectedConversation?.type === "private" ? (
-            <>
-              <div className="flex items-center gap-2">
+                </div>
+                <div className="text-gray-500">
+                  {onlineStatus ? `${t("chat.isOnline")}` : offlineTime || ""}
+                </div>
+              </>
+            ) : selectedConversation?.name ? (
+              <>
                 <h2 className="text-lg font-semibold">
-                  {
-                    selectedConversation?.members.filter(
-                      (member: { id: string }) => member.id !== user?.id
-                    )[0]?.name
-                  }
+                  {selectedConversation?.name}
                 </h2>
                 {onlineStatus ? (
                   <span className="w-3 h-3 bg-green-500 rounded-full mb-1"></span>
                 ) : (
                   <span className="w-3 h-3 bg-red-500 rounded-full mb-1"></span>
                 )}
+              </>
+            ) : (
+              <>
+                <h2 className="text-lg font-semibold">
+                  Bạn,{" "}
+                  {selectedConversation?.members
+                    .filter((m: { id: string }) => m.id !== user?.id)
+                    .map((m: { name: string }) => m.name)
+                    .join(", ")}
+                </h2>
+                {onlineStatus ? (
+                  <span className="w-3 h-3 bg-green-500 rounded-full mb-1"></span>
+                ) : (
+                  <span className="w-3 h-3 bg-red-500 rounded-full mb-1"></span>
+                )}
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleStartCall()}
+              className="p-2 hover:cursor-pointer hover:bg-gray-200 rounded-full"
+            >
+              <Phone className="w-6 h-6 text-gray-500 hover:text-black" />
+            </button>
+            <button
+              onClick={toggleInfo}
+              className="p-2 hover:cursor-pointer hover:bg-gray-200 rounded-full"
+            >
+              <Info className="w-6 h-6 text-gray-500 hover:text-black" />
+            </button>
+          </div>
+        </div>
+
+        {/* Messages container với infinite scroll */}
+        <div
+          ref={messagesContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto p-4 flex flex-col-reverse gap-1 bg-gray-50 relative"
+        >
+          {!isFetching && !isLoadingMore && messages.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-full text-center pb-20 opacity-80 select-none transform">
+              <div className="mb-4 transform scale-110">
+                {selectedConversation?.type === "private" ? (
+                  <Avatar className="w-24 h-24 border-4 border-white shadow-md">
+                    <AvatarImage
+                      src={getUserImageSrc(getPartner()?.avatarUrl)}
+                    />
+                    <AvatarFallback className="text-3xl bg-gray-200">
+                      {getPartner()?.name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : selectedConversation?.avatar ? (
+                  <Avatar className="w-24 h-24 border-4 border-white shadow-md">
+                    <AvatarImage src={getUserImageSrc(selectedConversation?.avatar)} />
+                    <AvatarFallback className="text-3xl">{selectedConversation.name?.[0]}</AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <div className="w-24 h-24 flex items-center justify-center bg-blue-100 rounded-full border-4 border-white shadow-md">
+                    <Users size={40} className="text-blue-500" />
+                  </div>
+                )}
               </div>
-              <div className="text-gray-500">
-                {onlineStatus ? `${t("chat.isOnline")}` : offlineTime || ""}
+
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                {selectedConversation?.type === "private"
+                  ? getPartner()?.name
+                  : selectedConversation?.name || "Nhóm mới"}
+              </h3>
+
+              <p className="text-gray-500 text-sm max-w-[250px] mx-auto leading-relaxed">
+                {selectedConversation?.type === "private"
+                  ? `Các bạn chưa có tin nhắn nào. Hãy gửi lời chào đến ${getPartner()?.name}!`
+                  : "Đây là nhóm mới. Hãy gửi tin nhắn đầu tiên để bắt đầu cuộc trò chuyện!"}
+              </p>
+
+              <div className="mt-6 text-4xl animate-bounce">
+                👋
               </div>
-            </>
-          ) : selectedConversation?.name ? (
-            <>
-              <h2 className="text-lg font-semibold">
-                {selectedConversation?.name}
-              </h2>
-              {onlineStatus ? (
-                <span className="w-3 h-3 bg-green-500 rounded-full mb-1"></span>
-              ) : (
-                <span className="w-3 h-3 bg-red-500 rounded-full mb-1"></span>
-              )}
-            </>
+            </div>
+          )}
+          {isFetching && (
+            <div className="flex flex-col items-center justify-center h-full pb-10">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+              <p className="text-xs text-gray-400 mt-2">Đang tải tin nhắn...</p>
+            </div>
+          )}
+          {messages.map((message, index) => {
+
+            if (message.content.type === "system") {
+              return <MessageSystem key={message._id} message={message} />;
+            }
+
+            const getSenderId = (msg: any) => {
+              if (!msg) return null;
+              const id = msg.senderId || msg.sender?.id || msg.sender?._id;
+              return String(id);
+            };
+
+            const currentSenderId = getSenderId(message);
+            const myId = String(user?.id);
+            const isMe = currentSenderId === myId;
+
+            const olderMessage = messages[index + 1];
+            const newerMessage = messages[index - 1];
+
+            const olderSenderId = getSenderId(olderMessage);
+            const newerSenderId = getSenderId(newerMessage);
+
+            const isSameSenderAsOlder = olderSenderId === currentSenderId;
+            const showAvatar = !olderMessage || !isSameSenderAsOlder;
+
+            const isSameSenderAsNewer = newerSenderId === currentSenderId;
+            const showTimestamp = index === 0 || !isSameSenderAsNewer;
+            const isLastInSequence = showTimestamp;
+
+            return (
+              <div key={message._id} data-message-id={message._id}>
+                {isMe ? (
+                  <MessageSender
+                    message={message}
+                    onRetry={() => retryMessage(message._id)}
+                    showTimestamp={showTimestamp}
+                    isLastInSequence={isLastInSequence}
+                    onReply={() => handleReply(message)}
+                    onRevoke={() => handleRevokeMessage(message._id)}
+                    onDelete={() => handleDeleteMessage(message._id)}
+                    onLike={() => handleToggleLike(message._id)}
+                  />
+                ) : (
+                  <MessageReceiver
+                    message={message}
+                    showTimestamp={showTimestamp}
+                    showAvatar={showAvatar}
+                    isLastInSequence={isLastInSequence}
+                    onReply={() => handleReply(message)}
+                    onDelete={() => handleDeleteMessage(message._id)}
+                    onLike={() => handleToggleLike(message._id)}
+                  />
+                )}
+              </div>
+            );
+          })}
+
+          {/* Loading indicator khi đang tải tin cũ */}
+          {isLoadingMore && (
+            <div className="flex justify-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            </div>
+          )}
+
+          {/* Nút "Tin nhắn mới" khi có tin mới và đang xem tin cũ */}
+          {showNewMessageButton && (
+            <button
+              onClick={scrollToBottom}
+              className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-600 transition-all flex items-center gap-2 z-20 animate-bounce"
+            >
+              <span className="text-sm font-medium">
+                {newMessageCount > 1
+                  ? `${newMessageCount} tin nhắn mới`
+                  : "Tin nhắn mới"}
+              </span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </button>
+          )}
+        </div>
+
+        {/* Input area */}
+        <form
+          className="flex items-center gap-4 p-4 relative"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSendMessage();
+          }}
+        >
+          {replyingTo && (
+            <div className="absolute bottom-full left-0 w-full bg-gray-50 border-t border-gray-200 p-2 flex justify-between items-center z-10 shadow-sm animate-in slide-in-from-bottom-2">
+              <div className="flex flex-col border-l-4 border-blue-500 pl-3 max-w-[90%]">
+                <div className="flex items-center gap-2">
+                  <Reply size={12} className="text-blue-500" />
+                  <span className="text-xs font-bold text-blue-600">
+                    Trả lời {replyingTo.sender?.name || "Người dùng"}
+                  </span>
+                </div>
+                <span className="text-sm text-gray-600 truncate mt-0.5">
+                  {replyingTo.content.text || (replyingTo.content.images?.length ? "[Hình ảnh]" : "[File]")}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReplyingTo(null)}
+                className="p-1.5 hover:bg-gray-200 rounded-full text-gray-500 transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          )}
+
+          {isRecording ? (
+            // UI GHI ÂM
+            <div className="flex-1 flex items-center gap-4 bg-gray-100 p-2 rounded-lg animate-in fade-in duration-200">
+              <div className="flex items-center gap-2 text-red-500 animate-pulse">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span className="font-medium">{formattedTime}</span> {/* Dùng biến từ hook */}
+              </div>
+              <span className="flex-1 text-gray-500 text-sm">Đang ghi âm...</span>
+
+              <button
+                type="button"
+                onClick={cancelRecording}
+                className="p-2 text-gray-500 hover:bg-gray-200 rounded-full hover:text-red-500 transition"
+              >
+                <Trash2 size={20} />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleStopAndSend} // Gọi hàm wrapper
+                className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
+              >
+                <Send size={18} />
+              </button>
+            </div>
           ) : (
             <>
-              <h2 className="text-lg font-semibold">
-                Bạn,{" "}
-                {selectedConversation?.members
-                  .filter((m: { id: string }) => m.id !== user?.id)
-                  .map((m: { name: string }) => m.name)
-                  .join(", ")}
-              </h2>
-              {onlineStatus ? (
-                <span className="w-3 h-3 bg-green-500 rounded-full mb-1"></span>
+              <Smile
+                onClick={() => setShowEmojiPicker((prev) => !prev)}
+                className="text-gray-500 w-8 h-8 hover:cursor-pointer"
+              />
+
+              {showEmojiPicker && (
+                <div ref={emojiRef} className="absolute bottom-20 left-2 z-50">
+                  <EmojiPicker
+                    onEmojiClick={(emojiData) => {
+                      setText((prev) => prev + emojiData.emoji);
+                    }}
+                  />
+                </div>
+              )}
+
+              <Paperclip
+                onClick={() => fileInputRef.current?.click()}
+                className="text-gray-500 w-8 h-8 hover:cursor-pointer"
+              />
+              <input
+                type="file"
+                multiple
+                ref={fileInputRef}
+                className="hidden"
+                onChange={(e) => handleFileChange(e)}
+                accept="image/*,video/*,application/pdf,.doc,.docx,.xlsx,.zip,.rar"
+              />
+              {files.length > 0 && (
+                <div className="absolute bottom-16 left-2 z-50 flex gap-2 p-2 flex-wrap">
+                  {files.map((file, idx) => (
+                    <div
+                      key={idx}
+                      className="relative flex items-center gap-2 w-40 p-2 bg-gray-300 rounded"
+                    >
+                      <img
+                        src={getFileIconUrl(file)}
+                        alt={file.name}
+                        className="w-6 h-6 flex-shrink-0"
+                      />
+                      <span className="text-sm text-gray-700 truncate" title={file.name}>
+                        {file.name}
+                      </span>
+                      <button
+                        type="button"
+                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-1 text-xs"
+                        onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <input
+                type="text"
+                ref={textInputRef}
+                placeholder={t("dashboard.typeYourMessage")}
+                className="w-full p-2 border border-gray-300 rounded"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+              />
+              {text.trim() || files.length > 0 ? (
+                <button type="submit" className="p-2 bg-blue-500 text-white rounded hover:cursor-pointer"> <Send size={20} /> </button>
               ) : (
-                <span className="w-3 h-3 bg-red-500 rounded-full mb-1"></span>
+                <button
+                  type="button"
+                  onClick={startRecording} // Gọi hàm từ hook
+                  className="p-2 bg-gray-200 text-gray-700 rounded hover:cursor-pointer"
+                >
+                  <Mic size={24} />
+                </button>
               )}
             </>
           )}
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => handleStartCall()}
-            className="p-2 hover:cursor-pointer hover:bg-gray-200 rounded-full"
-          >
-            <Phone className="w-6 h-6 text-gray-500 hover:text-black" />
-          </button>
-          <button
-            onClick={() => console.log("Options clicked")}
-            className="p-2 hover:cursor-pointer hover:bg-gray-200 rounded-full"
-          >
-            <Info className="w-6 h-6 text-gray-500 hover:text-black" />
-          </button>
-        </div>
+        </form>
       </div>
 
-      {/* Messages container với infinite scroll */}
-      <div
-        ref={messagesContainerRef}
-        onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-4 flex flex-col-reverse gap-1 bg-gray-50 relative"
-      >
-        {messages.map((message, index) => {
-          const getSenderId = (msg: any) => {
-            if (!msg) return null;
-            const id = msg.senderId || msg.sender?.id || msg.sender?._id;
-            return String(id);
-          };
-
-          const currentSenderId = getSenderId(message);
-          const myId = String(user?.id);
-          const isMe = currentSenderId === myId;
-
-          const olderMessage = messages[index + 1];
-          const newerMessage = messages[index - 1];
-
-          const olderSenderId = getSenderId(olderMessage);
-          const newerSenderId = getSenderId(newerMessage);
-
-          const isSameSenderAsOlder = olderSenderId === currentSenderId;
-          const showAvatar = !olderMessage || !isSameSenderAsOlder;
-
-          const isSameSenderAsNewer = newerSenderId === currentSenderId;
-          const showTimestamp = index === 0 || !isSameSenderAsNewer;
-          const isLastInSequence = showTimestamp;
-
-          return (
-            <div key={message._id} data-message-id={message._id}>
-              {isMe ? (
-                <MessageSender
-                  message={message}
-                  onRetry={() => retryMessage(message._id)}
-                  showTimestamp={showTimestamp}
-                  isLastInSequence={isLastInSequence}
-                  onReply={() => handleReply(message)}
-                  onRevoke={() => handleRevokeMessage(message._id)}
-                  onDelete={() => handleDeleteMessage(message._id)}
-                  onLike={() => handleToggleLike(message._id)}
-                />
-              ) : (
-                <MessageReceiver
-                  message={message}
-                  showTimestamp={showTimestamp}
-                  showAvatar={showAvatar}
-                  isLastInSequence={isLastInSequence}
-                  onReply={() => handleReply(message)}
-                  onDelete={() => handleDeleteMessage(message._id)}
-                  onLike={() => handleToggleLike(message._id)}
-                />
-              )}
-            </div>
-          );
-        })}
-
-        {/* Loading indicator khi đang tải tin cũ */}
-        {isLoadingMore && (
-          <div className="flex justify-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          </div>
-        )}
-
-        {/* Thông báo hết tin nhắn */}
-        {!hasMore && messages.length > 0 && (
-          <div className="text-center text-gray-400 py-4 text-sm">
-            Đã hiển thị tất cả tin nhắn
-          </div>
-        )}
-
-        {/* Nút "Tin nhắn mới" khi có tin mới và đang xem tin cũ */}
-        {showNewMessageButton && (
-          <button
-            onClick={scrollToBottom}
-            className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-600 transition-all flex items-center gap-2 z-20 animate-bounce"
-          >
-            <span className="text-sm font-medium">
-              {newMessageCount > 1
-                ? `${newMessageCount} tin nhắn mới`
-                : "Tin nhắn mới"}
-            </span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-            </svg>
-          </button>
-        )}
-      </div>
-
-      {/* Input area */}
-      <form
-        className="flex items-center gap-4 p-4 relative"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSendMessage();
-        }}
-      >
-        {replyingTo && (
-          <div className="absolute bottom-full left-0 w-full bg-gray-50 border-t border-gray-200 p-2 flex justify-between items-center z-10 shadow-sm animate-in slide-in-from-bottom-2">
-            <div className="flex flex-col border-l-4 border-blue-500 pl-3 max-w-[90%]">
-              <div className="flex items-center gap-2">
-                <Reply size={12} className="text-blue-500" />
-                <span className="text-xs font-bold text-blue-600">
-                  Trả lời {replyingTo.sender?.name || "Người dùng"}
-                </span>
-              </div>
-              <span className="text-sm text-gray-600 truncate mt-0.5">
-                {replyingTo.content.text || (replyingTo.content.images?.length ? "[Hình ảnh]" : "[File]")}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setReplyingTo(null)}
-              className="p-1.5 hover:bg-gray-200 rounded-full text-gray-500 transition"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        )}
-
-        {isRecording ? (
-          // UI GHI ÂM
-          <div className="flex-1 flex items-center gap-4 bg-gray-100 p-2 rounded-lg animate-in fade-in duration-200">
-            <div className="flex items-center gap-2 text-red-500 animate-pulse">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              <span className="font-medium">{formattedTime}</span> {/* Dùng biến từ hook */}
-            </div>
-            <span className="flex-1 text-gray-500 text-sm">Đang ghi âm...</span>
-
-            <button
-              type="button"
-              onClick={cancelRecording}
-              className="p-2 text-gray-500 hover:bg-gray-200 rounded-full hover:text-red-500 transition"
-            >
-              <Trash2 size={20} />
-            </button>
-
-            <button
-              type="button"
-              onClick={handleStopAndSend} // Gọi hàm wrapper
-              className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
-            >
-              <Send size={18} />
-            </button>
-          </div>
-        ) : (
-          <>
-            <Smile
-              onClick={() => setShowEmojiPicker((prev) => !prev)}
-              className="text-gray-500 w-8 h-8 hover:cursor-pointer"
-            />
-
-            {showEmojiPicker && (
-              <div ref={emojiRef} className="absolute bottom-20 left-2 z-50">
-                <EmojiPicker
-                  onEmojiClick={(emojiData) => {
-                    setText((prev) => prev + emojiData.emoji);
-                  }}
-                />
-              </div>
-            )}
-
-            <Paperclip
-              onClick={() => fileInputRef.current?.click()}
-              className="text-gray-500 w-8 h-8 hover:cursor-pointer"
-            />
-            <input
-              type="file"
-              multiple
-              ref={fileInputRef}
-              className="hidden"
-              onChange={(e) => handleFileChange(e)}
-              accept="image/*,video/*,application/pdf,.doc,.docx,.xlsx,.zip,.rar"
-            />
-            {files.length > 0 && (
-              <div className="absolute bottom-16 left-2 z-50 flex gap-2 p-2 flex-wrap">
-                {files.map((file, idx) => (
-                  <div
-                    key={idx}
-                    className="relative flex items-center gap-2 w-40 p-2 bg-gray-300 rounded"
-                  >
-                    <img
-                      src={getFileIconUrl(file)}
-                      alt={file.name}
-                      className="w-6 h-6 flex-shrink-0"
-                    />
-                    <span className="text-sm text-gray-700 truncate" title={file.name}>
-                      {file.name}
-                    </span>
-                    <button
-                      type="button"
-                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-1 text-xs"
-                      onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <input
-              type="text"
-              ref={textInputRef}
-              placeholder={t("dashboard.typeYourMessage")}
-              className="w-full p-2 border border-gray-300 rounded"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-            />
-            {text.trim() || files.length > 0 ? (
-              <button type="submit" className="p-2 bg-blue-500 text-white rounded hover:cursor-pointer"> <Send size={20} /> </button>
-            ) : (
-              <button
-                type="button"
-                onClick={startRecording} // Gọi hàm từ hook
-                className="p-2 bg-gray-200 text-gray-700 rounded hover:cursor-pointer"
-              >
-                <Mic size={24} />
-              </button>
-            )}
-          </>
-        )}
-      </form>
+      {/* --- SIDEBAR INFO (Bên Phải) --- */}
+      {showInfo && selectedConversation && (
+        <ConversationInfo
+          conversation={selectedConversation}
+          currentUser={user}
+          isOpen={showInfo}
+          onClose={() => setShowInfo(false)}
+          onUpdate={() => {
+            // Gọi hàm fetch lại conversation ở đây để cập nhật list member mới
+            // fetchConversationById(params.id); 
+            console.log("Reload conversation info needed");
+          }}
+        />
+      )}
     </div>
   );
 }

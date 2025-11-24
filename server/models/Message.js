@@ -30,7 +30,7 @@ const messageSchema = new mongoose.Schema({
         system: {
             action: {
                 type: String,
-                enum: ["user_joined", "user_left", "conversation_renamed", "member_added", "member_removed"]
+                enum: ["user_joined", "user_left", "conversation_renamed", "member_added", "member_removed", "admin_transferred", "conversation_avatar_updated"]
             },
             actor: {
                 id: String,

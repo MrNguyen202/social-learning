@@ -5,6 +5,7 @@ const cloudinary = require("../config/cloudinaryConfig");
 const fs = require("fs");
 
 const REVOKE_TIME_LIMIT = 60 * 60 * 1000;
+const SYSTEM_ID = "00000000-0000-0000-0000-000000000000";
 
 const messageService = {
     // Lưu tin nhắn mới
@@ -117,21 +118,31 @@ const messageService = {
     async getMessagesByConversationId(conversationId, userId, { page = 1, limit = 20 }) {
         const skip = (page - 1) * limit;
 
-        // Điều kiện: mảng 'removed' KHÔNG chứa userId
+        // Lấy thông tin Conversation để check mốc thời gian user đã xóa lịch sử
+        const conversation = await Conversation.findById(conversationId);
+        if (!conversation) throw new Error("Conversation not found");
+
+        // Tìm mốc thời gian user đã xóa lịch sử
+        const deleteHistory = conversation.delete_history?.find(h => h.userId === userId);
+        const deletedAt = deleteHistory ? deleteHistory.deletedAt : null;
+
+        // Tạo query
         const query = {
             conversationId,
-            "removed.userId": { $ne: userId } // $ne: not equal (không tồn tại trong mảng)
+            "removed.userId": { $ne: userId } // Tin nhắn đơn lẻ bị xóa
         };
 
-        // B1: Lấy messages trong MongoDB
+        // Nếu user đã xóa lịch sử, chỉ lấy tin nhắn SAU thời điểm đó
+        if (deletedAt) {
+            query.createdAt = { $gt: deletedAt };
+        }
+
+        // B1: Lấy messages
         const messages = await Message.find(query)
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
-            .populate({
-                path: 'replyTo',
-                select: 'senderId content' // Lấy nội dung tin gốc
-            })
+            .populate({ path: 'replyTo', select: 'senderId content' })
             .lean();
         // B2: Lấy danh sách unique senderId
         const senderIds = new Set(messages.map(m => m.senderId));
@@ -266,6 +277,39 @@ const messageService = {
 
         // 3. Lưu lại và trả về message mới nhất
         return await message.save();
+    },
+
+    async createSystemMessage(conversationId, actorId, action, targetIds = [], newName = null) {
+        // Cần fetch thông tin actor và target để lưu tên (snapshot) vào message
+        // Giả sử có hàm userService.getUsersByIds
+        const { data: users } = await userService.getUsersByIds([actorId, ...targetIds]);
+        const actorUser = users.find(u => u.id === actorId);
+
+        const targets = targetIds.map(tid => {
+            const tUser = users.find(u => u.id === tid);
+            return { id: tid, name: tUser?.name || "Unknown" };
+        });
+
+        const message = new Message({
+            conversationId,
+            senderId: SYSTEM_ID,
+            content: {
+                type: "system",
+                system: {
+                    action, // "admin_transferred"
+                    actor: { id: actorId, name: actorUser?.name || "Unknown" },
+                    target: targets, // Array chứa thông tin người admin mới
+                    newName 
+                }
+            }
+        });
+        
+        await message.save();
+
+        // Update lastMessage conversation...
+        await Conversation.findByIdAndUpdate(conversationId, { lastMessage: message._id });
+
+        return message;
     },
 };
 

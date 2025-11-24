@@ -29,7 +29,6 @@ export const login = async ({ email, password }: any) => {
     email,
     password,
   });
-  console.log('API login response:', response.data);
   return response.data;
 };
 

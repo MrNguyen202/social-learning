@@ -19,7 +19,7 @@ interface User {
 interface Conversation {
   id: string;
   name: string;
-  avatarUrl: string;
+  avatar: string;
   members: User[];
   lastMessage: LastMessage | null;
 }

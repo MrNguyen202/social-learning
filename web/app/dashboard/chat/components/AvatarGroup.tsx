@@ -2,7 +2,6 @@
 
 import { getUserImageSrc } from "@/app/apiClient/image/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import Image from "next/image";
 
 interface Member {
     id: string;
@@ -22,7 +21,7 @@ export default function AvatarGroup({ members }: { members: Member[] }) {
                         width={28}
                         height={28}
                     />
-                    <AvatarFallback className="bg-gray-300 w-7 h-7">{members[0]?.name.charAt(0)}</AvatarFallback>
+                    <AvatarFallback className="bg-gray-300 w-7 h-7">{members[0]?.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 {/* Avatar dưới trái */}
                 <Avatar className="absolute bottom-0 left-0 w-7 h-7 rounded-full object-cover">
@@ -32,7 +31,7 @@ export default function AvatarGroup({ members }: { members: Member[] }) {
                         width={28}
                         height={28}
                     />
-                    <AvatarFallback className="bg-gray-300 w-7 h-7">{members[1]?.name.charAt(0)}</AvatarFallback>
+                    <AvatarFallback className="bg-gray-300 w-7 h-7">{members[1]?.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 {/* Avatar dưới phải */}
                 <Avatar className="absolute bottom-0 right-0 w-7 h-7 rounded-full object-cover">
@@ -42,7 +41,7 @@ export default function AvatarGroup({ members }: { members: Member[] }) {
                         width={28}
                         height={28}
                     />
-                    <AvatarFallback className="bg-gray-300 w-7 h-7">{members[2]?.name.charAt(0)}</AvatarFallback>
+                    <AvatarFallback className="bg-gray-300 w-7 h-7">{members[2]?.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
             </div>
         );
@@ -58,7 +57,7 @@ export default function AvatarGroup({ members }: { members: Member[] }) {
                     width={28}
                     height={28}
                 />
-                <AvatarFallback className="bg-gray-300 w-7 h-7">{members[0]?.name.charAt(0)}</AvatarFallback>
+                <AvatarFallback className="bg-gray-300 w-7 h-7">{members[0]?.name?.charAt(0)}</AvatarFallback>
             </Avatar>
             {/* Top Right */}
             <Avatar className="absolute top-0 right-0 w-7 h-7 rounded-full object-cover">
@@ -68,7 +67,7 @@ export default function AvatarGroup({ members }: { members: Member[] }) {
                     width={28}
                     height={28}
                 />
-                <AvatarFallback className="bg-gray-300 w-7 h-7">{members[1]?.name.charAt(0)}</AvatarFallback>
+                <AvatarFallback className="bg-gray-300 w-7 h-7">{members[1]?.name?.charAt(0)}</AvatarFallback>
             </Avatar>
             {/* Bottom Left */}
             <Avatar className="absolute bottom-0 left-0 w-7 h-7 rounded-full object-cover">
@@ -78,7 +77,7 @@ export default function AvatarGroup({ members }: { members: Member[] }) {
                     width={28}
                     height={28}
                 />
-                <AvatarFallback className="bg-gray-300 w-7 h-7">{members[2]?.name.charAt(0)}</AvatarFallback>
+                <AvatarFallback className="bg-gray-300 w-7 h-7">{members[2]?.name?.charAt(0)}</AvatarFallback>
             </Avatar>
             {/* Bottom Right hoặc số thêm */}
             {members.length > 4 ? (
@@ -95,7 +94,7 @@ export default function AvatarGroup({ members }: { members: Member[] }) {
                         width={28}
                         height={28}
                     />
-                    <AvatarFallback className="bg-gray-300 w-7 h-7">{members[3]?.name.charAt(0)}</AvatarFallback>
+                    <AvatarFallback className="bg-gray-300 w-7 h-7">{members[3]?.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
             )}
         </div>

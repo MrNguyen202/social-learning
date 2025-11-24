@@ -102,6 +102,31 @@ const followController = {
       return res.status(500).json({ success: false, message: error.message });
     }
   },
+
+  // Tìm kiếm bạn bè (followers và following) của user hiện tại theo từ khóa
+  async searchUserFriends(req, res) {
+    try {
+      const { keyword } = req.query;
+      const currentUserId = req.user.id; // Lấy từ middleware xác thực
+
+      if (!keyword || keyword.trim() === "") {
+        return res.status(400).json({ success: false, message: "Keyword is required" });
+      }
+
+      const { data, error } = await userService.searchUserFriends(
+        keyword,
+        currentUserId
+      );
+
+      if (error) {
+        return res.status(400).json({ success: false, message: error.message });
+      }
+
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  },
 };
 
 module.exports = followController;
