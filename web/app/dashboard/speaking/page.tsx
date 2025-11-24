@@ -202,13 +202,13 @@ export default function SpeakingPage() {
       <AnimatePresence>
         {isReady && (
           <motion.div
-            className="fixed bottom-6 left-1/2 right-0 -translate-x-1/2 z-50 px-4 pb-4 md:pb-6"
+            className="fixed bottom-4 left-0 right-0 z-50 flex justify-center px-4 md:bottom-6"
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
             transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
           >
-            <div className="relative flex flex-col items-center gap-4 md:gap-6 bg-white/95 backdrop-blur-xl shadow-2xl px-4 md:px-8 py-4 md:py-6 rounded-2xl md:rounded-3xl max-w-5xl w-full border-2 border-orange-200">
+            <div className="relative flex flex-col items-center gap-4 md:gap-6 bg-white/95 backdrop-blur-xl shadow-2xl px-4 md:px-8 py-4 md:py-6 rounded-2xl md:rounded-3xl max-w-5xl w-full border-2 border-orange-200 sm:px-6 sm:py-6 md:max-w-4xl lg:max-w-5xl">
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
@@ -266,7 +266,6 @@ export default function SpeakingPage() {
                         disabled={loading}
                         className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white cursor-pointer"
                       >
-                        <Sparkles className="w-4 h-4 mr-2" />
                         Generate AI
                       </Button>
                       <Button
@@ -275,7 +274,6 @@ export default function SpeakingPage() {
                         className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white cursor-pointer"
                       >
                         {t("learning.start")}
-                        <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                     </div>
                   </div>
@@ -304,7 +302,6 @@ export default function SpeakingPage() {
                         disabled={loading}
                         className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white cursor-pointer"
                       >
-                        <Sparkles className="w-4 h-4 mr-2" />
                         Generate AI
                       </Button>
                       <Button
@@ -313,7 +310,6 @@ export default function SpeakingPage() {
                         className="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white cursor-pointer"
                       >
                         {t("learning.realTimePractice")}
-                        <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                     </div>
                   </div>

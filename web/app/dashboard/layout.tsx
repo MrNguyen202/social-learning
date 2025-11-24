@@ -7,6 +7,7 @@ import { LeftSidebar } from "./components/LeftSideBar";
 import { LeftSideBarHiddenLabel } from "./components/LeftSideBarHiddenLable";
 import { LeftSidebarMobile } from "./components/LeftSideBarMobile";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { checkUserBan } from "../apiClient/auth/auth";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -14,12 +15,25 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isTablet, setIsTablet] = useState(false);
   const isMobile = useIsMobile();
+  const [isBanned, setIsBanned] = useState(false);
 
   const compact = pathname.startsWith("/dashboard/chat");
   const compactWriting =
     pathname.startsWith("/dashboard/writing/writing-paragraph/") ||
     pathname.startsWith("/dashboard/writing/detail/") ||
     pathname.startsWith("/dashboard/listening/");
+
+  useEffect(() => {
+    if (user) {
+      checkUserBan(user.id).then((response) => {
+        if (response.success && response.message) {
+          setIsBanned(response.message); // Banned
+        } else {
+          setIsBanned(false); // Không bị ban
+        }
+      });
+    }
+  }, [user]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -29,14 +43,27 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         setIsTablet(false);
       }
     };
-
     handleResize();
-
     window.addEventListener("resize", handleResize);
-
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  if (isBanned) {
+    return (
+      <div className="flex-1 flex items-center justify-center h-full p-6">
+        <div className="text-center p-6 bg-red-100 border border-red-400 rounded-lg">
+          <h2 className="text-2xl font-bold text-red-700 mb-4">
+            Account Banned
+            {isBanned && <p>{isBanned}</p>}
+          </h2>
+          <p className="text-red-600">
+            Your account has been banned. Please contact support for more
+            information.
+          </p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="bg-gray-50">
       {/* Left Sidebar */}

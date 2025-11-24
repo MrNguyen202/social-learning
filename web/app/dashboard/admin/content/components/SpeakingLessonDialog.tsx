@@ -110,13 +110,13 @@ export function SpeakingLessonDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Create Speaking Lesson</DialogTitle>
+          <DialogTitle>{t("dashboard.createSpeakingLesson")}</DialogTitle>
         </DialogHeader>
 
         {/* Đây là form đã bỏ react-hook-form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="content">Content</Label>
+            <Label htmlFor="content">{t("dashboard.content")}</Label>
             <Textarea
               id="content"
               name="content"
@@ -129,7 +129,7 @@ export function SpeakingLessonDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="levelId">Level</Label>
+              <Label htmlFor="levelId">{t("dashboard.level")}</Label>
               <Select
                 value={formData.levelId}
                 onValueChange={(value) => handleSelectChange("levelId", value)}
@@ -148,7 +148,7 @@ export function SpeakingLessonDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="topicId">Topic</Label>
+              <Label htmlFor="topicId">{t("dashboard.topic")}</Label>
               <Select
                 value={formData.topicId}
                 onValueChange={(value) => handleSelectChange("topicId", value)}

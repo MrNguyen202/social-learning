@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, FileText, Mic } from "lucide-react";
+import { FileText, Headphones, Volume2 } from "lucide-react";
 import { ListeningParagraphs } from "./components/ListeningParagraphs";
 import { WritingExercises } from "./components/WritingExercises";
 import { SpeakingLessons } from "./components/SpeakingLessons";
@@ -24,7 +24,7 @@ export default function Content() {
               onClick={() => setView("listening")}
               className="cursor-pointer"
             >
-              <BookOpen className="w-4 h-4 mr-2" />
+              <Headphones className="w-4 h-4 mr-2" />
               {t("dashboard.listeningParagraphs")}
             </Button>
             <Button
@@ -40,7 +40,7 @@ export default function Content() {
               onClick={() => setView("speaking")}
               className="cursor-pointer"
             >
-              <Mic className="w-4 h-4 mr-2" />
+              <Volume2 className="w-4 h-4 mr-2" />
               {t("dashboard.speakingLessons")}
             </Button>
           </div>

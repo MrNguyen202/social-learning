@@ -424,41 +424,44 @@ export function LeftSidebarMobile() {
             </>
           )}
         </div>
-      </ScrollArea>
 
-      {/* Dropdown */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <div className="p-4 border-t border-gray-100 cursor-pointer">
-            <div className="p-3 rounded-lg bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-100">
-              <div className="flex items-center space-x-3">
-                <MenuIcon className="h-4 w-4" />
-                <p className="font-medium">{t("dashboard.seeMore")}</p>
+        {/* Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="p-4 border-t border-gray-100 cursor-pointer">
+              <div className="p-3 rounded-lg bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-100">
+                <div className="flex items-center space-x-3">
+                  <MenuIcon className="h-4 w-4" />
+                  <p className="font-medium">{t("dashboard.seeMore")}</p>
+                </div>
               </div>
             </div>
-          </div>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end">
-          <DropdownMenuLabel>{t("dashboard.myAccount")}</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={() => handleMenuClick("/dashboard/profile")}
-          >
-            {t("dashboard.profile")}
-          </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer" onClick={toggleLanguage}>
-            {language === "vi" ? "English" : "Tiếng Việt"}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="text-red-600 cursor-pointer"
-            onClick={handleLogout}
-          >
-            {t("dashboard.logout")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end">
+            <DropdownMenuLabel>{t("dashboard.myAccount")}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => handleMenuClick("/dashboard/profile")}
+            >
+              {t("dashboard.profile")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={toggleLanguage}
+            >
+              {language === "vi" ? "English" : "Tiếng Việt"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-red-600 cursor-pointer"
+              onClick={handleLogout}
+            >
+              {t("dashboard.logout")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </ScrollArea>
 
       <SearchPanel
         isOpen={isSearchOpen}

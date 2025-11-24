@@ -60,6 +60,37 @@ const dashboardService = {
 
     return { data: normalized, error: null };
   },
+
+  /**
+   * Thống kê tần suất học tập theo ngày và giờ
+   * 
+  */
+  async loadLearningFrequencyStats() {
+    const { data, error } = await supabase.rpc("get_learning_frequency_stats");
+
+    if (error) return { data: null, error };
+
+    // Map số 0-6 thành tên thứ, map giờ thành string
+    const daysMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    const formattedDays = (data.days_stats || []).map((item) => ({
+      day: daysMap[item.day_index],
+      count: item.usage_count,
+    }));
+
+    const formattedHours = (data.hours_stats || []).map((item) => ({
+      hour: `${item.hour_index}:00`,
+      count: item.usage_count,
+    }));
+
+    return {
+      data: {
+        byDay: formattedDays,
+        byHour: formattedHours,
+      },
+      error: null,
+    };
+  },
 };
 
 module.exports = dashboardService;

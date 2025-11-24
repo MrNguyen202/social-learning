@@ -218,7 +218,7 @@ export function CreateOrUpdatePostModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="xl:max-w-6xl xl:h-[80vh] lg:max-w-5xl lg:h-[70vh] md:max-w-3xl md:h-[70vh] sm:max-w-xl sm:h-[70vh] max-w-sm h-[70vh] p-0 overflow-hidden">
+      <DialogContent className="xl:max-w-6xl xl:h-[80vh] lg:max-w-5xl lg:h-[70vh] md:max-w-3xl md:h-[70vh] sm:max-w-xl sm:h-[70vh] max-w-sm h-[80vh] p-0 overflow-hidden">
         <DialogHeader className="flex flex-row items-center justify-between p-4 border-b">
           <div className="flex items-center space-x-4">
             {step === 2 && (
@@ -304,12 +304,12 @@ export function CreateOrUpdatePostModal({
 
                 {selectedFile && (
                   <div className="mt-6 space-y-3">
-                    <h4 className="font-medium">{t("selectedFile")}</h4>
+                    <h4 className="font-medium">{t("dashboard.selectedFile")}</h4>
                     <div className="space-y-2 max-h-60 overflow-y-auto">
                       <div className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
                         {getFileIcon(selectedFile)}
                         <div className="flex-1 min-w-0">
-                          <span className="text-sm truncate block">
+                          <span className="text-sm truncate block max-sm:hidden">
                             {selectedFile.name}
                           </span>
                           <span className="text-xs text-gray-500">
@@ -336,7 +336,7 @@ export function CreateOrUpdatePostModal({
             </div>
           ) : (
             <>
-              <div className="flex-1 flex justify-center items-center bg-gray-50">
+              <div className="flex-1 flex justify-center items-center bg-gray-50 max-sm:hidden">
                 {selectedFile ? (
                   // Preview file mới
                   isImageFile(selectedFile) ? (
@@ -393,7 +393,7 @@ export function CreateOrUpdatePostModal({
                     </div>
                   )
                 ) : (
-                  <div className="text-center space-y-4">
+                  <div className="text-center space-y-4 max-sm:hidden">
                     <FileText className="h-16 w-16 mx-auto text-gray-400" />
                     <p className="text-lg text-gray-600">
                       {t("dashboard.textPost")}

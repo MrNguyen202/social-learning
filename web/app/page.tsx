@@ -323,7 +323,7 @@ export default function Page() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
-    toast.success(t("dashboard.logoutSuccess"));
+    toast.success(t("dashboard.logoutSuccess"), { autoClose: 1000 });
     setMobileMenuOpen(false);
   };
 

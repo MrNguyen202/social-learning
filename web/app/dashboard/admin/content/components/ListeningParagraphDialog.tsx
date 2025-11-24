@@ -143,14 +143,18 @@ export function ListeningParagraphDialog({
       }
 
       if (response.success) {
-        toast.success(paragraph ? "Paragraph updated!" : "Paragraph created!");
+        toast.success(
+          paragraph
+            ? `${t("dashboard.paragraphUpdated")}`
+            : `${t("dashboard.paragraphCreated")}`
+        );
         onOpenChange(false); // Đóng modal
         onSuccess(); // Refresh lại bảng
       } else {
-        toast.error(response.message || "Failed to save.");
+        toast.error(response.message);
       }
     } catch (error: any) {
-      toast.error(error.message || "An error occurred.");
+      toast.error(error.message);
     } finally {
       setIsSaving(false);
     }
@@ -162,7 +166,7 @@ export function ListeningParagraphDialog({
         <DialogHeader>
           <DialogTitle>
             {paragraph ? `${t("dashboard.edit")}` : `${t("dashboard.create")}`}{" "}
-            Listening Paragraph
+            {t("dashboard.listeningParagraphs")}
           </DialogTitle>
         </DialogHeader>
 
@@ -170,7 +174,7 @@ export function ListeningParagraphDialog({
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="titleEn">Title (English)</Label>
+              <Label htmlFor="titleEn">{t("dashboard.titleContent")} (English)</Label>
               <Input
                 id="titleEn"
                 name="titleEn"
@@ -180,7 +184,7 @@ export function ListeningParagraphDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="titleVi">Title (Vietnamese)</Label>
+              <Label htmlFor="titleVi">{t("dashboard.titleContent")} (Vietnamese)</Label>
               <Input
                 id="titleVi"
                 name="titleVi"
@@ -192,7 +196,7 @@ export function ListeningParagraphDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="textContent">Text Content</Label>
+            <Label htmlFor="textContent">{t("dashboard.textContent")}</Label>
             <Textarea
               id="textContent"
               name="textContent"
@@ -229,7 +233,7 @@ export function ListeningParagraphDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="levelId">Level</Label>
+              <Label htmlFor="levelId">{t("dashboard.level")}</Label>
               <Select
                 value={formData.levelId}
                 onValueChange={(value) => handleSelectChange("levelId", value)}
@@ -248,7 +252,7 @@ export function ListeningParagraphDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="topicId">Topic</Label>
+              <Label htmlFor="topicId">{t("dashboard.topic")}</Label>
               <Select
                 value={formData.topicId}
                 onValueChange={(value) => handleSelectChange("topicId", value)}

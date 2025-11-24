@@ -24,7 +24,9 @@ const dashboardController = {
     try {
       const { userId } = req.params;
 
-      const { data, error } = await dashboardService.loadRecentActivities(userId);
+      const { data, error } = await dashboardService.loadRecentActivities(
+        userId
+      );
 
       if (error) {
         return res.status(400).json({ success: false, message: error.message });
@@ -42,6 +44,22 @@ const dashboardController = {
     try {
       const { data, error } = await dashboardService.loadPendingModeration();
 
+      if (error) {
+        return res.status(400).json({ success: false, message: error.message });
+      }
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  /**
+   * Lấy thống kê thói quen học tập
+   */
+  async getLearningFrequencyStats(req, res) {
+    try {
+      const { data, error } =
+        await dashboardService.loadLearningFrequencyStats();
       if (error) {
         return res.status(400).json({ success: false, message: error.message });
       }

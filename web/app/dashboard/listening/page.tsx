@@ -147,7 +147,7 @@ export default function ListeningPage() {
           }}
         />
       </div>
-      <div className="flex-1 px-6 py-6 pb-36">
+      <div className="mx-auto w-full max-w-md pt-4 sm:max-w-2xl lg:max-w-3xl xl:max-w-6xl pr-5 sm:pl-10">
         {/* Header Section */}
         <div className="text-center mb-10">
           <motion.div
@@ -180,7 +180,7 @@ export default function ListeningPage() {
       <AnimatePresence>
         {isReady && (
           <motion.div
-            className="fixed bottom-6 left-1/2 right-0 -translate-x-1/2 z-50 px-4 pb-4 md:pb-6"
+            className="fixed bottom-4 left-0 right-0 z-50 flex justify-center px-4 md:bottom-6"
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
@@ -244,7 +244,6 @@ export default function ListeningPage() {
                         disabled={loading}
                         className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white cursor-pointer"
                       >
-                        <Sparkles className="w-4 h-4 mr-2" />
                         Generate AI
                       </Button>
                       <Button
@@ -253,7 +252,6 @@ export default function ListeningPage() {
                         className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white cursor-pointer"
                       >
                         {t("learning.start")}
-                        <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                     </div>
                   </div>

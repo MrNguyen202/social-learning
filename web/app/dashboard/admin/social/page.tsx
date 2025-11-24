@@ -91,10 +91,10 @@ export default function Social() {
       if (response.success) {
         setPosts(response.data);
       } else {
-        toast.error(response.message || "Failed to load posts");
+        toast.error(response.message);
       }
     } catch (error: any) {
-      toast.error(error.message || "An error occurred fetching posts");
+      toast.error(error.message);
     } finally {
       setPostsLoading(false);
     }
@@ -109,10 +109,10 @@ export default function Social() {
       if (response.success) {
         setComments(response.data);
       } else {
-        toast.error(response.message || "Failed to load comments");
+        toast.error(response.message);
       }
     } catch (error: any) {
-      toast.error(error.message || "An error occurred fetching comments");
+      toast.error(error.message);
     } finally {
       setCommentsLoading(false);
     }
@@ -153,16 +153,16 @@ export default function Social() {
       try {
         const response = await deletePostByAdmin(itemToDelete.toString());
         if (response.success) {
-          toast.success("Post deleted successfully!");
+          toast.success(`${t("dashboard.deletePostSuccess")}`);
           setDeleteDialogOpen(false);
           setItemToDelete(null);
           setDetailDialogOpen(false);
           fetchPosts();
         } else {
-          toast.error(response.message || "Failed to delete post");
+          toast.error(response.message);
         }
       } catch (error: any) {
-        toast.error(error.message || "An error occurred");
+        toast.error(error.message);
       } finally {
         setDeletingPost(false);
       }
@@ -180,15 +180,15 @@ export default function Social() {
       try {
         const response = await deleteComment(itemToDelete.toString());
         if (response.success) {
-          toast.success("Comment deleted successfully!");
+          toast.success(`${t("dashboard.deleteCommentSuccess")}`);
           setDeleteCommentDialogOpen(false);
           setItemToDelete(null);
           fetchComments();
         } else {
-          toast.error(response.message || "Failed to delete comment");
+          toast.error(response.message);
         }
       } catch (error: any) {
-        toast.error(error.message || "An error occurred");
+        toast.error(error.message);
       } finally {
         setDeletingComment(false);
       }
@@ -199,14 +199,14 @@ export default function Social() {
     <div className="flex-1 pr-6 py-4 pl-12">
       <Card>
         <CardHeader>
-          <CardTitle className="text-3xl">Social Content Moderation</CardTitle>
+          <CardTitle className="text-3xl">{t("dashboard.socialContentModeration")}</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="space-y-4">
             <div className="flex gap-4">
               <div className="flex-1 flex gap-2">
                 <Input
-                  placeholder="Search posts..."
+                  placeholder={t("dashboard.searchPosts")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -235,10 +235,10 @@ export default function Social() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Content</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Engagement</TableHead>
-                    <TableHead>Created</TableHead>
+                    <TableHead>{t("dashboard.content")}</TableHead>
+                    <TableHead>{t("dashboard.user")}</TableHead>
+                    <TableHead>{t("dashboard.engagement")}</TableHead>
+                    <TableHead>{t("dashboard.created")}</TableHead>
                     <TableHead>{t("dashboard.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -259,7 +259,7 @@ export default function Social() {
                         colSpan={5}
                         className="text-center py-8 text-gray-500"
                       >
-                        No posts found
+                        {t("dashboard.noPostsFound")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -318,13 +318,13 @@ export default function Social() {
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Post Details</DialogTitle>
+            <DialogTitle>{t("dashboard.postDetails")}</DialogTitle>
           </DialogHeader>
           {selectedPost && (
             <div className="space-y-6">
               <div>
                 <p className="text-sm text-gray-500 mb-2">
-                  Posted by {selectedPost.user?.name || "N/A"}
+                  {t("dashboard.postedBy")} {selectedPost.user?.name}
                 </p>
                 <p className="text-base">{selectedPost.content}</p>
 
@@ -419,9 +419,9 @@ export default function Social() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Post?</AlertDialogTitle>
+            <AlertDialogTitle>{t("dashboard.deletePost")}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this post and all its comments.
+              {t("dashboard.deletePostConfirmation")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -445,9 +445,9 @@ export default function Social() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Comment?</AlertDialogTitle>
+            <AlertDialogTitle>{t("dashboard.deleteComment")}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this comment.
+              {t("dashboard.deleteCommentConfirmation")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

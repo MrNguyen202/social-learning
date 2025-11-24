@@ -457,7 +457,7 @@ export default function VocabsTopicPage() {
               <span className="bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent text-2xl mr-1">
                 {selectedWords.length}
               </span>
-              <span className="text-sm font-normal opacity-80">
+              <span className="text-sm font-normal opacity-80 max-sm:hidden">
                 {t("learning.wordsSelected")}
               </span>
             </div>

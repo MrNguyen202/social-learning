@@ -89,10 +89,10 @@ export function WritingExercises({ t }: { t: (key: string) => string }) {
       if (response.success) {
         setExercises(response.data);
       } else {
-        toast.error(response.message || "Failed to load exercises");
+        toast.error(response.message);
       }
     } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+      toast.error(error.message);
     } finally {
       setExercisesLoading(false);
     }
@@ -145,13 +145,13 @@ export function WritingExercises({ t }: { t: (key: string) => string }) {
       try {
         const response = await deleteWritingExercise(exerciseToDelete);
         if (response.success) {
-          toast.success("Exercise deleted successfully!");
+          toast.success(`${t("dashboard.exerciseDeleted")}`);
           refreshExercises();
         } else {
-          toast.error(response.message || "Failed to delete");
+          toast.error(response.message);
         }
       } catch (error: any) {
-        toast.error(error.message || "An error occurred");
+        toast.error(error.message);
       } finally {
         setDeleting(false);
         setDeleteDialogOpen(false);
@@ -164,7 +164,7 @@ export function WritingExercises({ t }: { t: (key: string) => string }) {
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Writing Exercises</CardTitle>
+          <CardTitle>{t("dashboard.writingExercises")}</CardTitle>
           <Button onClick={handleCreate} className="cursor-pointer">
             <Plus className="w-4 h-4 mr-2" />
             {t("dashboard.createNew")}
@@ -251,12 +251,12 @@ export function WritingExercises({ t }: { t: (key: string) => string }) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Level</TableHead>
-                    <TableHead>Topic</TableHead>
-                    <TableHead>Sentences</TableHead>
-                    <TableHead>Submissions</TableHead>
+                    <TableHead>{t("dashboard.titleContent")}</TableHead>
+                    <TableHead>{t("dashboard.type")}</TableHead>
+                    <TableHead>{t("dashboard.level")}</TableHead>
+                    <TableHead>{t("dashboard.topic")}</TableHead>
+                    <TableHead>{t("dashboard.sentences")}</TableHead>
+                    <TableHead>{t("dashboard.submissions")}</TableHead>
                     <TableHead>{t("dashboard.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -277,7 +277,7 @@ export function WritingExercises({ t }: { t: (key: string) => string }) {
                         colSpan={7}
                         className="text-center py-8 text-gray-500"
                       >
-                        No writing exercises found
+                        {t("dashboard.noWritingExercisesFound")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -329,8 +329,7 @@ export function WritingExercises({ t }: { t: (key: string) => string }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this writing exercise. This action
-              cannot be undone.
+              {t("dashboard.deleteWritingExerciseConfirmation")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

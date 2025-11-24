@@ -72,16 +72,16 @@ export function SpeakingLessons({ t }: { t: (key: string) => string }) {
     setLessonsLoading(true);
     try {
       const response = await loadSpeakingLessons({
-        levelId: levelId || undefined,
-        topicId: topicId || undefined,
+        levelId: levelId,
+        topicId: topicId,
       });
       if (response.success) {
         setLessons(response.data);
       } else {
-        toast.error(response.message || "Failed to load lessons");
+        toast.error(response.message);
       }
     } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+      toast.error(error.message);
     } finally {
       setLessonsLoading(false);
     }
@@ -128,13 +128,13 @@ export function SpeakingLessons({ t }: { t: (key: string) => string }) {
       try {
         const response = await deleteSpeakingLesson(lessonToDelete);
         if (response.success) {
-          toast.success("Lesson deleted successfully!");
+          toast.success(`${t("dashboard.lessonDeleted")}`);
           refreshLessons();
         } else {
-          toast.error(response.message || "Failed to delete");
+          toast.error(response.message);
         }
       } catch (error: any) {
-        toast.error(error.message || "An error occurred");
+        toast.error(error.message);
       } finally {
         setDeleting(false);
         setDeleteDialogOpen(false);
@@ -146,7 +146,7 @@ export function SpeakingLessons({ t }: { t: (key: string) => string }) {
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Speaking Lessons</CardTitle>
+          <CardTitle>{t("dashboard.speakingLessons")}</CardTitle>
           <Button onClick={handleCreate} className="cursor-pointer">
             <Plus className="w-4 h-4 mr-2" />
             {t("dashboard.createNew")}
@@ -196,10 +196,10 @@ export function SpeakingLessons({ t }: { t: (key: string) => string }) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Content</TableHead>
-                    <TableHead>Level</TableHead>
-                    <TableHead>Topic</TableHead>
-                    <TableHead>Created</TableHead>
+                    <TableHead>{t("dashboard.content")}</TableHead>
+                    <TableHead>{t("dashboard.level")}</TableHead>
+                    <TableHead>{t("dashboard.topic")}</TableHead>
+                    <TableHead>{t("dashboard.created")}</TableHead>
                     <TableHead>{t("dashboard.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -220,7 +220,7 @@ export function SpeakingLessons({ t }: { t: (key: string) => string }) {
                         colSpan={5}
                         className="text-center py-8 text-gray-500"
                       >
-                        No speaking lessons found
+                        {t("dashboard.noSpeakingLessonsFound")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -280,10 +280,9 @@ export function SpeakingLessons({ t }: { t: (key: string) => string }) {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t("dashboard.areYouSure")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this speaking lesson. This action
-              cannot be undone.
+              {t("dashboard.deleteSpeakingLessonConfirmation")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -108,7 +108,7 @@ export default function VocabularyPage() {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center justify-center p-3 bg-white rounded-2xl shadow-sm border border-slate-100 mb-4 -translate-x-1/2 animate-bounce"
+            className="inline-flex items-center justify-center ml-14 p-3 bg-white rounded-2xl shadow-sm border border-slate-100 mb-4 -translate-x-1/2 animate-bounce"
           >
             <BookOpen className="w-8 h-8 text-orange-500" />
           </motion.div>
@@ -166,7 +166,7 @@ export default function VocabularyPage() {
                 <TabsTrigger
                   key={tab}
                   value={tab}
-                  className="rounded-full px-6 py-3 text-md font-bold data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all"
+                  className="rounded-full px-6 py-3 text-md font-bold data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all max-sm:px-2"
                 >
                   {t(`learning.${tab === "topics" ? "byTopic" : tab}`)}
                 </TabsTrigger>

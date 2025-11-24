@@ -132,7 +132,7 @@ export function WritingExerciseDialog({
       isNaN(payload.typeExerciseId) ||
       isNaN(payload.typeParagraphId)
     ) {
-      toast.error("Please fill in all dropdown fields.");
+      toast.error(t("dashboard.fillAllDropdowns"));
       setIsSaving(false);
       return;
     }
@@ -140,14 +140,14 @@ export function WritingExerciseDialog({
     try {
       const response = await createWritingExercise(payload);
       if (response.success) {
-        toast.success("Exercise created!");
+        toast.success(t("dashboard.createWritingExercise"));
         onOpenChange(false);
         onSuccess();
       } else {
-        toast.error(response.message || "Failed to save.");
+        toast.error(response.message);
       }
     } catch (error: any) {
-      toast.error(error.message || "An error occurred.");
+      toast.error(error.message);
     } finally {
       setIsSaving(false);
     }
@@ -157,13 +157,13 @@ export function WritingExerciseDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Writing Exercise</DialogTitle>
+          <DialogTitle>{t("dashboard.createWritingExercise")}</DialogTitle>
         </DialogHeader>
 
         {/* Đây là form đã bỏ react-hook-form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">{t("dashboard.titleContent")}</Label>
             <Input
               id="title"
               name="title"
@@ -175,7 +175,7 @@ export function WritingExerciseDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="contentVi">Content (Vietnamese)</Label>
+              <Label htmlFor="contentVi">{t("dashboard.content")} (Vietnamese)</Label>
               <Textarea
                 id="contentVi"
                 name="contentVi"
@@ -186,7 +186,7 @@ export function WritingExerciseDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="contentEn">Content (English)</Label>
+              <Label htmlFor="contentEn">{t("dashboard.content")} (English)</Label>
               <Textarea
                 id="contentEn"
                 name="contentEn"
@@ -200,7 +200,7 @@ export function WritingExerciseDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="levelId">Level</Label>
+              <Label htmlFor="levelId">{t("dashboard.level")}</Label>
               <Select
                 value={formData.levelId}
                 onValueChange={(value) => handleSelectChange("levelId", value)}
@@ -218,7 +218,7 @@ export function WritingExerciseDialog({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="topicId">Topic</Label>
+              <Label htmlFor="topicId">{t("dashboard.topic")}</Label>
               <Select
                 value={formData.topicId}
                 onValueChange={(value) => handleSelectChange("topicId", value)}
@@ -239,7 +239,7 @@ export function WritingExerciseDialog({
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="typeExerciseId">Exercise Type</Label>
+              <Label htmlFor="typeExerciseId">{t("dashboard.type")}</Label>
               <Select
                 value={formData.typeExerciseId}
                 onValueChange={(value) =>
@@ -259,7 +259,7 @@ export function WritingExerciseDialog({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="typeParagraphId">Paragraph Type</Label>
+              <Label htmlFor="typeParagraphId">{t("dashboard.paragraphType")}</Label>
               <Select
                 value={formData.typeParagraphId}
                 onValueChange={(value) =>
@@ -279,7 +279,7 @@ export function WritingExerciseDialog({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="numberSentence">Number of Sentences</Label>
+              <Label htmlFor="numberSentence">{t("dashboard.numberOfSentences")}</Label>
               <Input
                 id="numberSentence"
                 name="numberSentence"

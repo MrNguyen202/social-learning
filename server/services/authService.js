@@ -129,6 +129,26 @@ const authService = {
     };
   },
 
+  async checkUserBan(userId) {
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("banned_until")
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      return { message: null, error };
+    }
+
+    if (user && user.banned_until && new Date(user.banned_until) > new Date()) {
+      return {
+        message: "Lock to " + new Date(user.banned_until).toLocaleDateString(),
+        error: null,
+      };
+    }
+    return { message: null, error: null };
+  },
+
   async sendResetOtp(email) {
     // Gửi OTP về email
     const { data, error } = await supabase.auth.signInWithOtp({
