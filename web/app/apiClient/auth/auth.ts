@@ -25,12 +25,18 @@ export const resendOtp = async ({ email }: any) => {
 };
 
 export const login = async ({ email, password }: any) => {
-  const response = await api.post("/api/auth/login", {
-    email,
-    password,
-  });
-  return response.data;
+  try {
+    const response = await api.post("/api/auth/login", { email, password });
+    return response.data;
+  } catch (error: any) {
+    return error;
+  }
 };
+
+export const checkUserBan = async (userId: string) => {
+  const response = await api.get(`/api/auth/check-user-ban/${userId}`);
+  return response.data;
+}
 
 export const sendResetOtp = async ({ email }: any) => {
   const response = await api.post("/api/auth/send-reset-otp", {

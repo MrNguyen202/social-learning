@@ -20,4 +20,6 @@ router.get("/stats/get-user-growth-chart", userController.loadUserGrowthChart);
 
 router.get("/stats/daily-active-users", userController.loadDailyActiveUsers);
 
+router.patch("/:userId/status", userController.updateUserStatus);
+
 module.exports = router;

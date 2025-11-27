@@ -11,6 +11,7 @@ import { getSocket } from "@/socket/socketClient";
 import { useConversation } from "@/components/contexts/ConversationContext";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import ModalCreateGroup from "./ModalCreateGroup";
 import ModalSearchNewChat from "./ModalSearchNewChat";
 
 export default function ListConversation() {
@@ -22,8 +23,8 @@ export default function ListConversation() {
     const [loadingConversations, setLoadingConversations] = useState(true);
     const { setSelectedConversation } = useConversation();
     const [searchTerm, setSearchTerm] = useState("");
-    const [openNewChat, setOpenNewChat] = useState(false)
-    const [openCreateGroup, setOpenCreateGroup] = useState(false)
+    const [openNewChat, setOpenNewChat] = useState(false);
+    const [openCreateGroup, setOpenCreateGroup] = useState(false);
 
     // Lấy danh sách cuộc trò chuyện của người dùng từ API hoặc context
     useEffect(() => {
@@ -32,7 +33,7 @@ export default function ListConversation() {
             if (!user?.id || loading) return;
             setLoadingConversations(true);
             try {
-                const res = await fetchConversations(user.id);
+                const res = await fetchConversations();
                 setConversations(res);
             } catch (error) {
                 console.error("Error fetching conversations:", error);
@@ -41,21 +42,33 @@ export default function ListConversation() {
             }
         };
 
-        // Lắng nghe sự kiện 'newMessage' từ server để cập nhật danh sách cuộc trò chuyện
-        socket.on("notificationNewMessage", () => {
+        // Hàm handle khi có tin nhắn mới từ socket
+        const handleNotificationNewMessage = () => {
             fetchData();
-        });
+        };
 
-        socket.on("notificationMessagesRead", () => {
+        // Hàm handle khi có người đọc tin nhắn từ socket
+        const handleNotificationMessagesRead = () => {
             fetchData();
-        });
+        };
+
+        // Hàm handle khi có tin nhắn bị thu hồi từ socket
+        const handleMessageRevoked = () => {
+            fetchData();
+        };
+
+        // Lắng nghe sự kiện từ socket
+        socket.on("notificationNewMessage", handleNotificationNewMessage);
+        socket.on("notificationMessagesRead", handleNotificationMessagesRead);
+        socket.on("messageRevoked", handleMessageRevoked);
 
         fetchData();
 
         // Đóng socket khi unmount
         return () => {
-            socket.off("notificationNewMessage");
-            socket.off("notificationMessagesRead");
+            socket.off("notificationNewMessage", handleNotificationNewMessage);
+            socket.off("notificationMessagesRead", handleNotificationMessagesRead);
+            socket.off("messageRevoked", handleMessageRevoked);
         };
     }, [user?.id, loading]);
 
@@ -87,7 +100,7 @@ export default function ListConversation() {
     }, [searchTerm, conversations, user?.id]);
 
     return (
-        <div className="h-screen flex flex-col">
+        <div className="h-screen flex flex-col w-full">
             {/* Top bar */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 h-[73px]">
                 <div className="flex items-center gap-2">
@@ -96,7 +109,7 @@ export default function ListConversation() {
                 </div>
 
                 {/* Dropdown menu cho icon SquarePen */}
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                         <button className="p-2 rounded-full hover:bg-gray-100 transition">
                             <SquarePen className="w-6 h-6 text-gray-500" />
@@ -130,7 +143,7 @@ export default function ListConversation() {
             {!isSearchMode && (
                 <>
                     <h3 className="px-4 py-2 font-semibold">{t("dashboard.messages")}</h3>
-                    <div className="flex-1 overflow-y-auto pb-18">
+                    <div className="flex-1 overflow-y-auto pb-18 w-full">
                         {conversations.map((conversation) =>
                             conversation.type === "private" ? (
                                 <CardUser
@@ -178,8 +191,9 @@ export default function ListConversation() {
                 </div>
             )}
 
-            {/* Modal khi chọn "Tin nhắn mới" */}
+            {/* Các Modal */}
             <ModalSearchNewChat open={openNewChat} setOpen={setOpenNewChat} />
+            <ModalCreateGroup open={openCreateGroup} setOpen={setOpenCreateGroup} />
         </div>
     );
 }

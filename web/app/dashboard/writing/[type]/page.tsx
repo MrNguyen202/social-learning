@@ -11,11 +11,14 @@ import { generateWritingParagraphByAI } from "@/app/apiClient/learning/writing/w
 import { ArrowRight, Loader2, Pen, Sparkles, X } from "lucide-react"; // icon loading
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { AnimatePresence, motion } from "framer-motion";
+import { ModalByLesson } from "../../components/ModalByLesson";
 
 export default function Page() {
   const router = useRouter();
   const { t } = useLanguage();
   const { type } = useParams();
+  const [showByLesson, setShowByLesson] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<{
     id: number;
     slug: string;
@@ -46,7 +49,7 @@ export default function Page() {
     }
   };
 
-  const handleGenerateAI = async () => {
+  const executeGenerateAI = async () => {
     if (type === "writing-paragraph") {
       if (selectedLevel && selectedTypeParagraph) {
         try {
@@ -74,6 +77,11 @@ export default function Page() {
         `/dashboard/writing/${type}/${selectedLevel.slug}/sentence/${selectedTopic.slug}/generate`
       );
     }
+  };
+
+  const handleGenerateAI_Click = () => {
+    setPendingAction(() => executeGenerateAI);
+    setShowByLesson(true);
   };
 
   const handleClearSelection = () => {
@@ -138,7 +146,7 @@ export default function Page() {
 
   return (
     <>
-      <div className="flex-1 px-6 py-6 pb-36">
+      <div className="mx-auto w-full max-w-md pt-4 sm:max-w-2xl lg:max-w-3xl xl:max-w-6xl pr-5 sm:pl-10">
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <motion.div
             className="absolute -top-20 -right-20 w-96 h-96 bg-gradient-to-br from-orange-300/30 to-pink-300/30 rounded-full blur-3xl"
@@ -198,7 +206,7 @@ export default function Page() {
       <AnimatePresence>
         {isReady && (
           <motion.div
-            className="fixed bottom-6 left-1/2 right-0 -translate-x-1/2 z-50 px-4 pb-4 md:pb-6"
+            className="fixed bottom-4 left-0 right-0 z-50 flex justify-center px-4 md:bottom-6"
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
@@ -258,11 +266,10 @@ export default function Page() {
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 w-full">
                       <Button
-                        onClick={handleGenerateAI}
+                        onClick={handleGenerateAI_Click}
                         disabled={loading}
                         className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white cursor-pointer"
                       >
-                        <Sparkles className="w-4 h-4 mr-2" />
                         Generate AI
                       </Button>
                       <Button
@@ -271,7 +278,6 @@ export default function Page() {
                         className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white cursor-pointer"
                       >
                         {t("learning.start")}
-                        <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                     </div>
                   </div>
@@ -287,6 +293,19 @@ export default function Page() {
           <RightSidebar />
         </div>
       </div>
+
+      <ModalByLesson
+        isOpen={showByLesson}
+        onClose={() => {
+          setShowByLesson(false);
+          setPendingAction(null);
+        }}
+        onConfirmAction={() => {
+          if (pendingAction) {
+            pendingAction();
+          }
+        }}
+      />
     </>
   );
 }

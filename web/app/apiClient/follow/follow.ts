@@ -41,3 +41,9 @@ export const checkIsFollowing = async (followerId: string, userId: string) => {
   });
   return response.data;
 };
+
+// Tìm kiếm bạn bè (followers và following) của user hiện tại theo từ khóa
+export const searchUserFriends = async (keyword: string) => {
+  const res = await api.get(`/api/follows/search-friends?keyword=${keyword}`);
+  return res.data;
+};

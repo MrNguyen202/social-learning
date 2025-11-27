@@ -57,17 +57,27 @@ export default function LoginPage() {
       setIsLoading(true);
       const res = await login({ email, password }); // API login của bạn
 
-      // 1. Kiểm tra lỗi
-      if (!res.success || !res?.data?.session) {
-        toast.error(t("auth.loginFailed"), { autoClose: 1000 });
-        console.error("Login failed:", res.message || "No session data");
+      if (!res.success) {
+        if (
+          res.success === false &&
+          res.message === "Bạn đã bị khóa đăng nhập trong 15 phút."
+        ) {
+          toast.error(t("auth.accountLocked"), { autoClose: 1000 });
+          return;
+        }
+        toast.error(res.message || t("auth.loginFailed"), { autoClose: 1000 });
         return;
       }
 
-      // 2. Lấy dữ liệu trả về
+      if (!res.data?.session) {
+        toast.error("No session data");
+        return;
+      }
+
+      // Lấy dữ liệu trả về
       const { session, role } = res.data; // <-- Lấy session và role từ response
 
-      // 3. Đặt phiên (session) cho Supabase client
+      // Đặt phiên (session) cho Supabase client
       const { error: setError } = await supabase.auth.setSession(session);
 
       if (setError) {
@@ -76,8 +86,7 @@ export default function LoginPage() {
         return;
       }
 
-      // 4. (Tùy chọn) Gọi hàm update last_seen
-      // Tốt hơn là truyền access_token từ session bạn vừa nhận được
+      // Gọi hàm update last_seen
       supabase.functions
         .invoke("update-last-seen", {
           body: { name: "Functions" },
@@ -87,7 +96,6 @@ export default function LoginPage() {
         .then(console.log)
         .catch(console.error);
 
-      // 5. ĐIỀU HƯỚNG DỰA TRÊN ROLE
       toast.success(t("auth.loginSuccess"), { autoClose: 1000 });
 
       router.replace("/dashboard"); // Chuyển đến trang dashboard

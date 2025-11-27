@@ -6,11 +6,12 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
-  RotateCcw,
   Volume2,
   Search,
   X,
   Check,
+  Play,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,6 @@ import { useParams, useRouter } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { getVocabByTopic } from "@/app/apiClient/learning/vocabulary/vocabulary";
-import { Checkbox } from "@/components/ui/checkbox";
 
 interface VocabItem {
   id: string;
@@ -35,166 +35,75 @@ export default function VocabsTopicPage() {
   const { user } = useAuth();
   const router = useRouter();
 
+  // Data States
   const [originalVocabs, setOriginalVocabs] = useState<VocabItem[]>([]);
   const [nameEn, setNameEn] = useState("");
   const [nameVi, setNameVi] = useState("");
-  const [shuffle, setShuffle] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
-  const vocabRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
   const isInitialLoad = useRef(true);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  // UI States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedWords, setSelectedWords] = useState<string[]>([]); // Lưu ID các từ đã chọn
   const [isFlipped, setIsFlipped] = useState(false);
-  // State mới để lưu các từ được chọn
-  const [selectedWords, setSelectedWords] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0); // Flashcard index
 
+  const itemsPerPage = 9;
+  const vocabRef = useRef<HTMLDivElement>(null);
+
+  // 1. Fetch Data
   useEffect(() => {
     if (user?.id && isInitialLoad.current) {
-      loadVocab();
+      setLoading(true);
+      getVocabByTopic({ userId: user.id, topicId }).then((res) => {
+        if (res.success) {
+          const withTranslation = res.data.map((v: any) => ({
+            ...v,
+            translation: v.related_words?.[0]?.word_vi || "",
+          }));
+          setOriginalVocabs(withTranslation);
+          setNameEn(res.name_en);
+          setNameVi(res.name_vi);
+        }
+        setLoading(false);
+      });
       isInitialLoad.current = false;
     }
-  }, [user?.id]);
+  }, [user?.id, topicId]);
 
-  const loadVocab = async () => {
-    setLoading(true);
-    if (!user) return;
-    const res = await getVocabByTopic({ userId: user.id, topicId: topicId });
-
-    if (res.success) {
-      const withTranslation = res.data.map((v: any) => ({
-        ...v,
-        translation: v.related_words?.[0]?.word_vi || "",
-      }));
-
-      setOriginalVocabs(withTranslation);
-      setNameEn(res.name_en);
-      setNameVi(res.name_vi);
-    }
-
-    setLoading(false);
-  };
-
-  const shuffledVocabs = useMemo(() => {
-    if (shuffle) {
-      return [...originalVocabs].sort(() => Math.random() - 0.5);
-    }
-    return originalVocabs;
-  }, [originalVocabs, shuffle]);
-
+  // Filter & Derived Data
   const alphabet = useMemo(() => {
     const letters = new Set<string>();
     originalVocabs.forEach((v) => {
-      const firstLetter = v.word.charAt(0).toUpperCase();
-      if (/[A-Z]/.test(firstLetter)) letters.add(firstLetter);
+      const char = v.word.charAt(0).toUpperCase();
+      if (/[A-Z]/.test(char)) letters.add(char);
     });
     return Array.from(letters).sort();
   }, [originalVocabs]);
 
   const filteredVocabs = useMemo(() => {
-    let filtered = shuffledVocabs;
+    let res = originalVocabs;
     if (searchQuery)
-      filtered = filtered.filter((v) =>
+      res = res.filter((v) =>
         v.word.toLowerCase().includes(searchQuery.toLowerCase())
       );
     if (selectedLetter)
-      filtered = filtered.filter(
+      res = res.filter(
         (v) => v.word.charAt(0).toUpperCase() === selectedLetter
       );
-    return filtered;
-  }, [shuffledVocabs, searchQuery, selectedLetter]);
-
-  useEffect(() => {
-    setCurrentIndex(0);
-    setIsFlipped(false);
-  }, [shuffle, originalVocabs]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-    setSelectedWords([]);
-  }, [searchQuery, selectedLetter, shuffledVocabs]);
-
-  const currentVocab = shuffledVocabs[currentIndex];
-
-  const handleNextCard = () => {
-    setIsFlipped(false);
-    setCurrentIndex((prev) =>
-      prev < shuffledVocabs.length - 1 ? prev + 1 : prev
-    );
-  };
-
-  const handlePreviousCard = () => {
-    setIsFlipped(false);
-    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : prev));
-  };
-
-  const handleResetCard = () => {
-    setIsFlipped(false);
-    setCurrentIndex(0);
-  };
-
-  const getMasteryColor = (score: number) => {
-    if (score >= 70) return "text-green-600";
-    if (score >= 30) return "text-yellow-600";
-    return "text-red-600";
-  };
-
-  const getMasteryBgColor = (score: number) => {
-    if (score >= 70) return "from-green-500/20 to-emerald-500/20";
-    if (score >= 30) return "from-yellow-500/20 to-orange-500/20";
-    return "from-red-500/20 to-pink-500/20";
-  };
-
-  const speakWord = (text: string) => {
-    if (!window.speechSynthesis) {
-      console.warn("Speech Synthesis not supported");
-      return;
-    }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US";
-    utterance.rate = 0.9;
-    utterance.pitch = 1; // Lấy tất cả voice tiếng Anh
-
-    const voices = window.speechSynthesis.getVoices();
-    const englishVoices = voices.filter((v) => v.lang.startsWith("en-US")); // Random voice nếu có
-
-    if (englishVoices.length > 0) {
-      const randomVoice =
-        englishVoices[Math.floor(Math.random() * englishVoices.length)];
-      utterance.voice = randomVoice;
-      utterance.lang = randomVoice.lang;
-    }
-
-    window.speechSynthesis.cancel(); // dừng voice cũ
-    window.speechSynthesis.speak(utterance);
-  };
+    return res;
+  }, [originalVocabs, searchQuery, selectedLetter]);
 
   const totalPages = Math.ceil(filteredVocabs.length / itemsPerPage);
   const displayedVocabs = filteredVocabs.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+  const currentFlashcard = filteredVocabs[currentIndex];
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((p) => p + 1);
-      vocabRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((p) => p - 1);
-      vocabRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
-  // Hàm để xử lý chọn/bỏ chọn 1 từ
+  // 3. Handlers
   const handleToggleWord = (wordId: string) => {
     setSelectedWords((prev) =>
       prev.includes(wordId)
@@ -203,364 +112,383 @@ export default function VocabsTopicPage() {
     );
   };
 
-  // Logic cho nút Luyện tập
-  const wordsToPractice = useMemo(() => {
-    if (selectedWords.length > 0) {
-      // Lấy các từ (word string) từ các ID đã chọn
-      // Phải lọc từ `originalVocabs` gốc để đảm bảo có đủ thông tin
-      return originalVocabs
-        .filter((v) => selectedWords.includes(v.id))
-        .map((v) => v.word);
+  const handleSelectAll = () => {
+    if (selectedWords.length === filteredVocabs.length) {
+      setSelectedWords([]);
+    } else {
+      setSelectedWords(filteredVocabs.map((v) => v.id));
     }
+  };
 
-    return filteredVocabs.map((v) => v.word);
-  }, [selectedWords, originalVocabs, filteredVocabs]); // Dùng originalVocabs để tra cứu ID
+  const speakWord = (text: string) => {
+    if (!window.speechSynthesis) return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    u.rate = 0.9;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  };
 
-  const practiceButtonText =
-    selectedWords.length > 0
-      ? `${t("learning.practiceSelected")} (${selectedWords.length})`
-      : `${t("learning.practiceAll")} (${filteredVocabs.length})`;
+  const getScoreColor = (score: number) => {
+    if (score >= 70) return { text: "text-emerald-600", bar: "bg-emerald-500" };
+    if (score >= 30) return { text: "text-amber-600", bar: "bg-amber-500" };
+    return { text: "text-rose-600", bar: "bg-rose-500" };
+  };
+
+  // Reset pagination when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setCurrentIndex(0);
+  }, [searchQuery, selectedLetter]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex-1 px-6 py-6 pb-20"
-    >
+    <div className="mx-auto w-full max-w-md pt-4 pb-8 sm:max-w-2xl lg:max-w-3xl xl:max-w-6xl pr-5 sm:pl-10">
       <div className="max-w-7xl mx-auto" ref={vocabRef}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <Button
-              variant="ghost"
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8 max-sm:mt-10">
+          <div className="flex items-center gap-4">
+            <button
               onClick={() => router.back()}
-              className="mb-6 cursor-pointer"
+              className="p-3 rounded-full bg-white border border-slate-200 hover:bg-slate-100 transition-colors shadow-sm text-slate-600 cursor-pointer"
             >
-              <ArrowLeft className="w-5 h-5 mr-2" /> {t("learning.back")}
-            </Button>
-            <h1 className="text-3xl font-bold mb-6">{nameEn}</h1>
-            <div className="text-gray-600">{nameVi}</div>
+              <ArrowLeft size={20} />
+            </button>
+            <div>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                {nameEn}
+              </h1>
+              <p className="text-slate-500 font-medium">{nameVi}</p>
+            </div>
           </div>
-
-          <Button
-            onClick={() => {
-              sessionStorage.setItem(
-                "practiceWords",
-                JSON.stringify(wordsToPractice)
-              );
-              router.push("/dashboard/vocabulary/wordPracticesAI");
-            }}
-            disabled={filteredVocabs.length === 0}
-            className="bg-gradient-to-br from-orange-600 to-pink-600 hover:from-orange-500 hover:to-pink-500 cursor-pointer text-white text-lg font-bold shadow-lg p-6 rounded-4xl"
-          >
-            {practiceButtonText}
-          </Button>
         </div>
-        {/* Flashcard Section */}
-        <div className="mb-10">
-          {currentVocab ? (
-            <>
-              {/* Flashcard */}
-              <div className="flex justify-center mb-6">
+
+        {/* Flashcard Area */}
+        {filteredVocabs.length > 0 && currentFlashcard && (
+          <div className="bg-white rounded-[2rem] p-1 shadow-xl shadow-slate-200/50 border border-slate-100 mb-10">
+            <div className="bg-slate-50/50 rounded-[1.8rem] p-8 flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="absolute inset-0 opacity-[0.03]"></div>
+
+              <div className="relative z-10 w-full max-w-md perspective-1000 h-64">
                 <motion.div
-                  className="relative w-full max-w-md h-64 cursor-pointer"
+                  className="relative w-full h-full cursor-pointer preserve-3d transition-transform duration-300"
+                  animate={{ rotateY: isFlipped ? 180 : 0 }}
                   onClick={() => setIsFlipped(!isFlipped)}
-                  style={{ perspective: 1000 }}
+                  style={{ transformStyle: "preserve-3d" }}
                 >
                   {/* Front */}
-                  <motion.div
-                    className="absolute inset-0 w-full h-full rounded-2xl shadow-lg bg-white/80 backdrop-blur-sm border border-gray-100 flex flex-col justify-center items-center p-6"
-                    animate={{ rotateY: isFlipped ? 180 : 0 }}
-                    transition={{ duration: 0.6 }}
-                    style={{ backfaceVisibility: "hidden" }}
-                  >
-                    <Button
-                      variant="outline"
-                      className="border-orange-200 hover:bg-orange-50 bg-transparent absolute top-4 right-4 cursor-pointer"
+                  <div className="absolute inset-0 backface-hidden bg-white rounded-3xl shadow-md border border-slate-200 flex flex-col items-center justify-center p-6 group hover:border-indigo-300 transition-colors">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 bg-slate-100 px-3 py-1 rounded-full">
+                      Word
+                    </span>
+                    <h3 className="text-4xl md:text-5xl font-black text-slate-800 mb-6 text-center">
+                      {currentFlashcard.word}
+                    </h3>
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        speakWord(currentVocab.word);
+                        speakWord(currentFlashcard.word);
                       }}
+                      className="p-4 rounded-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:scale-110 transition-all shadow-sm"
                     >
-                      <Volume2 className="mr-2 h-4 w-4" />
-                      {t("learning.listenSample")}
-                    </Button>
-
-                    <h3 className="text-4xl font-bold text-gray-800">
-                      {currentVocab.word}
-                    </h3>
-                  </motion.div>
+                      <Volume2 size={24} />
+                    </button>
+                  </div>
                   {/* Back */}
-                  <motion.div
-                    className="absolute inset-0 w-full h-full rounded-2xl shadow-lg bg-white/80 backdrop-blur-sm border border-gray-100 flex flex-col justify-center items-center p-6"
-                    initial={{ rotateY: 180 }}
-                    animate={{ rotateY: isFlipped ? 0 : 180 }}
-                    transition={{ duration: 0.6 }}
-                    style={{ backfaceVisibility: "hidden" }}
+                  <div
+                    className="absolute inset-0 backface-hidden bg-slate-900 rounded-3xl shadow-md flex flex-col items-center justify-center p-8 rotate-y-180 text-center"
+                    style={{ transform: "rotateY(180deg)" }}
                   >
-                    {currentVocab.translation && (
-                      <h3 className="text-4xl font-bold text-gray-800">
-                        {currentVocab.translation}
-                      </h3>
-                    )}
-                  </motion.div>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 bg-slate-800 px-3 py-1 rounded-full">
+                      Meaning
+                    </span>
+                    <h3 className="text-2xl md:text-3xl font-bold text-white leading-relaxed">
+                      {currentFlashcard.translation}
+                    </h3>
+                  </div>
                 </motion.div>
               </div>
-              {/* Flashcard navigation */}
-              <div className="flex justify-center gap-4">
-                <Button
-                  variant="outline"
-                  onClick={handlePreviousCard}
+
+              {/* Navigation */}
+              <div className="flex items-center gap-6 mt-8 relative z-10">
+                <button
+                  onClick={() => {
+                    setIsFlipped(false);
+                    setCurrentIndex((prev) => Math.max(0, prev - 1));
+                  }}
                   disabled={currentIndex === 0}
+                  className="p-3 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-30 transition-all shadow-sm cursor-pointer"
                 >
-                  {" "}
-                  <ChevronLeft className="w-5 h-5" />
-                </Button>
-                <Button variant="outline" onClick={handleResetCard}>
-                  <RotateCcw className="w-5 h-5" />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={handleNextCard}
-                  disabled={currentIndex === shuffledVocabs.length - 1}
+                  <ChevronLeft size={24} />
+                </button>
+                <span className="font-bold text-slate-400 font-mono text-lg">
+                  {currentIndex + 1} / {filteredVocabs.length}
+                </span>
+                <button
+                  onClick={() => {
+                    setIsFlipped(false);
+                    setCurrentIndex((prev) =>
+                      Math.min(filteredVocabs.length - 1, prev + 1)
+                    );
+                  }}
+                  disabled={currentIndex === filteredVocabs.length - 1}
+                  className="p-3 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-30 transition-all shadow-sm cursor-pointer"
                 >
-                  <ChevronRight className="w-5 h-5" />
-                </Button>
+                  <ChevronRight size={24} />
+                </button>
               </div>
-            </>
-          ) : (
-            <p className="text-gray-600 text-center py-12">
-              {t("learning.noWordsInTopic")}
-            </p>
-          )}
-        </div>
-        {/* Divider */}
-        <div className="my-12 border-t border-gray-200" />
-        {/* Search */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-
-            <Input
-              placeholder={t("learning.searchVocab")}
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-              }}
-              className="pl-12 pr-10 h-12 bg-white/80 border-gray-200 focus:border-orange-300 focus:ring-orange-200"
-            />
-
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
+            </div>
           </div>
-        </div>
-        {alphabet.length > 0 && (
-          <div className="mb-8 p-4 bg-white/80 rounded-2xl border border-gray-200 shadow-lg">
-            <p className="text-sm font-semibold text-gray-600 mb-3">
-              {t("learning.filterByLetter")}
-            </p>
-            <div className="flex flex-wrap gap-2">
+        )}
+
+        {/* Control Bar */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between mb-8 sticky top-4 z-20">
+          <div className="flex items-center gap-3 w-full lg:w-auto flex-1">
+            {/* Search */}
+            <div className="relative flex-1 lg:max-w-xs">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                size={18}
+              />
+              <Input
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                  setCurrentIndex(0);
+                }}
+                placeholder={t("learning.searchVocab")}
+                className="pl-10 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors rounded-xl"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+
+            {/* Alphabet Filter */}
+            <div className="h-8 w-px bg-slate-200 hidden lg:block mx-2"></div>
+            <div className="flex gap-2 overflow-x-auto max-w-full lg:max-w-lg no-scrollbar pb-1 lg:pb-0">
               <button
                 onClick={() => setSelectedLetter(null)}
-                className={`px-3 py-2 rounded-lg font-semibold cursor-pointer ${
-                  selectedLetter === null
-                    ? "bg-gradient-to-r from-orange-500 to-pink-500 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                className={`px-3 py-2 rounded-lg text-sm font-bold shrink-0 transition-colors ${
+                  !selectedLetter
+                    ? "bg-gradient-to-r from-orange-600 to-pink-600 hover:from-orange-500 hover:to-pink-500 text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
                 {t("learning.all")}
               </button>
-              {alphabet.map((letter) => (
+              {alphabet.map((l) => (
                 <button
-                  key={letter}
-                  onClick={() =>
-                    setSelectedLetter(selectedLetter === letter ? null : letter)
-                  }
-                  className={`px-3 py-2 rounded-lg font-semibold cursor-pointer ${
-                    selectedLetter === letter
-                      ? "bg-gradient-to-r from-orange-500 to-pink-500 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  key={l}
+                  onClick={() => {
+                    setSelectedLetter((prev) => (prev === l ? null : l));
+                    setCurrentPage(1);
+                    setCurrentIndex(0);
+                  }}
+                  className={`w-9 h-9 rounded-lg text-sm font-bold shrink-0 transition-colors flex items-center justify-center ${
+                    selectedLetter === l
+                      ? "bg-gradient-to-r from-orange-600 to-pink-600 hover:from-orange-500 hover:to-pink-500 text-white shadow-md shadow-indigo-200"
+                      : "bg-white border border-slate-200 text-slate-600 hover:border-black hover:text-black"
                   }`}
                 >
-                  {letter}
+                  {l}
                 </button>
               ))}
             </div>
           </div>
-        )}
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-lg font-semibold text-gray-700">
-            {t("learning.total")}:{" "}
-            <span className="text-orange-500">{filteredVocabs.length}</span>{" "}
-            {t("learning.vocabulary")}
-          </p>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-40 cursor-pointer"
-            >
-              <ChevronLeft className="inline w-5 h-5 mr-2" />
-              {t("learning.prePage")}
-            </button>
 
-            <span className="text-gray-600 font-medium">
-              {currentPage} / {totalPages > 0 ? totalPages : 1}
-            </span>
-
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages || totalPages === 0}
-              className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-40 cursor-pointer"
+          {/* Select All Button */}
+          <div className="flex items-center gap-2 w-full lg:w-auto border-t lg:border-t-0 pt-3 lg:pt-0 border-slate-100">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSelectAll}
+              className="text-slate-500 hover:text-slate-800 font-medium"
             >
-              {t("learning.nextPage")}
-              <ChevronRight className="inline w-5 h-5 ml-2" />
-            </button>
+              {selectedWords.length === filteredVocabs.length &&
+              filteredVocabs.length > 0
+                ? t("learning.deselectAll")
+                : t("learning.selectAll")}
+            </Button>
           </div>
         </div>
 
-        {/* Thêm Nút Chọn/Bỏ chọn */}
-        <div className="mb-4 flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              // Chọn tất cả các từ trong danh sách đã lọc
-              setSelectedWords(filteredVocabs.map((v) => v.id));
-            }}
-            disabled={filteredVocabs.length === 0}
-          >
-            <Check className="w-4 h-4 mr-2" />
-            {t("learning.selectAll")} ({filteredVocabs.length})
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSelectedWords([])}
-            disabled={selectedWords.length === 0}
-          >
-            <X className="w-4 h-4 mr-2" />
-            {t("learning.clearSelection")} ({selectedWords.length})
-          </Button>
-        </div>
+        {/* Vocabulary Grid */}
+        {loading ? (
+          <div className="text-center py-20 text-slate-400">
+            {t("learning.loading")}
+          </div>
+        ) : filteredVocabs.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <AnimatePresence mode="popLayout">
+                {displayedVocabs.map((v) => {
+                  const scoreStyle = getScoreColor(v.mastery_score);
+                  const isSelected = selectedWords.includes(v.id);
+                  return (
+                    <motion.div
+                      key={v.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      className={`group relative bg-white rounded-2xl p-5 border-2 transition-all cursor-pointer hover:shadow-md ${
+                        isSelected
+                          ? "border-orange-500 bg-indigo-50/30"
+                          : "border-transparent shadow-sm hover:border-orange-100"
+                      }`}
+                      onClick={() =>
+                        window.open(`/dashboard/vocabulary/${v.id}`, "_blank")
+                      }
+                    >
+                      {/* Checkbox Area */}
+                      <div
+                        className="absolute top-4 right-4 z-10"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div
+                          className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer ${
+                            isSelected
+                              ? "bg-gradient-to-r from-orange-600 to-pink-600 hover:from-orange-500 hover:to-pink-500 border-orange-600"
+                              : "bg-white border-slate-200 group-hover:border-orange-300"
+                          }`}
+                          onClick={() => handleToggleWord(v.id)}
+                        >
+                          {isSelected && (
+                            <Check
+                              size={14}
+                              className="text-white stroke-[3]"
+                            />
+                          )}
+                        </div>
+                      </div>
 
-        {/* Grid/List */}
-        <motion.div
-          layout
-          className={`grid gap-4 ${
-            viewMode === "grid"
-              ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-              : "grid-cols-1"
-          }`}
-        >
-          <AnimatePresence mode="popLayout">
-            {displayedVocabs.map((v: any) => {
-              const isSelected = selectedWords.includes(v.id);
-              return (
-                <motion.div
-                  key={v.id}
-                  whileHover={{ scale: 1.02, y: -4 }}
-                  className={`bg-white/80 rounded-2xl p-6 shadow-lg border relative overflow-hidden group cursor-pointer hover:shadow-xl
-          ${
-            isSelected
-              ? "ring-2 ring-pink-400 border-orange-500"
-              : "border-gray-200"
-          }
-        `}
-                  onClick={() =>
-                    window.open(`/dashboard/vocabulary/${v.id}`, "_blank")
-                  }
-                >
-                  {/* Checkbox luôn nằm trên cùng */}
-                  <div
-                    className="absolute top-5 right-2 z-30 h-8 w-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm border border-gray-300 hover:border-orange-400 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleToggleWord(v.id);
-                    }}
-                  >
-                    <Checkbox
-                      checked={isSelected}
-                      className={`w-5 h-5 rounded-[4px] border-2 transition-colors cursor-pointer
-              ${
-                isSelected
-                  ? "bg-orange-500 border-orange-500 text-white"
-                  : "bg-white border-gray-400 hover:border-orange-400"
-              }
-            `}
-                    />
-                  </div>
-
-                  {/* Background hover hiệu ứng */}
-                  <div className="absolute inset-0 z-0">
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-br ${getMasteryBgColor(
-                        v.mastery_score
-                      )} opacity-0 group-hover:opacity-100 transition-opacity`}
-                    />
-                  </div>
-
-                  {/* Nội dung chính */}
-                  <div className="relative z-10">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-2xl font-bold text-gray-800 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-orange-600 group-hover:to-pink-600 group-hover:bg-clip-text transition-all">
-                        {v.word}
-                        <span className="text-sm text-gray-600 ml-2">
+                      <div className="pr-8 mb-4">
+                        <h3 className="text-2xl font-bold text-gray-800 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-orange-600 group-hover:to-pink-600 group-hover:bg-clip-text transition-all">
+                          {v.word}
+                        </h3>
+                        <p className="text-slate-500 text-sm line-clamp-1">
                           {v.translation}
-                        </span>
-                      </h3>
+                        </p>
+                      </div>
 
-                      {/* Volume Icon - luôn nằm dưới checkbox */}
-                      <div className="relative z-20 pr-6">
-                        <Volume2
+                      <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             speakWord(v.word);
                           }}
-                          className="w-6 h-6 text-orange-300 hover:text-orange-500 cursor-pointer transition-colors"
-                        />
+                          className="p-2 -ml-2 rounded-full text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 transition-all"
+                        >
+                          <Volume2 size={18} />
+                        </button>
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${scoreStyle.bar}`}
+                              style={{ width: `${v.mastery_score}%` }}
+                            />
+                          </div>
+                          <span
+                            className={`text-xs font-bold ${scoreStyle.text}`}
+                          >
+                            {v.mastery_score}%
+                          </span>
+                        </div>
                       </div>
-                    </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
 
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-gray-600">
-                        {t("learning.masteryLevel")}
-                      </span>
-                      <span
-                        className={`text-sm font-bold ${getMasteryColor(
-                          v.mastery_score
-                        )}`}
-                      >
-                        {v.mastery_score}%
-                      </span>
-                    </div>
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${v.mastery_score}%` }}
-                        className={`h-full bg-gradient-to-r ${
-                          v.mastery_score >= 70
-                            ? "from-green-500 to-emerald-500"
-                            : v.mastery_score >= 30
-                            ? "from-yellow-500 to-orange-500"
-                            : "from-red-500 to-pink-500"
-                        }`}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </motion.div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center gap-2 mt-8">
+                <button
+                  onClick={() => {
+                    setCurrentPage((p) => Math.max(1, p - 1));
+                    vocabRef.current?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  disabled={currentPage === 1}
+                  className="cursor-pointer px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-white disabled:opacity-50 transition-all"
+                >
+                  {t("learning.prePage")}
+                </button>
+                <span className="px-4 py-2 font-bold text-slate-600 bg-white rounded-xl border border-slate-200 shadow-sm">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() => {
+                    setCurrentPage((p) => Math.min(totalPages, p + 1));
+                    vocabRef.current?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  disabled={currentPage === totalPages}
+                  className="cursor-pointer px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-white disabled:opacity-50 transition-all"
+                >
+                  {t("learning.nextPage")}
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-20 text-slate-400">
+            <BookOpen size={48} className="mx-auto mb-4 opacity-20" />
+            <p>{t("learning.noWordsInTopic")}</p>
+          </div>
+        )}
       </div>
-    </motion.div>
+
+      {/* Sticky Bottom Action Bar */}
+      <AnimatePresence>
+        {selectedWords.length > 0 && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-6 border border-slate-800"
+          >
+            <div className="font-bold text-lg">
+              <span className="bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent text-2xl mr-1">
+                {selectedWords.length}
+              </span>
+              <span className="text-sm font-normal opacity-80 max-sm:hidden">
+                {t("learning.wordsSelected")}
+              </span>
+            </div>
+            <div className="h-8 w-px bg-slate-700"></div>
+            <div className="flex gap-3">
+              <Button
+                variant="ghost"
+                onClick={() => setSelectedWords([])}
+                className="text-slate-300 hover:text-white hover:bg-slate-800 cursor-pointer"
+              >
+                {t("learning.close")}
+              </Button>
+              <Button
+                onClick={() => {
+                  const words = originalVocabs
+                    .filter((v) => selectedWords.includes(v.id))
+                    .map((v) => v.word);
+                  sessionStorage.setItem(
+                    "practiceWords",
+                    JSON.stringify(words)
+                  );
+                  router.push("/dashboard/vocabulary/wordPracticesAI");
+                }}
+                className="bg-gradient-to-r from-orange-600 to-pink-600 hover:from-orange-500 hover:to-pink-500 text-white font-bold rounded-xl px-6 shadow-lg shadow-indigo-900/50 cursor-pointer"
+              >
+                {t("learning.practiceNow")}
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

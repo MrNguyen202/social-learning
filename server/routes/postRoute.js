@@ -14,6 +14,9 @@ router.get("/posts", postController.getPosts);
 // Lấy tất cả bài posts của 1 user
 router.get("/posts-user", postController.getPostsByUserId);
 
+// Đếm số lượng posts của một user
+router.get("/count/:userId", postController.countPostsByUserId);
+
 // Get specific post by ID
 router.get("/post/detail", postController.getPostById);
 

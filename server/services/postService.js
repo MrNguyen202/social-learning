@@ -92,6 +92,18 @@ const postService = {
     return { data, error: null };
   },
 
+  // lấy tổng số bài post của 1 user
+  async countPostsByUserId(userId) {
+    const { count, error } = await supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("userId", userId);
+
+    if (error) throw error;
+    
+    return { count, error: null };
+  },
+
   async getPostById(postId) {
     const { data, error } = await supabase
       .from("posts")

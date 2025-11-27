@@ -2,7 +2,7 @@
 
 import { getScoreUserByUserId } from "@/app/apiClient/learning/score/score";
 import useAuth from "@/hooks/useAuth";
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect, Dispatch, SetStateAction } from "react";
 
 interface Score {
     id: number;
@@ -15,7 +15,7 @@ interface Score {
 
 interface ScoreContextType {
     score: Score | null;
-    setScore: (score: Score | null) => void;
+    setScore: Dispatch<SetStateAction<Score | null>>;
 }
 
 const ScoreContext = createContext<ScoreContextType | undefined>(undefined);

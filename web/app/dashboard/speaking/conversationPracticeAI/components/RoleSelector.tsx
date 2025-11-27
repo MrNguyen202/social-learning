@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { User, Bot, Sparkles } from "lucide-react";
+import { User, UserCheck, Sparkles } from "lucide-react";
 
 interface Props {
   onSelectRole: (role: "A" | "B") => void;
@@ -10,57 +10,63 @@ interface Props {
 
 export default function RoleSelector({ onSelectRole, t }: Props) {
   return (
-    <div className="flex-grow flex items-center justify-center p-6 md:p-8">
-      <div className="text-center space-y-6 w-full max-w-md">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-            <Sparkles className="w-10 h-10 text-white" />
+    <div className="flex flex-col items-center justify-center h-full">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-10"
+      >
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold mb-4 uppercase tracking-wider">
+          <Sparkles size={14} /> Choose your character
+        </div>
+        <h1 className="text-3xl md:text-5xl font-black text-slate-800 mb-3">
+          {t("learning.roleSelection")}
+        </h1>
+        <p className="text-slate-500 text-lg">{t("learning.role")}</p>
+      </motion.div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl">
+        {/* Role A */}
+        <motion.button
+          whileHover={{ y: -8, scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => onSelectRole("A")}
+          className="relative group bg-white p-8 rounded-3xl border-2 border-indigo-100 shadow-xl shadow-indigo-100/50 hover:border-indigo-500 hover:shadow-indigo-200 transition-all text-left overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-[100px] -mr-4 -mt-4 transition-transform group-hover:scale-110" />
+          <div className="relative z-10">
+            <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg mb-6">
+              <User size={28} />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-800 mb-1">
+              {t("learning.roleA")}
+            </h3>
+            <p className="text-slate-500 text-sm">
+              {t("learning.startConversation")}
+            </p>
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
-            {t("learning.roleSelection")}
-          </h1>
-          <p className="text-gray-600">
-            {t("learning.role")}
-          </p>
-        </div>
+        </motion.button>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-          {/* Role A Button */}
-          <motion.div
-            whileHover={{ scale: 1.05, y: -4 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onSelectRole("A")}
-            className="bg-gradient-to-br from-blue-50 to-cyan-50 p-6 rounded-2xl border-2 border-blue-200 hover:border-blue-400 cursor-pointer transition-all shadow-md hover:shadow-lg"
-          >
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow">
-                <User className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-800">{t("learning.roleA")}</h3>
-              <p className="text-sm text-gray-600 text-center">
-                {t("learning.startConversation")}
-              </p>
+        {/* Role B */}
+        <motion.button
+          whileHover={{ y: -8, scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => onSelectRole("B")}
+          className="relative group bg-white p-8 rounded-3xl border-2 border-rose-100 shadow-xl shadow-rose-100/50 hover:border-rose-500 hover:shadow-rose-200 transition-all text-left overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50 rounded-bl-[100px] -mr-4 -mt-4 transition-transform group-hover:scale-110" />
+          <div className="relative z-10">
+            <div className="w-14 h-14 bg-rose-500 rounded-2xl flex items-center justify-center text-white shadow-lg mb-6">
+              <UserCheck size={28} />
             </div>
-          </motion.div>
-
-          {/* Role B Button */}
-          <motion.div
-            whileHover={{ scale: 1.05, y: -4 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onSelectRole("B")}
-            className="bg-gradient-to-br from-orange-50 to-pink-50 p-6 rounded-2xl border-2 border-orange-200 hover:border-orange-400 cursor-pointer transition-all shadow-md hover:shadow-lg"
-          >
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center shadow">
-                <User className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-800">{t("learning.roleB")}</h3>
-              <p className="text-sm text-gray-600 text-center">
-                {t("learning.replyConversation")}
-              </p>
-            </div>
-          </motion.div>
-        </div>
+            <h3 className="text-2xl font-bold text-slate-800 mb-1">
+              {t("learning.roleB")}
+            </h3>
+            <p className="text-slate-500 text-sm">
+              {t("learning.replyConversation")}
+            </p>
+          </div>
+        </motion.button>
       </div>
     </div>
   );

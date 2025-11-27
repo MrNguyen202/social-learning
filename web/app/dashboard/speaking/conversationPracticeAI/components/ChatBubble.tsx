@@ -12,8 +12,8 @@ interface Props {
   user: any;
   line: { id: "A" | "B"; speaker: string; content: string };
   isUser: boolean;
-  isCurrent: boolean; // Có phải lượt hiện tại không
-  isListening: boolean; // Có đang nghe lượt này không
+  isCurrent: boolean;
+  isListening: boolean;
   detailedResult?: JSX.Element | null;
 }
 
@@ -22,9 +22,8 @@ const createClickableSentence = (content: string) => {
     .split(/(\s+|[.,!?]$)/g)
     .filter(Boolean)
     .map((part, index) => {
-      if (part.trim() === "" || /^[.,!?]$/.test(part)) {
+      if (part.trim() === "" || /^[.,!?]$/.test(part))
         return <span key={index}>{part}</span>;
-      }
       return <ClickToSpeak key={index} word={part} />;
     });
 };
@@ -46,60 +45,58 @@ export default function ChatBubble({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 20, scale: 0.9 }}
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{
-        type: "spring",
-        stiffness: 200,
-        damping: 20,
-        duration: 0.3,
-      }}
-      className={`flex items-end gap-2 ${
-        isUser ? "justify-end" : "justify-start"
+      className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"} ${
+        isCurrent ? "opacity-100" : "opacity-70 grayscale-[0.5]"
       }`}
     >
-      {!isUser && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center shadow">
-          <Bot className="w-4 h-4 text-white" />
-        </div>
-      )}
+      {/* Avatar */}
+      <div className="shrink-0 flex flex-col items-center justify-end">
+        {isUser ? (
+          <img
+            src={getUserImageSrc(user?.avatar)}
+            alt="User"
+            className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-sm">
+            <Bot size={20} />
+          </div>
+        )}
+      </div>
 
+      {/* Bubble */}
       <div
-        className={`relative max-w-[75%] px-4 py-3 rounded-2xl shadow-md ${
-          isUser
-            ? "bg-gradient-to-r from-orange-50 to-pink-50 text-black border border-orange-200"
-            : "bg-gray-100 text-gray-800 rounded-bl-none"
-        } ${
-          isCurrent && isUser && isListening
-            ? "ring-2 ring-offset-2 ring-blue-400"
-            : ""
+        className={`flex flex-col max-w-[85%] sm:max-w-[75%] ${
+          isUser ? "items-end" : "items-start"
         }`}
-        aria-live={!isUser ? "polite" : undefined}
       >
-        <p
-          className={`text-xs font-semibold mb-1 ${
-            isUser ? "text-orange-700" : "text-gray-500"
-          }`}
+        <span className="text-[10px] text-slate-400 font-bold mb-1 px-1 uppercase">
+          {line.speaker}
+        </span>
+        <div
+          className={`relative p-4 rounded-2xl shadow-sm text-[15px] leading-relaxed transition-all ${
+            isUser
+              ? "bg-white text-slate-800 border border-slate-100 rounded-tr-sm" // User style
+              : "bg-white text-slate-800 border border-slate-100 rounded-tl-sm" // AI Style
+          } ${isListening ? "ring-2 ring-indigo-200 bg-indigo-50/50" : ""}`}
         >
-          {line.speaker} {isUser ? `${t("learning.you")}` : ""}
-        </p>
-
-        <div className="text-md leading-relaxed">
           {isUser && isCurrent && detailedResult
             ? detailedResult
             : clickableContent}
+
+          {isListening && (
+            <div className="absolute -bottom-6 right-0 text-xs font-bold text-indigo-500 flex items-center gap-1 bg-indigo-50 px-2 py-0.5 rounded-full">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+              </span>
+              {t("learning.listening")}
+            </div>
+          )}
         </div>
       </div>
-
-      {/* User Avatar */}
-      {isUser && (
-        <img
-          src={getUserImageSrc(user?.avatar)}
-          alt="User Avatar"
-          className="w-8 h-8 rounded-full object-cover"
-        />
-      )}
     </motion.div>
   );
 }

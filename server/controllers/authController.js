@@ -98,6 +98,30 @@ const authController = {
     }
   },
 
+  async checkUserBanStatus(req, res) {
+    try {
+      const { userId } = req.params;
+      const { message, error } = await authService.checkUserBan(userId);
+
+      if (error) {
+        return res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  },
+
   async sendResetOtp(req, res) {
     try {
       const { email } = req.body;

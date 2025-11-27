@@ -17,7 +17,7 @@ interface User {
 interface Conversation {
   id: string;
   name: string;
-  avatarUrl: string;
+  avatar: string;
   members: User[];
   lastMessage: LastMessage | null;
 }
@@ -53,7 +53,7 @@ export default function GroupCard({ conversation, onClick }: CardGroupProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetchUnreadCount(conversation.id, user?.id);
+        const response = await fetchUnreadCount(conversation.id);
         setUnreadCount(response);
       } catch (error) {
         console.error('Error fetching unread count:', error);

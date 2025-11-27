@@ -1,7 +1,7 @@
-import api from "../../../lib/api";
+import api from '../../../lib/api';
 
 export const register = async ({ email, password, name }: any) => {
-  const response = await api.post("/api/auth/register", {
+  const response = await api.post('/api/auth/register', {
     email,
     password,
     name,
@@ -10,7 +10,7 @@ export const register = async ({ email, password, name }: any) => {
 };
 
 export const verifyOtp = async ({ email, otp }: any) => {
-  const response = await api.post("/api/auth/verify", {
+  const response = await api.post('/api/auth/verify', {
     email,
     otp,
   });
@@ -18,14 +18,14 @@ export const verifyOtp = async ({ email, otp }: any) => {
 };
 
 export const resendOtp = async ({ email }: any) => {
-  const response = await api.post("/api/auth/resend-otp", {
+  const response = await api.post('/api/auth/resend-otp', {
     email,
   });
   return response.data;
 };
 
 export const login = async ({ email, password }: any) => {
-  const response = await api.post("/api/auth/login", {
+  const response = await api.post('/api/auth/login', {
     email,
     password,
   });
@@ -33,14 +33,14 @@ export const login = async ({ email, password }: any) => {
 };
 
 export const sendResetOtp = async ({ email }: any) => {
-  const response = await api.post("/api/auth/send-reset-otp", {
+  const response = await api.post('/api/auth/send-reset-otp', {
     email,
   });
   return response.data;
 };
 
 export const verifyResetOtp = async ({ email, otp }: any) => {
-  const response = await api.post("/api/auth/verify-reset-otp", {
+  const response = await api.post('/api/auth/verify-reset-otp', {
     email,
     otp,
   });
@@ -48,7 +48,7 @@ export const verifyResetOtp = async ({ email, otp }: any) => {
 };
 
 export const forgotPassword = async ({ session, newPassword }: any) => {
-  const response = await api.post("/api/auth/new-password", {
+  const response = await api.post('/api/auth/new-password', {
     session,
     newPassword,
   });

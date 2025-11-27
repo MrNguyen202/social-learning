@@ -53,3 +53,11 @@ export const loadDailyActiveUsers = async () => {
   const response = await api.get(`/api/admin/users/stats/daily-active-users`);
   return response.data;
 };
+
+export const updateUserStatus = async (
+  userId: string,
+  data: { bannedUntil: string | null }
+) => {
+  const response = await api.patch(`/api/admin/users/${userId}/status`, data);
+  return response.data;
+};

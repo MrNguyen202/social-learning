@@ -14,3 +14,8 @@ export const getPendingModeration = async () => {
   const response = await api.get("/api/admin/dashboard/pending-moderation");
   return response.data;
 };
+
+export const getLearningFrequencyStats = async () => {
+  const response = await api.get("/api/admin/dashboard/learning-frequency-stats");
+  return response.data;
+}

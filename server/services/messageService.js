@@ -1,10 +1,15 @@
 const Message = require("../models/Message");
 const Conversation = require("../models/Conversation");
 const userService = require("./userService");
+const cloudinary = require("../config/cloudinaryConfig");
+const fs = require("fs");
+
+const REVOKE_TIME_LIMIT = 60 * 60 * 1000;
+const SYSTEM_ID = "00000000-0000-0000-0000-000000000000";
 
 const messageService = {
     // Lưu tin nhắn mới
-    async saveMessage({ conversationId, senderId, text, files }) {
+    async saveMessage({ conversationId, senderId, text, files, replyTo }) {
         // Kiểm tra conversation tồn tại
         const conversation = await Conversation.findById(conversationId);
         if (!conversation) throw new Error("Conversation not found");
@@ -18,15 +23,57 @@ const messageService = {
         let file = null;
 
         if (files && files.length > 0) {
-            files.forEach(f => {
-                if (f.mimetype.startsWith("image/")) {
-                    images.push({ url: `/uploads/${f.filename}`, filename: f.originalname });
-                } else {
-                    file = { url: `/uploads/${f.filename}`, filename: f.originalname, size: f.size, mimeType: f.mimetype };
+            // Dùng Promise.all để upload nhiều file cùng lúc cho nhanh
+            const uploadPromises = files.map(async (f) => {
+                try {
+                    // Upload lên Cloudinary
+                    // f.path là đường dẫn tạm do Multer tạo ra
+                    const result = await cloudinary.uploader.upload(f.path, {
+                        folder: "social-learning/message_uploads", // Tên folder trên Cloudinary
+                        resource_type: "auto"      // Tự động nhận diện ảnh/video/raw file
+                    });
+
+                    // Xóa file tạm trên server sau khi upload thành công để tiết kiệm dung lượng
+                    if (fs.existsSync(f.path)) {
+                        fs.unlinkSync(f.path);
+                    }
+
+                    return {
+                        originalFile: f,
+                        cloudinaryResult: result
+                    };
+                } catch (err) {
+                    console.error("Cloudinary upload error:", err);
+                    throw err;
                 }
             });
+
+            const uploadedFiles = await Promise.all(uploadPromises);
+
+            // Phân loại file sau khi có kết quả từ Cloudinary
+            uploadedFiles.forEach(({ originalFile, cloudinaryResult }) => {
+                if (originalFile.mimetype.startsWith("image/")) {
+                    images.push({
+                        url: cloudinaryResult.secure_url, // URL từ Cloudinary
+                        filename: originalFile.originalname
+                    });
+                } else {
+                    file = {
+                        url: cloudinaryResult.secure_url, // URL từ Cloudinary
+                        filename: originalFile.originalname,
+                        size: originalFile.size,
+                        mimeType: originalFile.mimetype
+                    };
+
+                    if (originalFile.mimetype.startsWith("audio/")) {
+                        type = "audio";
+                    }
+                }
+            });
+
             if (images.length > 0 && text) type = "image"; // caption + ảnh
             else if (images.length > 0) type = "image";
+            else if (type === "audio") type = "audio";
             else type = "file";
         } else if (text) {
             type = "text";
@@ -42,10 +89,18 @@ const messageService = {
                 text: text || "",
                 images,
                 file
-            }
+            },
+            replyTo: replyTo || null
         });
 
         await message.save();
+
+        if (replyTo) {
+            await message.populate({
+                path: 'replyTo',
+                select: 'senderId content', // Chỉ lấy thông tin cần thiết
+            });
+        }
 
         // Cập nhật lại lastMessage
         conversation.lastMessage = message._id;
@@ -60,36 +115,63 @@ const messageService = {
     },
 
     // Lấy danh sách tin nhắn trong cuộc trò chuyện với phân trang
-    async getMessagesByConversationId(conversationId, { page = 1, limit = 20 }) {
+    async getMessagesByConversationId(conversationId, userId, { page = 1, limit = 20 }) {
         const skip = (page - 1) * limit;
 
-        // B1: Lấy messages trong MongoDB
-        const messages = await Message.find({ conversationId })
+        // Lấy thông tin Conversation để check mốc thời gian user đã xóa lịch sử
+        const conversation = await Conversation.findById(conversationId);
+        if (!conversation) throw new Error("Conversation not found");
+
+        // Tìm mốc thời gian user đã xóa lịch sử
+        const deleteHistory = conversation.delete_history?.find(h => h.userId === userId);
+        const deletedAt = deleteHistory ? deleteHistory.deletedAt : null;
+
+        // Tạo query
+        const query = {
+            conversationId,
+            "removed.userId": { $ne: userId } // Tin nhắn đơn lẻ bị xóa
+        };
+
+        // Nếu user đã xóa lịch sử, chỉ lấy tin nhắn SAU thời điểm đó
+        if (deletedAt) {
+            query.createdAt = { $gt: deletedAt };
+        }
+
+        // B1: Lấy messages
+        const messages = await Message.find(query)
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
+            .populate({ path: 'replyTo', select: 'senderId content' })
             .lean();
-
         // B2: Lấy danh sách unique senderId
-        const senderIds = [...new Set(messages.map(m => m.senderId))];
-
-        if (senderIds.length === 0) return messages;
-
-        // B3: Lấy thông tin user từ Supabase (dùng in)
-        const { data: users, error } = await userService.getUsersByIds(senderIds);
-
-        if (error) throw new Error("Failed to fetch user data");
-
-        // B4: Merge thông tin sender vào message
-        const userMap = {};
-        users.forEach(u => {
-            userMap[u.id] = u;
+        const senderIds = new Set(messages.map(m => m.senderId));
+        messages.forEach(m => {
+            if (m.replyTo && m.replyTo.senderId) {
+                senderIds.add(m.replyTo.senderId);
+            }
         });
 
-        const messagesWithSender = messages.map(m => ({
-            ...m,
-            sender: userMap[m.senderId] || null,
-        }));
+        const { data: users, error } = await userService.getUsersByIds([...senderIds]);
+        if (error) throw new Error("Failed to fetch user data");
+
+        const userMap = {};
+        users.forEach(u => userMap[u.id] = u);
+
+        const messagesWithSender = messages.map(m => {
+            // Map sender cho tin nhắn chính
+            const msg = {
+                ...m,
+                sender: userMap[m.senderId] || null,
+            };
+
+            // Map sender cho tin nhắn được reply (nếu có)
+            if (msg.replyTo) {
+                msg.replyTo.sender = userMap[msg.replyTo.senderId] || null;
+            }
+
+            return msg;
+        });
 
         return messagesWithSender;
     },
@@ -123,7 +205,112 @@ const messageService = {
         );
 
         return { modifiedCount: result.modifiedCount, data: messages, seenAt: seenAtTime };
-    }
+    },
+
+    // Thu hồi tin nhắn
+    async revokeMessage(messageId, userId) {
+        const message = await Message.findById(messageId);
+        if (!message) throw new Error("Tin nhắn không tồn tại");
+
+        // 1. Kiểm tra tin nhắn đã bị thu hồi chưa
+        if (message.revoked) {
+            throw new Error("Tin nhắn đã bị thu hồi trước đó");
+        }
+
+        // 2. Kiểm tra quyền: Chỉ người gửi mới được thu hồi
+        if (message.senderId.toString() !== userId) {
+            throw new Error("Bạn không có quyền thu hồi tin nhắn này");
+        }
+
+        // 3. [MỚI] Kiểm tra thời gian giới hạn
+        const now = new Date();
+        const messageTime = new Date(message.createdAt);
+        const timeDiff = now.getTime() - messageTime.getTime();
+
+        if (timeDiff > REVOKE_TIME_LIMIT) {
+            throw new Error("Đã quá thời gian cho phép thu hồi tin nhắn (1 giờ)");
+        }
+
+        // Logic cập nhật (Giữ nguyên như bạn đã sửa: Chỉ đổi cờ revoked)
+        message.revoked = true;
+
+        // Lưu ý: KHÔNG sửa content ở đây (như thảo luận trước)
+        await message.save();
+        return message;
+    },
+
+    // Xóa tin nhắn (nếu cần)
+    async deleteMessageForUser(messageId, userId) {
+        const message = await Message.findByIdAndUpdate(
+            messageId,
+            {
+                $addToSet: {
+                    removed: {
+                        userId: userId,
+                        removedAt: new Date()
+                    }
+                }
+            },
+            { new: true }
+        );
+        return message;
+    },
+
+    // Thích/ bỏ thích tin nhắn
+    toggleLikeMessage: async (messageId, userId) => {
+        // 1. Tìm tin nhắn
+        const message = await Message.findById(messageId);
+        if (!message) {
+            throw new Error("Message not found");
+        }
+
+        // 2. Kiểm tra xem user đã like chưa
+        const index = message.likes.findIndex(like => like.userId === userId);
+
+        if (index === -1) {
+            // Chưa like -> Thêm vào (Push)
+            message.likes.push({ userId, likedAt: new Date() });
+        } else {
+            // Đã like -> Xóa đi (Splice/Pull)
+            message.likes.splice(index, 1);
+        }
+
+        // 3. Lưu lại và trả về message mới nhất
+        return await message.save();
+    },
+
+    async createSystemMessage(conversationId, actorId, action, targetIds = [], newName = null) {
+        // Cần fetch thông tin actor và target để lưu tên (snapshot) vào message
+        // Giả sử có hàm userService.getUsersByIds
+        const { data: users } = await userService.getUsersByIds([actorId, ...targetIds]);
+        const actorUser = users.find(u => u.id === actorId);
+
+        const targets = targetIds.map(tid => {
+            const tUser = users.find(u => u.id === tid);
+            return { id: tid, name: tUser?.name || "Unknown" };
+        });
+
+        const message = new Message({
+            conversationId,
+            senderId: SYSTEM_ID,
+            content: {
+                type: "system",
+                system: {
+                    action, // "admin_transferred"
+                    actor: { id: actorId, name: actorUser?.name || "Unknown" },
+                    target: targets, // Array chứa thông tin người admin mới
+                    newName 
+                }
+            }
+        });
+        
+        await message.save();
+
+        // Update lastMessage conversation...
+        await Conversation.findByIdAndUpdate(conversationId, { lastMessage: message._id });
+
+        return message;
+    },
 };
 
 module.exports = messageService;

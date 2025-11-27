@@ -23,6 +23,7 @@ import { getFollowers, getFollowing } from "@/app/apiClient/follow/follow";
 import FollowModal from "./FollowModal";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/components/contexts/LanguageContext";
+import { countPostsByUserId } from "@/app/apiClient/post/post";
 
 interface User {
   id: string;
@@ -48,6 +49,7 @@ export default function ProfileHeader() {
   const [following, setFollowing] = useState<Follower[]>([]);
   const [openFollower, setOpenFollower] = useState(false);
   const [follower, setFollower] = useState<Follower[]>([]);
+  const [postCount, setPostCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,7 +62,7 @@ export default function ProfileHeader() {
       const res = await uploadFile("profiles", file, "image");
 
       if (res?.success === false) {
-        toast.error(res.msg || t("dashboard.uploadFailed"), {
+        toast.error(res.msg || t("dashboard.photoUploadFailed"), {
           autoClose: 1500,
         });
         return;
@@ -69,12 +71,12 @@ export default function ProfileHeader() {
       const updateData = { avatar: res.data.path };
       await updateUserData(user.id, updateData);
 
-      toast.success(t("dashboard.uploadSuccess"), { autoClose: 1500 });
+      toast.success(t("dashboard.photoUploadSuccess"), { autoClose: 1500 });
 
       setUser({ ...user, avatar: res.data.path });
       setOpen(false);
     } catch (err: any) {
-      toast.error(t("dashboard.uploadError"), { autoClose: 1500 });
+      toast.error(t("dashboard.photoUploadFailed"), { autoClose: 1500 });
     } finally {
       setIsLoading(false);
     }
@@ -102,10 +104,21 @@ export default function ProfileHeader() {
 
   useEffect(() => {
     if (user?.id) {
+      countPostsByUser();
       getListFollowing();
       getListFollowers();
     }
   }, [user?.id]);
+
+  const countPostsByUser = async () => {
+    if (!user?.id) return;
+    setIsLoading(true);
+    const res = await countPostsByUserId(user?.id);
+    if (res.success) {
+      setPostCount(res.count);
+    }
+    setIsLoading(false);
+  };
 
   const getListFollowing = async () => {
     if (!user?.id) return;
@@ -166,7 +179,7 @@ export default function ProfileHeader() {
               <div className="flex flex-col divide-y">
                 <label className="py-3 text-blue-600 border-t font-medium hover:bg-gray-50 text-center cursor-pointer transition-colors">
                   {isLoading
-                    ? t("dashboard.uploading")
+                    ? t("dashboard.uploadingPhoto")
                     : t("dashboard.selectPhoto")}
                   <input
                     type="file"
@@ -209,7 +222,7 @@ export default function ProfileHeader() {
 
             <div className="grid grid-cols-3 text-xs sm:text-sm mt-2 gap-2">
               <motion.div whileHover={{ scale: 1.05 }}>
-                <div className="font-semibold">0</div>
+                <div className="font-semibold">{postCount}</div>
                 <div className="text-muted-foreground">
                   {t("dashboard.posts")}
                 </div>

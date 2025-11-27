@@ -21,6 +21,7 @@ import {
   Globe,
   Loader2,
   ChartSpline,
+  Crown,
 } from "lucide-react";
 
 import {
@@ -54,6 +55,7 @@ import { CreateOrUpdatePostModal } from "./CreateOrUpdatePost";
 import { fetchTotalUnreadMessages } from "@/app/apiClient/chat/conversation/conversation";
 import { getSocket } from "@/socket/socketClient";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import PricingModal from "./PricingModal";
 
 export function LeftSidebarMobile() {
   const { user } = useAuth();
@@ -67,6 +69,7 @@ export function LeftSidebarMobile() {
   const [notificationCount, setNotificationCount] = useState(0);
   const [messagesCount, setMessagesCount] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
 
   // Lắng nghe realtime supabase
   useEffect(() => {
@@ -245,6 +248,10 @@ export function LeftSidebarMobile() {
         setIsCreateModalOpen(true);
         return;
       }
+      if (path === "/dashboard/plan") {
+        setIsPlanModalOpen(true);
+        return;
+      }
     }
     router.push(path);
   };
@@ -266,23 +273,29 @@ export function LeftSidebarMobile() {
     const socket = getSocket();
 
     const fetchMessagesCount = async () => {
-      const res = await fetchTotalUnreadMessages(user?.id);
+      const res = await fetchTotalUnreadMessages();
       setMessagesCount(res);
     };
 
-    socket.on("notificationNewMessage", () => {
+    // Hàm handle khi có tin nhắn mới từ socket
+    const handleNotificationNewMessage = () => {
       fetchMessagesCount();
-    });
+    };
 
-    socket.on("notificationMessagesRead", () => {
+    // Hàm handle khi có người đọc tin nhắn từ socket
+    const handleNotificationMessagesRead = () => {
       fetchMessagesCount();
-    });
+    };
+
+    // Lắng nghe sự kiện từ socket
+    socket.on("notificationNewMessage", handleNotificationNewMessage);
+    socket.on("notificationMessagesRead", handleNotificationMessagesRead);
 
     fetchMessagesCount();
 
     return () => {
-      socket.off("notificationNewMessage");
-      socket.off("notificationMessagesRead");
+      socket.off("notificationNewMessage", handleNotificationNewMessage);
+      socket.off("notificationMessagesRead", handleNotificationMessagesRead);
     };
   }, [user]);
 
@@ -317,18 +330,16 @@ export function LeftSidebarMobile() {
                 <Button
                   key={item.label}
                   variant="ghost"
-                  className={`w-full justify-start h-12 px-3 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${
-                    pathname === item.path
-                      ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
-                      : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
-                  }`}
+                  className={`w-full justify-start h-12 px-3 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${pathname === item.path
+                    ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
+                    : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
+                    }`}
                   style={{ animationDelay: `${index * 100}ms` }}
                   onClick={() => handleMenuClick(item.path)}
                 >
                   <item.icon
-                    className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${
-                      pathname === item.path ? "text-orange-600" : ""
-                    }`}
+                    className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${pathname === item.path ? "text-orange-600" : ""
+                      }`}
                   />
                   <span className="text-base font-medium">{item.label}</span>
                 </Button>
@@ -345,11 +356,10 @@ export function LeftSidebarMobile() {
                     <Button
                       key={item.label}
                       variant="ghost"
-                      className={`w-full justify-start h-12 px-3 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${
-                        pathname === item.path
-                          ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
-                          : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
-                      }`}
+                      className={`w-full justify-start h-12 px-3 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${pathname === item.path
+                        ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
+                        : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
+                        }`}
                       style={{ animationDelay: `${index * 100}ms` }}
                       onClick={() =>
                         isNotification
@@ -359,9 +369,8 @@ export function LeftSidebarMobile() {
                     >
                       <div className="relative">
                         <item.icon
-                          className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${
-                            pathname === item.path ? "text-orange-600" : ""
-                          }`}
+                          className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${pathname === item.path ? "text-orange-600" : ""
+                            }`}
                         />
                         {isNotification && notificationCount > 0 && (
                           <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-xs flex items-center justify-center p-0 animate-pulse">
@@ -394,18 +403,16 @@ export function LeftSidebarMobile() {
                       <Button
                         key={item.label}
                         variant="ghost"
-                        className={`w-full justify-start h-12 px-3 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${
-                          pathname === item.path
-                            ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
-                            : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
-                        }`}
+                        className={`w-full justify-start h-12 px-3 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${pathname === item.path
+                          ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
+                          : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
+                          }`}
                         style={{ animationDelay: `${(index + 6) * 100}ms` }}
                         onClick={() => handleMenuClick(item.path)}
                       >
                         <item.icon
-                          className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${
-                            pathname === item.path ? "text-orange-600" : ""
-                          }`}
+                          className={`h-6 w-6 mr-4 transition-all duration-300 group-hover:scale-110 ${pathname === item.path ? "text-orange-600" : ""
+                            }`}
                         />
                         <span className="text-base font-medium">
                           {item.label}
@@ -418,41 +425,51 @@ export function LeftSidebarMobile() {
             </>
           )}
         </div>
-      </ScrollArea>
 
-      {/* Dropdown */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <div className="p-4 border-t border-gray-100 cursor-pointer">
-            <div className="p-3 rounded-lg bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-100">
-              <div className="flex items-center space-x-3">
-                <MenuIcon className="h-4 w-4" />
-                <p className="font-medium">{t("dashboard.seeMore")}</p>
+        {/* Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="p-4 border-t border-gray-100 cursor-pointer">
+              <div className="p-3 rounded-lg bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-100">
+                <div className="flex items-center space-x-3">
+                  <MenuIcon className="h-4 w-4" />
+                  <p className="font-medium">{t("dashboard.seeMore")}</p>
+                </div>
               </div>
             </div>
-          </div>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end">
-          <DropdownMenuLabel>{t("dashboard.myAccount")}</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={() => handleMenuClick("/dashboard/profile")}
-          >
-            {t("dashboard.profile")}
-          </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer" onClick={toggleLanguage}>
-            {language === "vi" ? "English" : "Tiếng Việt"}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="text-red-600 cursor-pointer"
-            onClick={handleLogout}
-          >
-            {t("dashboard.logout")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end">
+            <DropdownMenuLabel>{t("dashboard.myAccount")}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="cursor-pointer hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50 transition-all duration-200 flex items-center justify-between"
+              onClick={() => handleMenuClick("/dashboard/plan")}
+            >
+              <div>{t("dashboard.premium")}</div>
+              <Crown className="w-4 h-4 ml-2 text-yellow-500 inline-block" />
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => handleMenuClick("/dashboard/profile")}
+            >
+              {t("dashboard.profile")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={toggleLanguage}
+            >
+              {language === "vi" ? "English" : "Tiếng Việt"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-red-600 cursor-pointer"
+              onClick={handleLogout}
+            >
+              {t("dashboard.logout")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </ScrollArea>
 
       <SearchPanel
         isOpen={isSearchOpen}
@@ -465,6 +482,10 @@ export function LeftSidebarMobile() {
       <CreateOrUpdatePostModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+      />
+      <PricingModal
+        isOpen={isPlanModalOpen}
+        onClose={() => setIsPlanModalOpen(false)}
       />
     </>
   );

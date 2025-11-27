@@ -1,11 +1,13 @@
 "use client";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+
 import {
-  type ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+  Area,
+  AreaChart,
+  CartesianGrid,
+  XAxis,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
 import { useEffect, useState } from "react";
 import {
   statisticsScoreSpeaking,
@@ -13,53 +15,21 @@ import {
   statisticsScoreListening,
 } from "@/app/apiClient/learning/score/score";
 
-export const description = "A simple area chart";
-
-const chartConfig = {
-  speaking: {
-    label: "Speaking",
-    color: "hsl(25 95% 53%)", // orange-500
-  },
-  writing: {
-    label: "Writing",
-    color: "hsl(330 81% 60%)", // pink-500
-  },
-  listening: {
-    label: "Listening",
-    color: "hsl(280 81% 60%)", // purple-500
-  },
-} satisfies ChartConfig;
-
-export default function ChartArea({
-  t,
-  user,
-  days,
-  skillType,
-}: {
-  t: (key: string) => string;
-  user: any;
-  days: any;
-  skillType: "speaking" | "writing" | "listening";
-}) {
+export default function ChartArea({ t, user, days, skillType }: any) {
   const [data, setData] = useState<any[]>([]);
-  const [skill, setSkill] = useState("");
 
   useEffect(() => {
-    if (!user) return;
-    fetchData();
+    if (user) fetchData();
   }, [user, days, skillType]);
 
   const fetchData = async () => {
-    if (!user) return;
     try {
       let res;
-      if (skillType === "speaking") {
+      if (skillType === "speaking")
         res = await statisticsScoreSpeaking(user.id, days);
-      } else if (skillType === "writing") {
+      else if (skillType === "writing")
         res = await statisticsScoreWriting(user.id, days);
-      } else {
-        res = await statisticsScoreListening(user.id, days);
-      }
+      else res = await statisticsScoreListening(user.id, days);
 
       const normalized = res.map((item: any) => ({
         skill: item.skill,
@@ -68,50 +38,71 @@ export default function ChartArea({
           total: Number(d.total),
         })),
       }));
-      setSkill(normalized[0]?.skill || "");
       setData(normalized[0]?.data || []);
     } catch (error) {
-      console.error("[v0] Error fetching statistics:", error);
-      setData([]);
+      console.error(error);
     }
   };
 
+  const getColor = () => {
+    switch (skillType) {
+      case "speaking":
+        return "#f97316"; // Orange 500
+      case "writing":
+        return "#ec4899"; // Pink 500
+      default:
+        return "#8b5cf6"; // Violet 500
+    }
+  };
+  const color = getColor();
+
   return (
-    <ChartContainer config={chartConfig}>
+    <ResponsiveContainer width="100%" height="100%">
       <AreaChart
-        accessibilityLayer
         data={data}
-        margin={{
-          left: 12,
-          right: 12,
-        }}
+        margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
       >
-        <CartesianGrid vertical={false} />
+        <defs>
+          <linearGradient id={`color${skillType}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+            <stop offset="95%" stopColor={color} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid
+          vertical={false}
+          strokeDasharray="3 3"
+          stroke="#e2e8f0"
+        />
         <XAxis
           dataKey="day"
           tickLine={false}
           axisLine={false}
-          tickMargin={8}
-          tickFormatter={(value) => {
-            const date = new Date(value);
-            return date.toLocaleDateString("vi-VN", {
-              month: "short",
+          tick={{ fontSize: 10, fill: "#94a3b8" }}
+          tickFormatter={(value) =>
+            new Date(value).toLocaleDateString("en", {
               day: "numeric",
-            });
-          }}
+              month: "short",
+            })
+          }
         />
-        <ChartTooltip
-          cursor={false}
-          content={<ChartTooltipContent indicator="line" />}
+        <Tooltip
+          contentStyle={{
+            backgroundColor: "#fff",
+            borderRadius: "8px",
+            border: "none",
+            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+          }}
+          itemStyle={{ color: color, fontWeight: "bold" }}
         />
         <Area
+          type="monotone"
           dataKey="total"
-          type="natural"
-          fill={`var(--color-${skillType})`}
-          fillOpacity={0.4}
-          stroke={`var(--color-${skillType})`}
+          stroke={color}
+          strokeWidth={3}
+          fillOpacity={1}
+          fill={`url(#color${skillType})`}
         />
       </AreaChart>
-    </ChartContainer>
+    </ResponsiveContainer>
   );
 }

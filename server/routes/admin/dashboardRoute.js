@@ -8,4 +8,6 @@ router.get("/recent-activities/:userId", dashboardController.getRecentActivities
 
 router.get("/pending-moderation", dashboardController.getPendingModeration);
 
+router.get("/learning-frequency-stats", dashboardController.getLearningFrequencyStats);
+
 module.exports = router;

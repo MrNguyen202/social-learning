@@ -108,7 +108,7 @@ const postController = {
         original_name: null,
         created_at: new Date().toISOString(),
       };
-      
+
       // Xử lý file nếu có
       if (file.fileData && file.fileData.fileBase64) {
         const { fileBase64, fileName, mimeType } = file.fileData;
@@ -222,6 +222,26 @@ const postController = {
         });
       }
       return res.status(200).json({ success: true, data: data || [] });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  },
+
+  // API để đếm số lượng posts của một user
+  async countPostsByUserId(req, res) {
+    try {
+      const { userId } = req.params;
+      const { count, error } = await postService.countPostsByUserId(userId);
+      if (error) {
+        return res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      }
+      return res.status(200).json({ success: true, count: count || 0 });
     } catch (error) {
       return res.status(500).json({
         success: false,

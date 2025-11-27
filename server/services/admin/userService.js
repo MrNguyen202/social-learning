@@ -47,7 +47,7 @@ const userService = {
       .from("users")
       .select(
         `
-        id, name, email, nick_name, phone, address, bio, avatar, gender, dob, level, last_seen, created_at,
+        id, name, email, nick_name, phone, address, bio, avatar, gender, dob, level, last_seen, created_at, role, banned_until,
         learningStreak ( current_streak, longest_streak, last_learned_date )
       `
       )
@@ -162,6 +162,47 @@ const userService = {
    */
   async loadDailyActiveUsers() {
     const { data, error } = await supabase.rpc("get_daily_active_users");
+    if (error) return { data: null, error };
+    return { data, error: null };
+  },
+
+  /**
+   * Cập nhật trạng thái user (Role hoặc Ban)
+   * @param {string} userId
+   * @param {object} payload { role: 'admin'|'user', banDuration: number (days) }
+   */
+  async updateUserStatus(userId, { role, banDuration }) {
+    const updateData = {};
+
+    // Xử lý Role
+    if (role) {
+      updateData.role = role;
+    }
+
+    // Xử lý Ban
+    if (banDuration !== undefined) {
+      if (banDuration === 0) {
+        // Mở khóa
+        updateData.banned_until = null;
+      } else if (banDuration === -1) {
+        // Khóa vĩnh viễn (set 100 năm)
+        const forever = new Date();
+        forever.setFullYear(forever.getFullYear() + 100);
+        updateData.banned_until = forever.toISOString();
+      } else {
+        // Khóa n ngày
+        const banUntil = new Date();
+        banUntil.setDate(banUntil.getDate() + banDuration);
+        updateData.banned_until = banUntil.toISOString();
+      }
+    }
+
+    const { data, error } = await supabase
+      .from("users")
+      .update(updateData)
+      .eq("id", userId)
+      .select();
+
     if (error) return { data: null, error };
     return { data, error: null };
   },

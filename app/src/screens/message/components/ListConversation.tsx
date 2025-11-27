@@ -27,7 +27,7 @@ export default function ListConversation() {
       if (!user?.id || loading) return;
       setLoadingConversations(true);
       try {
-        const res = await fetchConversations(user.id);
+        const res = await fetchConversations();
         setConversations(res);
       } catch (error) {
         console.error('Error fetching conversations:', error);

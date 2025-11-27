@@ -140,7 +140,7 @@ export function ListeningParagraphs({ t }: { t: (key: string) => string }) {
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Listening Paragraphs</CardTitle>
+          <CardTitle>{t("dashboard.listeningParagraphs")}</CardTitle>
           <Button onClick={handleCreate} className="cursor-pointer">
             <Plus className="w-4 h-4 mr-2" />
             {t("dashboard.createNew")}
@@ -188,13 +188,13 @@ export function ListeningParagraphs({ t }: { t: (key: string) => string }) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Level</TableHead>
-                    <TableHead>Topic</TableHead>
-                    <TableHead>Completion Rate</TableHead>
-                    <TableHead>Avg Score</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("dashboard.titleContent")}</TableHead>
+                    <TableHead>{t("dashboard.level")}</TableHead>
+                    <TableHead>{t("dashboard.topic")}</TableHead>
+                    <TableHead>{t("dashboard.completionRate")}</TableHead>
+                    <TableHead>{t("dashboard.averageScore")}</TableHead>
+                    <TableHead>{t("dashboard.created")}</TableHead>
+                    <TableHead>{t("dashboard.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -214,7 +214,7 @@ export function ListeningParagraphs({ t }: { t: (key: string) => string }) {
                         colSpan={7}
                         className="text-center py-8 text-gray-500"
                       >
-                        No listening paragraphs found
+                        {t("dashboard.noListeningParagraphsFound")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -281,10 +281,9 @@ export function ListeningParagraphs({ t }: { t: (key: string) => string }) {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t("dashboard.areYouSure")}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this listening paragraph. This action
-              cannot be undone.
+              {t("dashboard.deleteParagraphConfirmation")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

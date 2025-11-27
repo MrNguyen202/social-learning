@@ -21,6 +21,7 @@ import {
   Globe,
   Loader2,
   ChartSpline,
+  Crown,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -46,6 +47,7 @@ import { NotificationsPanel } from "./Notifications";
 import { CreateOrUpdatePostModal } from "./CreateOrUpdatePost";
 import { getSocket } from "@/socket/socketClient";
 import { fetchTotalUnreadMessages } from "@/app/apiClient/chat/conversation/conversation";
+import PricingModal from "./PricingModal";
 
 export function LeftSidebar() {
   const { user } = useAuth();
@@ -59,6 +61,7 @@ export function LeftSidebar() {
   const [notificationCount, setNotificationCount] = useState(0);
   const [messagesCount, setMessagesCount] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
 
   // Lắng nghe realtime supabase
   useEffect(() => {
@@ -239,6 +242,10 @@ export function LeftSidebar() {
         setIsCreateModalOpen(true);
         return;
       }
+      if (path === "/dashboard/plan") {
+        setIsPlanModalOpen(true);
+        return;
+      }
     }
     router.push(path);
   };
@@ -261,23 +268,29 @@ export function LeftSidebar() {
     const socket = getSocket();
 
     const fetchMessagesCount = async () => {
-      const res = await fetchTotalUnreadMessages(user?.id);
+      const res = await fetchTotalUnreadMessages();
       setMessagesCount(res);
     };
 
-    socket.on("notificationNewMessage", () => {
+    //  Hàm handle khi có tin nhắn mới từ socket
+    const handleNotificationNewMessage = () => {
       fetchMessagesCount();
-    });
+    };
 
-    socket.on("notificationMessagesRead", () => {
+    // Hàm handle khi có người đọc tin nhắn từ socket
+    const handleNotificationMessagesRead = () => {
       fetchMessagesCount();
-    });
+    };
+
+    // Lắng nghe sự kiện từ socket
+    socket.on("notificationNewMessage", handleNotificationNewMessage);
+    socket.on("notificationMessagesRead", handleNotificationMessagesRead);
 
     fetchMessagesCount();
 
     return () => {
-      socket.off("notificationNewMessage");
-      socket.off("notificationMessagesRead");
+      socket.off("notificationNewMessage", handleNotificationNewMessage);
+      socket.off("notificationMessagesRead", handleNotificationMessagesRead);
     };
   }, [user]);
 
@@ -285,8 +298,8 @@ export function LeftSidebar() {
     <>
       <div
         className={`fixed left-0 top-0 h-full w-70 bg-white border-r border-gray-200 flex flex-col transform transition-all duration-700 ease-out ${isVisible
-            ? "translate-x-0 opacity-100"
-            : "-translate-x-full opacity-0"
+          ? "translate-x-0 opacity-100"
+          : "-translate-x-full opacity-0"
           }`}
       >
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -324,8 +337,8 @@ export function LeftSidebar() {
                   key={item.label}
                   variant="ghost"
                   className={`w-full justify-start h-12 px-3 hover:cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${pathname === item.path
-                      ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
-                      : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
+                    ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
+                    : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
                     }`}
                   style={{ animationDelay: `${index * 100}ms` }}
                   onClick={() => handleMenuClick(item.path)} // Admin chỉ cần push route
@@ -352,8 +365,8 @@ export function LeftSidebar() {
                       key={item.label}
                       variant="ghost"
                       className={`w-full justify-start h-12 px-3 hover:cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${pathname === item.path
-                          ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
-                          : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
+                        ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
+                        : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
                         }`}
                       style={{ animationDelay: `${index * 100}ms` }}
                       onClick={() =>
@@ -400,8 +413,8 @@ export function LeftSidebar() {
                         key={item.label}
                         variant="ghost"
                         className={`w-full justify-start h-12 px-3 hover:cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-md animate-slide-in-left group ${pathname === item.path
-                            ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
-                            : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
+                          ? "bg-gradient-to-r from-orange-50 to-pink-50 text-orange-700 border border-orange-200 shadow-sm"
+                          : "text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
                           }`}
                         style={{ animationDelay: `${(index + 6) * 100}ms` }}
                         onClick={() => handleMenuClick(item.path)}
@@ -423,7 +436,7 @@ export function LeftSidebar() {
         </div>
 
         {/* Info */}
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <div className="p-4 border-t border-gray-100 cursor-pointer ">
               <div className="p-3 rounded-lg bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-100 transform transition-all duration-300 hover:scale-105 hover:shadow-lg hover:from-orange-100 hover:to-pink-100">
@@ -437,6 +450,13 @@ export function LeftSidebar() {
           <DropdownMenuContent className="w-56 " align="end">
             <DropdownMenuLabel>{t("dashboard.myAccount")}</DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="cursor-pointer hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50 transition-all duration-200 flex items-center justify-between"
+              onClick={() => handleMenuClick("/dashboard/plan")}
+            >
+              <div>{t("dashboard.premium")}</div>
+              <Crown className="w-4 h-4 ml-2 text-yellow-500 inline-block" />
+            </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50 transition-all duration-200"
               onClick={() => handleMenuClick("/dashboard/profile")}
@@ -470,6 +490,10 @@ export function LeftSidebar() {
         <CreateOrUpdatePostModal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
+        />
+        <PricingModal
+          isOpen={isPlanModalOpen}
+          onClose={() => setIsPlanModalOpen(false)}
         />
       </div>
     </>

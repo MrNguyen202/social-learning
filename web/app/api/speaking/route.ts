@@ -8,51 +8,64 @@ const google = createGoogleGenerativeAI({
 
 export const runtime = "edge";
 
-const generateId = () => Math.random().toString(36).slice(2, 10);
-
-// System prompt để định hướng AI
-const SYSTEM_PROMPT = `Bạn là một trợ lý AI thông minh và hữu ích. Hãy:
-- Trả lời bằng tiếng Anh một cách tự nhiên và dễ hiểu
-- Cung cấp thông tin chính xác và hữu ích
-- Giữ câu trả lời súc tích nhưng đầy đủ
-- Thân thiện và lịch sự trong giao tiếp
-- Nếu không chắc chắn về thông tin, hãy thành thật nói rằng bạn không biết`;
-
-const buildOptimizedPrompt = (messages: Message[]): Message[] => {
-  // Tạo system message
-  const systemMessage: Message = {
-    id: generateId(),
-    role: "system",
-    content: SYSTEM_PROMPT,
-  };
-
-  // Xử lý messages từ user và assistant
-  const processedMessages = messages.map((msg) => ({
-    id: msg.id || generateId(),
-    role: msg.role,
-    content: msg.content,
-  }));
-
-  return [systemMessage, ...processedMessages];
-};
-
 export async function POST(request: Request) {
   try {
-    const { messages } = await request.json();
+    // Nhận thêm userSide ('A' hoặc 'B')
+    const { messages, topic, level, loadedTopic, userSide } =
+      await request.json();
 
-    // Validation
-    if (!messages || !Array.isArray(messages)) {
-      return new Response("Invalid messages format", { status: 400 });
-    }
+    let systemPrompt = "";
+
+    // === XÁC ĐỊNH VAI TRÒ DỰA TRÊN LỰA CHỌN ===
+    const isUserA = userSide === "A";
+
+    const userRoleName = isUserA
+      ? loadedTopic.participant_a
+      : loadedTopic.participant_b;
+    const aiRoleName = isUserA
+      ? loadedTopic.participant_b
+      : loadedTopic.participant_a;
+
+    const userTask = isUserA ? loadedTopic.task_a_en : loadedTopic.task_b_en;
+    const aiTask = isUserA ? loadedTopic.task_b_en : loadedTopic.task_a_en;
+
+    systemPrompt = `
+      Bạn đang tham gia vào một kịch bản nhập vai (Role-Play).
+      
+      --- BỐI CẢNH KỊCH BẢN ---
+      "${loadedTopic.content_en}"
+      ------------------------
+
+      **VAI TRÒ:**
+      - BẠN (AI) là: **${aiRoleName}**.
+      - Người dùng là: **${userRoleName}**.
+
+      **MỤC TIÊU:**
+      - Mục tiêu của người dùng: ${userTask}
+      - Mục tiêu của bạn: ${aiTask}
+
+      **HƯỚNG DẪN:**
+      1. **GIỮ NHẬP VAI:** Hãy hành xử đúng như ${aiRoleName}. KHÔNG được là một trợ lý AI hữu ích. Hãy là nhân vật.
+      2. **TƯƠNG TÁC:** Trả lời người dùng một cách tự nhiên. Nếu bối cảnh có mâu thuẫn, hãy kiên quyết nhưng thực tế.
+      3. **TRÌNH ĐỘ:** Điều chỉnh tiếng Anh phù hợp với trình độ của người dùng (${level}).
+      4. **HÌNH THỨC:** Giữ phong cách hội thoại, ngắn gọn (1–3 câu).
+      
+      **LƯU Ý:** 
+      - Không được dùng (Role-play ...) trong câu nói của bạn.
+      - Các thông tin như name, age, job, address bạn hãy cho 1 tên cụ thể hoặc giả định và không được dùng [Restaurant Name], [City], v.v.
+      Hãy để người dùng nói trước nếu họ mở đầu, hoặc bạn hãy bắt đầu nếu bối cảnh yêu cầu bạn là người mở đầu.
+    `;
+
+    const messagesForAI: Message[] = [
+      { id: "sys", role: "system", content: systemPrompt },
+      ...messages,
+    ];
 
     const stream = await streamText({
-      model: google("gemini-2.0-flash"),
-      messages: buildOptimizedPrompt(messages),
+      model: google("models/gemini-2.0-flash"),
+      messages: messagesForAI,
       temperature: 0.7,
-      maxTokens: 1000, // Giới hạn độ dài response
-      topP: 0.9, // Tăng tính đa dạng
-      frequencyPenalty: 0.1, // Tránh lặp lại
-      presencePenalty: 0.1, // Khuyến khích topic mới
+      maxTokens: 1000,
     });
 
     return stream?.toDataStreamResponse();

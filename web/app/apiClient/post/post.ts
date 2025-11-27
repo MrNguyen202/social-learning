@@ -44,7 +44,6 @@ export const updatePost = async (data: CreatePostData) => {
   return response.data;
 };
 
-
 export const fetchPosts = async (
   currentUserId: string,
   limit = 10,
@@ -60,6 +59,11 @@ export const fetchPostsByUserId = async (userId?: string) => {
   const response = await api.get("/api/posts/posts-user", {
     params: { userId },
   });
+  return response.data;
+};
+
+export const countPostsByUserId = async (userId: string) => {
+  const response = await api.get(`/api/posts/count/${userId}`);
   return response.data;
 };
 

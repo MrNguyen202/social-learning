@@ -6,7 +6,6 @@ import { generateWritingParagraphByAI } from "@/app/apiClient/learning/writing/w
 import { useLanguage } from "@/components/contexts/LanguageContext"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
-import path from "path"
 
 type Week = {
     week: number

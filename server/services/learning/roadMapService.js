@@ -157,78 +157,72 @@ const roadmapService = {
     // update completedCount of lessonRoadmap
     updateLessonCompletedCount: async (user_id, level_id, topic_id, type_exercise) => {
         try {
-            // Lấy name_vi của topic và level
-            const { data: topicData, error: topicError } = await supabase
+            // Lấy topic + level
+            const { data: topicData } = await supabase
                 .from('topics')
                 .select('name_vi')
                 .eq('id', topic_id)
                 .single();
 
-            const { data: levelData, error: levelError } = await supabase
+            const { data: levelData } = await supabase
                 .from('levels')
                 .select('name_vi')
                 .eq('id', level_id)
                 .single();
 
-            if (topicError || levelError) throw topicError || levelError;
-            if (!topicData || !levelData) throw new Error("Topic hoặc level không tồn tại");
-
             const topic_name = topicData.name_vi;
             const level_name = levelData.name_vi;
 
-            // Lấy tất cả roadmap của user
-            const { data: roadmaps, error: roadmapError } = await supabase
+            // Lấy roadmap đang dùng
+            const { data: roadmaps } = await supabase
                 .from('roadmap')
-                .select('id')
-                .eq('user_id', user_id);
+                .select('id, date_used')
+                .eq('user_id', user_id)
+                .eq('isUsed', true);
 
-            if (roadmapError) throw roadmapError;
-            if (!roadmaps?.length) {
-                console.log("Không tìm thấy roadmap cho user này");
-                return;
-            }
+            if (!roadmaps?.length) return;
 
-            const roadmapIds = roadmaps.map(r => r.id);
+            const roadmap = roadmaps[0];
 
-            // Lấy tất cả weekRoadMaps theo roadmap_id
-            const { data: weekMaps, error: weekError } = await supabase
+            // Tính tuần hiện tại từ date_used
+            const dateUsed = new Date(roadmap.date_used);
+            const now = new Date();
+            const diffDays = Math.floor((now - dateUsed) / (1000 * 60 * 60 * 24));
+            const currentWeekNumber = Math.floor(diffDays / 7) + 1;
+
+            // Tìm đúng tuần
+            const { data: currentWeek } = await supabase
                 .from('weekRoadMaps')
-                .select('id')
-                .in('roadmap_id', roadmapIds);
+                .select('id, week')
+                .eq('roadmap_id', roadmap.id)
+                .eq('week', currentWeekNumber)
+                .single();
 
-            if (weekError) throw weekError;
-            if (!weekMaps?.length) {
-                console.log("Không tìm thấy weekRoadMaps cho roadmap này");
+            if (!currentWeek) {
                 return;
             }
 
-            const weekIds = weekMaps.map(w => w.id);
-
-            // Tìm lessonRoadmap phù hợp
-            const { data: lessons, error: lessonError } = await supabase
+            // Chỉ lấy lesson của tuần hiện tại
+            const { data: lessons } = await supabase
                 .from('lessonRoadmap')
                 .select('id, quantity, completedCount')
                 .eq('type', type_exercise)
                 .eq('topic_vi', topic_name)
                 .eq('level_vi', level_name)
-                .in('week_roadmap_id', weekIds);
+                .eq('week_roadmap_id', currentWeek.id);
 
-            if (lessonError) throw lessonError;
             if (!lessons?.length) {
-                console.log("Không tìm thấy lessonRoadmap phù hợp.");
                 return;
             }
 
             const lesson = lessons[0];
             const newCount = Math.min(lesson.quantity, (lesson.completedCount || 0) + 1);
 
-            // Cập nhật completedCount
-            const { error: updateError } = await supabase
+            await supabase
                 .from('lessonRoadmap')
                 .update({ completedCount: newCount })
                 .eq('id', lesson.id);
 
-            if (updateError) throw updateError;
         } catch (error) {
             console.error("❌ Error updating completedCount:", error);
         }
@@ -279,6 +273,8 @@ const roadmapService = {
                     .eq("id", week.id);
                 if (weekError) throw new Error("Lỗi khi cập nhật tuần lộ trình học tập cũ: " + weekError.message);
             }
+        } else {
+            return;
         }
     }
 };

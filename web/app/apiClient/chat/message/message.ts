@@ -22,12 +22,14 @@ export async function sendMessage({
   senderId,
   text,
   files,
+  replyTo,
 }: any) {
   try {
     const formData = new FormData();
     formData.append("conversationId", conversationId);
     formData.append("senderId", senderId);
     if (text) formData.append("text", text);
+    if (replyTo) formData.append("replyTo", replyTo);
     if (files && files.length > 0) {
       for (let i = 0; i < files.length; i++) {
         formData.append("files", files[i]);
@@ -44,15 +46,54 @@ export async function sendMessage({
 }
 
 // Hàm để đánh dấu tin nhắn đã đọc
-export async function markMessagesAsRead(conversationId: any, userId: any) {
+export async function markMessagesAsRead(conversationId: any) {
   try {
     const response = await api.post(
-      `/api/messages/markAsRead/${conversationId}`,
-      { userId }
+      `/api/messages/markAsRead/${conversationId}`
     );
     return response.data;
   } catch (error) {
     console.error("Error marking messages as read:", error);
+    throw error;
+  }
+}
+
+// Hàm để thu hồi tin nhắn
+export async function revokeMessage(messageId: any, userId: any) {
+  try {
+    const response = await api.post(
+      `/api/messages/revoke/${messageId}`,
+      { userId }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error revoking message:", error);
+    throw error;
+  }
+}
+
+// Hàm để xóa tin nhắn đối với người dùng
+export async function deleteMessageForUser(messageId: any) {
+  try {
+    const response = await api.post(
+      `/api/messages/remove/${messageId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting message for user:", error);
+    throw error;
+  }
+}
+
+// Hàm để thích / bỏ thích tin nhắn
+export async function toggleLikeMessage(messageId: any) {
+  try {
+    const response = await api.post(
+      `/api/messages/like/${messageId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error toggling like on message:", error);
     throw error;
   }
 }

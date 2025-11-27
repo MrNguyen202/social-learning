@@ -168,11 +168,6 @@ export default function ProfileEditPage() {
       }
 
       // Validate địa chỉ
-      if (!formData.address || formData.address.trim().length < 5) {
-        toast.error(t("dashboard.addressTooShort"), { autoClose: 1500 });
-        return;
-      }
-
       // Regex:
       //  - Ít nhất 1 chữ cái (A-Z hoặc có dấu tiếng Việt)
       //  - Ít nhất 1 khoảng trắng (đảm bảo có nhiều từ)
@@ -330,7 +325,7 @@ export default function ProfileEditPage() {
           onClick={() => router.back()}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-700 hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl font-semibold border border-gray-200 mb-4 cursor-pointer"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5 max-sm:hidden" />
           {t("dashboard.back")}
         </motion.button>
         <h1 className="text-xl font-bold mt-3">
