@@ -29,6 +29,9 @@ const scoreUserRoute = require("./routes/learning/scoreUserRoute");
 const vocabularyRoute = require("./routes/learning/vocabularyRoute");
 const rankingRoute = require("./routes/learning/rankingRoute");
 const roadMapRoute = require("./routes/learning/roadMapRoute");
+const planRoute = require("./routes/planRoute");
+const orderRoute = require("./routes/orderRoute");
+const transactionRoute = require("./routes/transactionRoute");
 
 // --- ROUTES ADMIN --- //
 const adminUserRoute = require("./routes/admin/userRoute");
@@ -58,6 +61,9 @@ app.use("/api/learning/score-user", scoreUserRoute);
 app.use("/api/learning/vocabulary", vocabularyRoute);
 app.use("/api/learning/ranking", rankingRoute);
 app.use("/api/learning/roadmap", roadMapRoute);
+app.use("/api/plans", planRoute);
+app.use("/api/orders", orderRoute);
+app.use("/api/transactions", transactionRoute);
 
 // --- API ADMIN --- //
 app.use("/api/admin/users", adminUserRoute);

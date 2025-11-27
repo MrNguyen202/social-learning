@@ -369,5 +369,6 @@
   "lessonDeleted": "Lesson deleted successfully!",
   "noSpeakingLessonsFound": "No speaking lessons found",
   "deleteSpeakingLessonConfirmation": "This will permanently delete this speaking lesson. This action cannot be undone.",
-  "createSpeakingLesson": "Create Speaking Lesson"
+  "createSpeakingLesson": "Create Speaking Lesson",
+  "premium": "Premium"
 }

@@ -368,5 +368,6 @@
   "lessonDeleted": "Đã xóa bài nói thành công!",
   "noSpeakingLessonsFound": "Không tìm thấy bài nói nào",
   "deleteSpeakingLessonConfirmation": "Điều này sẽ xóa vĩnh viễn bài nói này. Hành động này không thể hoàn tác.",
-  "createSpeakingLesson": "Tạo bài nói"
+  "createSpeakingLesson": "Tạo bài nói",
+  "premium": "Cao cấp"
 }

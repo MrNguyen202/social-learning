@@ -2,6 +2,7 @@ const { Server } = require("socket.io");
 
 let io;
 const userSockets = new Map();
+const userWaitingPayment = new Map();
 
 function socketInit(server) {
   io = new Server(server, {
@@ -87,9 +88,20 @@ function socketInit(server) {
         }
       }
     });
+
+    // User waiting payment
+    socket.on("user-waiting-payment", ({ userId, orderId }) => {
+      userWaitingPayment.set(userId, { socketId: socket.id, orderId });
+    });
+
+    socket.on("user-stop-waiting-payment", (userId) => {
+      userWaitingPayment.delete(userId);
+    });
+
   });
 
   io.userSockets = userSockets;
+  io.userWaitingPayment = userWaitingPayment;
 
   return io;
 }

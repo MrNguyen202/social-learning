@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { LoadedTopic } from "@/types/VoiceRealTimeType";
@@ -7,7 +7,7 @@ import { ActiveChatSession } from "./components/ActiveChatSession";
 import { RoleSelection } from "./components/RoleSelection";
 import useAuth from "@/hooks/useAuth";
 
-export default function VoiceChatPage() {
+function VoiceChatInner() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const level = searchParams.get("level");
@@ -68,5 +68,21 @@ export default function VoiceChatPage() {
       userSide={userSide}
       onExit={() => setUserSide(null)} // Quay lại chọn vai
     />
+  );
+}
+
+function VoiceChatFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[50vh]">
+      <Loader2 className="w-10 h-10 animate-spin text-orange-600" />
+    </div>
+  );
+}
+
+export default function VoiceChatPage() {
+  return (
+    <Suspense fallback={<VoiceChatFallback />}>
+      <VoiceChatInner />
+    </Suspense>
   );
 }

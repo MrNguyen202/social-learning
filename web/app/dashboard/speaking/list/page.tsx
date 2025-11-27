@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -24,7 +24,7 @@ interface TopicSpeaking {
   task_b_vi: string;
 }
 
-export default function SpeakingListContent() {
+function SpeakingListInner() {
   const { t } = useLanguage();
   const searchParams = useSearchParams();
   const level = searchParams.get("level") || "";
@@ -142,11 +142,27 @@ export default function SpeakingListContent() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              <CardTopic topic={t} level={level} mode={mode} topicParent={topic}/>
+              <CardTopic topic={t} level={level} mode={mode} topicParent={topic} />
             </motion.div>
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+function SpeakingListFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[50vh]">
+      <Loader2 className="w-10 h-10 animate-spin text-orange-600" />
+    </div>
+  );
+}
+
+export default function SpeakingListContent() {
+  return (
+    <Suspense fallback={<SpeakingListFallback />}>
+      <SpeakingListInner />
+    </Suspense>
   );
 }

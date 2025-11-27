@@ -18,9 +18,11 @@ import { listeningService } from "@/app/apiClient/learning/listening/listening";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { AnimatePresence, motion } from "framer-motion";
 import { ModalByLesson } from "../components/ModalByLesson";
+import useAuth from "@/hooks/useAuth";
 
 export default function ListeningPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const { t } = useLanguage();
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [showByLesson, setShowByLesson] = useState(false);

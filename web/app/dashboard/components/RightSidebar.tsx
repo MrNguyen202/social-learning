@@ -17,7 +17,7 @@ import {
 import FollowModal from "../profile/components/FollowModal";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { getScoreUserByUserId } from "@/app/apiClient/learning/score/score";
-import { Trophy, Award, Snowflake, TrendingUp, Sparkles } from "lucide-react";
+import { Trophy, Award, Snowflake, TrendingUp, Sparkles, Crown } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   Tooltip,
@@ -25,6 +25,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useScore } from "@/components/contexts/ScoreContext";
 
 interface FriendSuggestion {
   id: string;
@@ -79,9 +80,7 @@ export function RightSidebar() {
   const [openFollower, setOpenFollower] = useState(false);
   const [follower, setFollower] = useState<Follower[]>([]);
   const [isVisible, setIsVisible] = useState(false);
-  const [yourPracticeScore, setYourPracticeScore] = useState(0);
-  const [yourTestScore, setYourTestScore] = useState(0);
-  const [yourSnowFlake, setSnowFlake] = useState(0);
+  const { score, setScore } = useScore();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 300);
@@ -98,11 +97,6 @@ export function RightSidebar() {
         } = await supabase.auth.getSession();
 
         if (!session?.access_token) return;
-
-        const res = await getScoreUserByUserId(user.id);
-        setYourPracticeScore(res.data.practice_score || 0);
-        setYourTestScore(res.data.test_score || 0);
-        setSnowFlake(res.data.number_snowflake || 0);
 
         const { data, error } = await supabase.functions.invoke(
           "recommend-friends",
@@ -247,16 +241,16 @@ export function RightSidebar() {
                           </p>
                           <p
                             className={`${getResponsiveFontSize(
-                              yourPracticeScore
+                              score?.practice_score || 0
                             )} font-bold bg-gradient-to-br from-orange-600 to-orange-700 bg-clip-text text-transparent leading-none`}
                           >
-                            {formatCompactNumber(yourPracticeScore)}
+                            {formatCompactNumber(score?.practice_score || 0)}
                           </p>
                         </div>
                         <div className="flex-shrink-0">
                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
                             <span className="text-xs font-bold text-orange-700">
-                              {yourPracticeScore >= 1000 ? "🔥" : "💪"}
+                              {(score?.practice_score ?? 0) >= 1000 ? "🔥" : "💪"}
                             </span>
                           </div>
                         </div>
@@ -269,7 +263,7 @@ export function RightSidebar() {
                   className="bg-orange-600 text-white border-orange-700"
                 >
                   <p className="font-semibold">
-                    {formatFullNumber(yourPracticeScore)} {t("dashboard.score")}
+                    {formatFullNumber(score?.practice_score || 0)} {t("dashboard.score")}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -293,16 +287,16 @@ export function RightSidebar() {
                           </p>
                           <p
                             className={`${getResponsiveFontSize(
-                              yourTestScore
+                              score?.test_score || 0
                             )} font-bold bg-gradient-to-br from-pink-600 to-pink-700 bg-clip-text text-transparent leading-none`}
                           >
-                            {formatCompactNumber(yourTestScore)}
+                            {formatCompactNumber(score?.test_score || 0)}
                           </p>
                         </div>
                         <div className="flex-shrink-0">
                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-100 to-pink-200 flex items-center justify-center">
                             <span className="text-xs font-bold text-pink-700">
-                              {yourTestScore >= 1000 ? "🏆" : "📝"}
+                              {(score?.test_score ?? 0) >= 1000 ? "🏆" : "📝"}
                             </span>
                           </div>
                         </div>
@@ -315,7 +309,7 @@ export function RightSidebar() {
                   className="bg-pink-600 text-white border-pink-700"
                 >
                   <p className="font-semibold">
-                    {formatFullNumber(yourTestScore)} {t("dashboard.score")}
+                    {formatFullNumber(score?.test_score || 0)} {t("dashboard.score")}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -339,16 +333,16 @@ export function RightSidebar() {
                           </p>
                           <p
                             className={`${getResponsiveFontSize(
-                              yourSnowFlake
+                              score?.number_snowflake || 0
                             )} font-bold bg-gradient-to-br from-blue-600 to-purple-700 bg-clip-text text-transparent leading-none`}
                           >
-                            {formatCompactNumber(yourSnowFlake)}
+                            {formatCompactNumber(score?.number_snowflake || 0)}
                           </p>
                         </div>
                         <div className="flex-shrink-0">
                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-purple-200 flex items-center justify-center">
                             <span className="text-xs font-bold text-purple-700">
-                              {yourSnowFlake >= 1000 ? "❄️" : "⭐"}
+                              {(score?.number_snowflake ?? 0) >= 1000 ? "❄️" : "⭐"}
                             </span>
                           </div>
                         </div>
@@ -361,7 +355,7 @@ export function RightSidebar() {
                   className="bg-purple-600 text-white border-purple-700"
                 >
                   <p className="font-semibold">
-                    {formatFullNumber(yourSnowFlake)} {t("dashboard.snowFlakes")}
+                    {formatFullNumber(score?.number_snowflake || 0)} {t("dashboard.snowFlakes")}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -372,7 +366,7 @@ export function RightSidebar() {
 
       {/* Thông tin cá nhân */}
       <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105 animate-slide-in-right relative z-10 bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50">
-        <CardContent className="p-4">
+        <CardContent className="p-4 relative">
           <div className="flex items-center space-x-3">
             <Avatar className="h-14 w-14 ring-2 ring-orange-200 hover:ring-orange-400 transition-all duration-300 transform hover:scale-110">
               <AvatarImage
@@ -419,6 +413,9 @@ export function RightSidebar() {
               </p>
             </div>
           </div>
+          {user?.isPremium && (
+            <Crown className="absolute -top-4 right-4 w-10 h-10 text-yellow-400 animate-bounce-slow" />
+          )}
         </CardContent>
       </Card>
 

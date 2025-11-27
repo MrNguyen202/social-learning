@@ -22,6 +22,7 @@ import {
   User,
   Users,
   Volume2,
+  Crown,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -43,6 +44,7 @@ import useAuth from "@/hooks/useAuth";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { fetchTotalUnreadMessages } from "@/app/apiClient/chat/conversation/conversation";
 import { getSocket } from "@/socket/socketClient";
+import PricingModal from "./PricingModal";
 
 export function LeftSideBarHiddenLabel() {
   const { user } = useAuth();
@@ -55,6 +57,7 @@ export function LeftSideBarHiddenLabel() {
   const { selectedConversation, setSelectedConversation } = useConversation();
   const [notificationCount, setNotificationCount] = useState(0);
   const [messagesCount, setMessagesCount] = useState(0);
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
 
   // Lắng nghe realtime Supabase
   useEffect(() => {
@@ -220,6 +223,11 @@ export function LeftSideBarHiddenLabel() {
       return;
     }
 
+    if (path === "/dashboard/plan") {
+      setIsPlanModalOpen(true);
+      return;
+    }
+
     router.push(path);
   };
 
@@ -298,11 +306,10 @@ export function LeftSideBarHiddenLabel() {
                   <Button
                     key={item.label}
                     variant="ghost"
-                    className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
-                      isActive
-                        ? "bg-gray-100 text-gray-900 font-medium"
-                        : "text-gray-700 hover:bg-gray-50"
-                    }`}
+                    className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${isActive
+                      ? "bg-gray-100 text-gray-900 font-medium"
+                      : "text-gray-700 hover:bg-gray-50"
+                      }`}
                     onClick={() => handleMenuClick(item.path)}
                   >
                     {/* FIX 3: Giảm kích thước icon về 24 (chuẩn) */}
@@ -331,11 +338,10 @@ export function LeftSideBarHiddenLabel() {
                     <Button
                       key={item.label}
                       variant="ghost"
-                      className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
-                        isActive
-                          ? "bg-gray-100 text-gray-900 font-medium"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
+                      className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${isActive
+                        ? "bg-gray-100 text-gray-900 font-medium"
+                        : "text-gray-700 hover:bg-gray-50"
+                        }`}
                       onClick={() =>
                         isNotification
                           ? openNotificationPanel()
@@ -373,11 +379,10 @@ export function LeftSideBarHiddenLabel() {
                   <Button
                     key={item.label}
                     variant="ghost"
-                    className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${
-                      isActive
-                        ? "bg-gray-100 text-gray-900 font-medium"
-                        : "text-gray-700 hover:bg-gray-50"
-                    }`}
+                    className={`relative w-full justify-center h-14 px-3 hover:cursor-pointer ${isActive
+                      ? "bg-gray-100 text-gray-900 font-medium"
+                      : "text-gray-700 hover:bg-gray-50"
+                      }`}
                     onClick={() => handleMenuClick(item.path)}
                   >
                     <item.icon size={24} />
@@ -398,6 +403,13 @@ export function LeftSideBarHiddenLabel() {
             <DropdownMenuContent className="w-56" align="end">
               <DropdownMenuLabel>{t("dashboard.myAccount")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="cursor-pointer hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50 transition-all duration-200 flex items-center justify-between"
+                onClick={() => handleMenuClick("/dashboard/plan")}
+              >
+                <div>{t("dashboard.premium")}</div>
+                <Crown className="w-4 h-4 ml-2 text-yellow-500 inline-block" />
+              </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={() => handleMenuClick("/dashboard/profile")}
@@ -435,6 +447,10 @@ export function LeftSideBarHiddenLabel() {
       <CreateOrUpdatePostModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+      />
+      <PricingModal
+        isOpen={isPlanModalOpen}
+        onClose={() => setIsPlanModalOpen(false)}
       />
     </>
   );
