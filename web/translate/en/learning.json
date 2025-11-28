@@ -351,5 +351,7 @@
   "speakNow": "Speak now...",
   "pressMicToSpeak": "Press microphone to speak",
   "aiIsSpeaking": "AI is speaking...",
-  "audioTrack": "Audio Track"
+  "audioTrack": "Audio Track",
+
+  "byPremiumToUse":"Buy premium to use"
 }
