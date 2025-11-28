@@ -360,9 +360,6 @@ export default function PageExerciseDetail() {
               {t("learning.buttonExit")}
             </Button>
             <div className="flex items-center gap-3">
-              <Button className="bg-green-500 text-white rounded-lg px-5 py-2 hover:bg-green-600 hover:cursor-pointer">
-                {t("learning.buttonDictionary")} (-1)
-              </Button>
               <Button
                 ref={suggestBtnRef}
                 className="bg-yellow-400 text-white rounded-lg px-5 py-2 hover:bg-yellow-500 hover:cursor-pointer"

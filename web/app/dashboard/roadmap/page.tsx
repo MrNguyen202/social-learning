@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle } from "lucide-react";
+import { Map, PlusCircle } from "lucide-react";
 import CreatePathModal from "./components/CreatePathModal";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import {
@@ -120,11 +120,18 @@ export default function LearningPathPage() {
         />
       </div>
       <div className="max-w-4xl mx-auto">
-        <div className="flex flex-col items-center justify-center text-center gap-2 my-6">
-          <h2 className="text-3xl font-semibold">
+        <div className="text-center mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center justify-center ml-14 p-3 bg-white rounded-2xl shadow-sm border border-slate-100 mb-4 -translate-x-1/2 animate-bounce"
+          >
+            <Map className="w-8 h-8 text-orange-500" />
+          </motion.div>
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight mb-2">
             {t("learning.roadmapTitle")}
-          </h2>
-          <p className="text-lg tracking-widest text-gray-600">
+          </h1>
+          <p className="text-slate-500 text-lg max-w-2xl mx-auto">
             {t("learning.roadmapDescription")}
           </p>
         </div>
@@ -153,7 +160,7 @@ export default function LearningPathPage() {
             <div className="flex justify-end">
               <Button
                 variant="outline"
-                className="mb-6 text-lg flex items-center"
+                className="mb-6 text-lg flex items-center p-6 rounded-full cursor-pointer bg-gradient-to-r from-orange-600 to-pink-600 hover:from-orange-500 hover:to-pink-500 text-white hover:text-white shadow-lg hover:shadow-xl transition-all"
                 onClick={() => setOpenModal(true)}
               >
                 <PlusCircle
@@ -236,7 +243,7 @@ export default function LearningPathPage() {
                     </div>
                   )}
 
-                  <CardTitle className="ml-6 text-3xl font-extrabold uppercase tracking-wide bg-gradient-to-r from-green-500 via-emerald-600 to-green-700 bg-clip-text text-transparent font-[Poppins]">
+                  <CardTitle className="ml-6 text-3xl font-extrabold uppercase tracking-wide bg-gradient-to-r from-green-500 via-emerald-600 to-green-700 bg-clip-text text-transparent">
                     {path[`pathName_${language}`] || "Chưa có tên"}
                   </CardTitle>
 

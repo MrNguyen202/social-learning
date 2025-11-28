@@ -36,7 +36,7 @@ ${
   {
     "word": "apple",
     "topics": [
-      { "name_en": "Food", "name_vi": "Thức ăn" }
+      { "name_en": "Food", "name_vi": "Thức ăn" },
       { "name_en": "Fruits", "name_vi": "Trái cây" }
     ]
   },

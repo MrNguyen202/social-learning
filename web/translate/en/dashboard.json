@@ -212,7 +212,7 @@
   "unfollowConfirmation": "Confirm unfollow",
   "noUsers": "No users",
 
-  "title": "Friend Recommendations",
+  "recommendFriends": "Recommendations",
   "loginRequired": "Please login to see friend recommendations",
   "loadError": "Unable to load friend recommendations",
   "slowConnection": "Connection too slow, please try again",

@@ -179,7 +179,7 @@ function ChatBotAI() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="size-9 flex items-center justify-center rounded-md bg-black hover:bg-gray-800 text-white disabled:opacity-50 cursor-pointer"
+                    className="size-9 flex items-center justify-center rounded-md bg-gradient-to-r from-orange-600 to-pink-600 hover:from-orange-500 hover:to-pink-500 text-white hover:text-white shadow-lg disabled:opacity-50 cursor-pointer"
                   >
                     <Send className="size-4" />
                   </button>

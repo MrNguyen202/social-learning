@@ -22,6 +22,7 @@ const wav = require("wav");
 const {
   uploadAudioBufferToCloudinary,
 } = require("../../services/cloudinaryService");
+const vocabularyService = require("../../services/learning/vocabularyService");
 
 // Khởi tạo Gemini client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -538,8 +539,19 @@ const botCoverLearningController = {
     }
 
     try {
-      const result = await topicService.generateTopicsForUser(userId);
-      res.status(200).json({ success: true, data: result });
+      const checkTopicExists = await topicService.checkUnclassifiedVocab(
+        userId
+      );
+
+      if (checkTopicExists.count > 0) {
+        const result = await topicService.generateTopicsForUser(userId);
+        res.status(200).json({ success: true, data: result });
+      } else {
+        res.status(200).json({
+          success: true,
+          message: "User has no vocabularies without topics.",
+        });
+      }
     } catch (error) {
       console.error("Error generating topics:", error);
       res.status(500).json({ error: error.message });

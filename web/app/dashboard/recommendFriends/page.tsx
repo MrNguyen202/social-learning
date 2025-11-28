@@ -82,7 +82,7 @@ export default function RecommendFriends() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">{t("dashboard.title")}</h2>
+          <h2 className="text-2xl font-bold">{t("dashboard.recommendFriends")}</h2>
           <motion.div
             animate={{ rotate: 360 }}
             transition={{
@@ -124,7 +124,7 @@ export default function RecommendFriends() {
         className="max-w-3xl mx-auto px-4 py-8"
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">{t("dashboard.title")}</h2>
+          <h2 className="text-2xl font-bold">{t("dashboard.recommendFriends")}</h2>
         </div>
 
         <div className="text-center py-8">
@@ -190,7 +190,7 @@ export default function RecommendFriends() {
         className="max-w-3xl mx-auto px-4 py-8"
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">{t("dashboard.title")}</h2>
+          <h2 className="text-2xl font-bold">{t("dashboard.recommendFriends")}</h2>
           <span className="text-sm text-gray-500">
             {friends.length} {t("dashboard.suggestions")}
           </span>
@@ -226,7 +226,7 @@ export default function RecommendFriends() {
                     }
                   >
                     <img
-                      src={getUserImageSrc(friend.avatar) || "/placeholder.svg"}
+                      src={getUserImageSrc(friend.avatar)}
                       alt={friend.name}
                       className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border"
                       loading="lazy"
@@ -268,8 +268,8 @@ export default function RecommendFriends() {
                     </div>
                   </div>
 
-                  <div className="text-right flex-shrink-0">
-                    <motion.div
+                  <div className="text-right flex-shrink-0 px-2 sm:px-3">
+                    {/* <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -279,7 +279,7 @@ export default function RecommendFriends() {
                       >
                         {t("dashboard.addFriend")}
                       </Button>
-                    </motion.div>
+                    </motion.div> */}
                   </div>
                 </motion.div>
               ))}

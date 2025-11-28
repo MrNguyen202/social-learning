@@ -213,7 +213,7 @@
   "unfollowConfirmation": "Xác nhận bỏ theo dõi",
   "noUsers": "Không có người dùng nào",
 
-  "title": "Gợi ý bạn bè",
+  "recommendFriends": "Gợi ý bạn bè",
   "loginRequired": "Vui lòng đăng nhập để xem gợi ý bạn bè",
   "loadError": "Không thể tải gợi ý bạn bè",
   "slowConnection": "Kết nối quá chậm, vui lòng thử lại",

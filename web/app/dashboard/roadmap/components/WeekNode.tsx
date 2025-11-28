@@ -38,7 +38,7 @@ const WeekNode = ({
         <div className="relative pointer-events-none">
             {/* Node chính - CÓ nhận event */}
             <motion.div
-                className="relative cursor-pointer pointer-events-auto"
+                className="relative cursor-pointer pointer-events-auto rounded-full"
                 onClick={() => toggleWeek(week.week)}
                 initial={{ scale: 0.8, opacity: 0 }}
                 whileInView={{ scale: 1, opacity: 1 }}

@@ -2,41 +2,39 @@
 
 import { generateTopicsForUser } from "@/app/apiClient/learning/vocabulary/vocabulary";
 import { supabase } from "@/lib/supabase";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function useRealtimePersonalVocab() {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
   useEffect(() => {
-    async function setupSubscription() {
+    const checkAndGenerate = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) return;
-
       const userId = session.user.id;
 
-      // Lắng nghe khi có từ mới được thêm vào personalVocab của user này
-      const channel = supabase
-        .channel("personalVocab")
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "personalVocab",
-            filter: `userId=eq.${userId}`,
-          },
-          async (payload) => {
-            // Khi có từ mới, tự động gọi AI backend để tạo topic
-            await generateTopicsForUser({ userId });
-          }
-        )
-        .subscribe();
+      try {
+        //check count > 0 mới chạy AI
+        setIsAnalyzing(true);
+        const response = await generateTopicsForUser({ userId });
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
+        if (
+          response.success &&
+          response.message !== "User has no vocabularies..."
+        ) {
+          console.log("Topics generated successfully");
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsAnalyzing(false);
+      }
+    };
 
-    setupSubscription();
+    checkAndGenerate();
   }, []);
+
+  return { isAnalyzing };
 }
