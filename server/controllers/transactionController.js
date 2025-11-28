@@ -16,9 +16,12 @@ const transactionController = {
                 return res.status(400).json({ error: 'Invalid transfer type or content' });
             }
 
+            const orderCodeRegex = /SEPAYORD[a-zA-Z0-9]+/;
+            const match = content.match(orderCodeRegex);
+
             // cắt bỏ SEPAY ở đầu content
             const contentPrefix = 'SEPAY';
-            let contentProcessed = content.startsWith(contentPrefix) ? content.slice(contentPrefix.length).trim() : content;
+            let contentProcessed = match[0].startsWith(contentPrefix) ? match[0].slice(contentPrefix.length).trim() : match[0];
 
             // Tìm order dựa trên order_code từ content
             const order = await orderService.getOrderByOrderCode(contentProcessed);
@@ -32,6 +35,8 @@ const transactionController = {
 
             let userUpdateData = {};
             let scoreDataUpdate = {};
+
+            console.log('Received transferAmount:', transferAmount);
 
             // check nếu số tiền giao dịch khớp với số tiền đơn hàng
             if (transferAmount !== order.amount) {
@@ -101,7 +106,7 @@ const transactionController = {
                         dataUpdate: {
                             type: plan.type,
                             userData: { isPremium: userUpdateData.data.isPremium, premium_expire_date: userUpdateData.data.premium_expire_date },
-                            scoreData: { number_snowflake: scoreDataUpdate.number_snowflake}
+                            scoreData: { number_snowflake: scoreDataUpdate.number_snowflake }
                         }
                     });
                     io.userWaitingPayment.delete(order.user_id);
