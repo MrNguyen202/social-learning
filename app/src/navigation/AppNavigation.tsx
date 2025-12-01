@@ -54,9 +54,13 @@ function BottomTabs() {
       <Tab.Navigator
         screenOptions={{
           tabBarStyle: {
-            backgroundColor: 'white',
-            height: 80,
+            backgroundColor: '#fff',
+            height: "8%",
+            paddingBottom: 0,
           },
+          tabBarActiveTintColor: '#764ba2',
+          tabBarInactiveTintColor: 'gray',
+          
         }}
       >
         <Tab.Screen
@@ -65,10 +69,10 @@ function BottomTabs() {
           options={{
             tabBarLabel: 'Trang chủ',
             headerShown: false,
-            tabBarLabelStyle: { color: 'black', fontSize: 14 },
+            tabBarLabelStyle: { fontSize: 14 },
             tabBarIcon: ({ focused }) =>
               focused ? (
-                <Home size={24} color="black" />
+                <Home size={24} color="#764ba2" />
               ) : (
                 <Home size={24} color="gray" />
               ),
@@ -80,10 +84,10 @@ function BottomTabs() {
           options={{
             tabBarLabel: 'Tìm kiếm',
             headerShown: false,
-            tabBarLabelStyle: { color: 'black', fontSize: 14 },
+            tabBarLabelStyle: { fontSize: 14 },
             tabBarIcon: ({ focused }) =>
               focused ? (
-                <Search size={24} color="black" />
+                <Search size={24} color="#764ba2" />
               ) : (
                 <Search size={24} color="gray" />
               ),
@@ -95,10 +99,10 @@ function BottomTabs() {
           options={{
             tabBarLabel: 'Tạo',
             headerShown: false,
-            tabBarLabelStyle: { color: 'black', fontSize: 14 },
+            tabBarLabelStyle: { fontSize: 14 },
             tabBarIcon: ({ focused }) =>
               focused ? (
-                <PlusSquare size={24} color="black" />
+                <PlusSquare size={24} color="#764ba2" />
               ) : (
                 <PlusSquare size={24} color="gray" />
               ),
@@ -110,10 +114,10 @@ function BottomTabs() {
           options={{
             tabBarLabel: 'Học tập',
             headerShown: false,
-            tabBarLabelStyle: { color: 'black', fontSize: 14 },
+            tabBarLabelStyle: { fontSize: 14 },
             tabBarIcon: ({ focused }) =>
               focused ? (
-                <PenBox size={24} color="black" />
+                <PenBox size={24} color="#764ba2" />
               ) : (
                 <PenBox size={24} color="gray" />
               ),
@@ -125,10 +129,10 @@ function BottomTabs() {
           options={{
             tabBarLabel: 'Cá nhân',
             headerShown: false,
-            tabBarLabelStyle: { color: 'black', fontSize: 14 },
+            tabBarLabelStyle: { fontSize: 14 },
             tabBarIcon: ({ focused }) =>
               focused ? (
-                <User size={24} color="black" />
+                <User size={24} color="#764ba2" />
               ) : (
                 <User size={24} color="gray" />
               ),

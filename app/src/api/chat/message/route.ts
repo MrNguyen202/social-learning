@@ -13,12 +13,13 @@ export async function fetchMessages(conversationId: string, page = 1, limit = 20
 }
 
 // Hàm để gửi tin nhắn dạng text mới
-export async function sendMessage({ conversationId, senderId, text, files }: { conversationId: string; senderId: string; text?: string; files?: File[] }) {
+export async function sendMessage({ conversationId, senderId, text, files, replyTo }: { conversationId: string; senderId: string; text?: string; files?: File[]; replyTo?: string | null }) {
     try {
         const formData = new FormData();
         formData.append("conversationId", conversationId);
         formData.append("senderId", senderId);
         if (text) formData.append("text", text);
+        if (replyTo) formData.append("replyTo", replyTo);
         if (files && files.length > 0) {
             for (let i = 0; i < files.length; i++) {
                 formData.append("files", files[i]);
