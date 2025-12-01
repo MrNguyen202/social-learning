@@ -77,11 +77,17 @@ export default function UserCard({ conversation, onClick }: CardUserProps) {
       activeOpacity={0.8}
     >
       <View style={styles.avatarContainer}>
-        <Avatar
-          size={hp(6)}
-          uri={getUserImageSrc(otherMember?.avatarUrl)}
-          rounded={theme.radius.xxl * 100}
-        />
+        {
+          otherMember.avatarUrl && otherMember.avatarUrl !== "/default-avatar-profile-icon.jpg" ? (
+            <Avatar
+              size={hp(6)}
+              uri={getUserImageSrc(otherMember?.avatarUrl)}
+              rounded={theme.radius.xxl * 100}
+            />
+          ) : (
+            <Text className="text-gray-500 font-semibold text-lg">{otherMember?.name?.[0]?.toUpperCase()}</Text>
+          )
+        }
         {isUnread && <View style={styles.unreadDot} />}
       </View>
 
@@ -128,7 +134,7 @@ export default function UserCard({ conversation, onClick }: CardUserProps) {
               {typeof conversation.lastMessage?.content === 'string'
                 ? conversation.lastMessage?.content
                 : conversation.lastMessage?.content?.text ||
-                  '[Nội dung không hỗ trợ]'}
+                '[Nội dung không hỗ trợ]'}
             </Text>
           </View>
         </View>
@@ -162,6 +168,13 @@ const styles = StyleSheet.create({
   avatarContainer: {
     position: 'relative',
     marginRight: 12,
+    width: hp(6),
+    height: hp(6),
+    borderRadius: theme.radius.xxl * 100,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#e5e7eb',
   },
   unreadDot: {
     position: 'absolute',

@@ -141,19 +141,25 @@ const Main = () => {
       setUnreadMessageCount(res);
     };
 
-    socket.on('notificationNewMessage', () => {
+    //  Hàm handle khi có tin nhắn mới từ socket
+    const handleNotificationNewMessage = () => {
       fetchMessagesCount();
-    });
+    };
 
-    socket.on('notificationMessagesRead', () => {
+    // Hàm handle khi có người đọc tin nhắn từ socket
+    const handleNotificationMessagesRead = () => {
       fetchMessagesCount();
-    });
+    };
+
+    // Lắng nghe sự kiện từ socket
+    socket.on("notificationNewMessage", handleNotificationNewMessage);
+    socket.on("notificationMessagesRead", handleNotificationMessagesRead);
 
     fetchMessagesCount();
 
     return () => {
-      socket.off('notificationNewMessage');
-      socket.off('notificationMessagesRead');
+      socket.off("notificationNewMessage", handleNotificationNewMessage);
+      socket.off("notificationMessagesRead", handleNotificationMessagesRead);
     };
   }, [user]);
 
