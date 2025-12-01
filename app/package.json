@@ -32,6 +32,7 @@
     "react-native-calendar-heatmap": "^0.2.4",
     "react-native-confetti-cannon": "^1.5.2",
     "react-native-device-info": "^15.0.1",
+    "react-native-document-picker": "^9.3.1",
     "react-native-dotenv": "^3.4.11",
     "react-native-encrypted-storage": "^4.0.3",
     "react-native-fs": "^2.20.0",
