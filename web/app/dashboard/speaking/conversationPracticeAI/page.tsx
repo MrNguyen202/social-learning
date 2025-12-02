@@ -2,11 +2,8 @@
 
 import { useEffect, useRef, useState, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import SpeechRecognition, {
-  useSpeechRecognition,
-} from "react-speech-recognition";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Sparkles, Trophy, Loader2, Settings } from "lucide-react";
+import { Sparkles, Trophy, Loader2, Settings } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +14,10 @@ import {
 import Confetti from "react-confetti";
 import type { JSX } from "react/jsx-runtime";
 import { useLanguage } from "@/components/contexts/LanguageContext";
-import { generateConversationPracticeByAI } from "@/app/apiClient/learning/speaking/speaking";
+import {
+  generateConversationPracticeByAI,
+  speechToText,
+} from "@/app/apiClient/learning/speaking/speaking";
 import { addSkillScore } from "@/app/apiClient/learning/score/score";
 import useAuth from "@/hooks/useAuth";
 import {
@@ -36,6 +36,10 @@ import {
 import { updateLessonCompletedCount } from "@/app/apiClient/learning/roadmap/roadmap";
 import SettingsModal from "./components/SettingsModal";
 
+// Cấu hình Silence Detection
+const SILENCE_THRESHOLD = 30;
+const SILENCE_DURATION = 1200;
+
 function ConversationPracticeContent() {
   const router = useRouter();
   const { user } = useAuth();
@@ -47,6 +51,7 @@ function ConversationPracticeContent() {
     typeof window !== "undefined"
       ? JSON.parse(sessionStorage.getItem("topicParent") || "null")
       : null;
+
   const [dialogue, setDialogue] = useState<any[]>([]);
   const [description, setDescription] = useState("");
   const [role, setRole] = useState<"A" | "B" | null>(null);
@@ -65,10 +70,21 @@ function ConversationPracticeContent() {
   );
   const [showSettings, setShowSettings] = useState(false);
   const [speechRate, setSpeechRate] = useState(0.95);
-  const { transcript, listening, resetTranscript } = useSpeechRecognition();
+
+  const [transcript, setTranscript] = useState<string>("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
   const [isClient, setIsClient] = useState(false);
   const [browserSupports, setBrowserSupports] = useState(false);
-  const wasListeningRef = useRef(false);
+
   const { width, height } = useWindowSize();
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -83,9 +99,11 @@ function ConversationPracticeContent() {
       s
         .toLowerCase()
         .replace(/[^a-z0-9\s'-]/g, "")
+        .replace(/\s+/g, " ") // Fix khoảng trắng thừa
         .trim(),
     []
   );
+
   const update_mastery_on_success = useCallback(
     async (userId: string, word: string) => {
       if (word && isNaN(Number(word))) {
@@ -94,6 +112,119 @@ function ConversationPracticeContent() {
     },
     []
   );
+
+  // Reset transcript
+  const resetTranscript = useCallback(() => {
+    setTranscript("");
+    setResult(null);
+  }, []);
+
+  const stopRecordingAndSend = useCallback(() => {
+    if (
+      !mediaRecorderRef.current ||
+      mediaRecorderRef.current.state === "inactive"
+    )
+      return;
+    mediaRecorderRef.current.stop();
+    setIsRecording(false);
+
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    if (animationFrameRef.current)
+      cancelAnimationFrame(animationFrameRef.current);
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch((e) => console.error(e));
+      audioContextRef.current = null;
+    }
+  }, []);
+
+  const startRecording = async () => {
+    resetTranscript();
+    setDetailedResult(null);
+    setAccuracyScore(null);
+    setCanRetry(false);
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: "audio/webm;codecs=opus",
+      });
+
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        setIsProcessing(true);
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm;codecs=opus",
+        });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+
+        reader.onloadend = async () => {
+          const base64Audio = (reader.result as string).split(",")[1];
+          try {
+            const resData = await speechToText(base64Audio);
+            if (resData.success && resData.data?.transcript) {
+              setTranscript(resData.data.transcript);
+            }
+          } catch (err) {
+            console.error(err);
+          } finally {
+            setIsProcessing(false);
+            if (streamRef.current)
+              streamRef.current.getTracks().forEach((t) => t.stop());
+          }
+        };
+      };
+
+      // Silence Detection Setup
+      const audioContext = new AudioContext();
+      audioContextRef.current = audioContext;
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.1;
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+      const checkSilence = () => {
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+        const average = sum / dataArray.length;
+
+        if (average > SILENCE_THRESHOLD) {
+          if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+          }
+        } else {
+          if (!silenceTimerRef.current) {
+            silenceTimerRef.current = setTimeout(
+              stopRecordingAndSend,
+              SILENCE_DURATION
+            );
+          }
+        }
+        if (mediaRecorder.state === "recording") {
+          animationFrameRef.current = requestAnimationFrame(checkSilence);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      checkSilence();
+    } catch (err) {
+      console.error("Mic Error:", err);
+      alert("Không thể truy cập Microphone.");
+    }
+  };
 
   const speak = useCallback(
     (text: string) => {
@@ -106,9 +237,7 @@ function ConversationPracticeContent() {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.voice = voiceForSentence;
-
       utterance.rate = speechRate;
-
       utterance.onstart = () => setIsAISpeaking(true);
       utterance.onend = () => setIsAISpeaking(false);
       window.speechSynthesis.speak(utterance);
@@ -224,7 +353,9 @@ function ConversationPracticeContent() {
     if (hasFetchedRef.current) return;
     hasFetchedRef.current = true;
     setIsClient(true);
-    setBrowserSupports(SpeechRecognition.browserSupportsSpeechRecognition());
+    setBrowserSupports(
+      !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+    );
     const handleResize = () =>
       setWindowSize({ width: window.innerWidth, height: window.innerHeight });
     setWindowSize({ width: window.innerWidth, height: window.innerHeight });
@@ -258,15 +389,16 @@ function ConversationPracticeContent() {
   );
 
   useEffect(() => {
-    if (listening) {
-      wasListeningRef.current = true;
-      setDetailedResult(null);
+    if (transcript && !isRecording && !isProcessing && !showCelebration) {
+      const canPass = buildResultAndCheck();
     }
-    if (!listening && wasListeningRef.current && !loading && !showCelebration) {
-      wasListeningRef.current = false;
-      buildResultAndCheck();
-    }
-  }, [listening, loading, showCelebration, buildResultAndCheck]);
+  }, [
+    transcript,
+    isRecording,
+    isProcessing,
+    showCelebration,
+    buildResultAndCheck,
+  ]);
 
   const handleNext = useCallback(async () => {
     const isLastSentence = currentIndex + 1 >= dialogue.length;
@@ -277,7 +409,6 @@ function ConversationPracticeContent() {
       setShowCelebration(true);
       if (user?.id) {
         addSkillScore(user.id, "speaking", 10);
-        // update roadmap
         const level = await getLevelBySlug(String(levelSlug));
         const topic = await getTopicBySlug(String(topicParent));
         await updateLessonCompletedCount(
@@ -293,9 +424,9 @@ function ConversationPracticeContent() {
       setResult(null);
       setDetailedResult(null);
       setCanRetry(false);
+
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
-
       const nextLine = dialogue[nextIndex];
 
       if (nextLine && nextLine.id !== role) {
@@ -306,16 +437,20 @@ function ConversationPracticeContent() {
         }, 700);
       }
     }
-  }, [currentIndex, dialogue, role, user?.id, resetTranscript, speak]);
+  }, [
+    currentIndex,
+    dialogue,
+    role,
+    user?.id,
+    resetTranscript,
+    speak,
+    levelSlug,
+    topicParent,
+  ]);
 
   const handleRetry = useCallback(() => {
-    resetTranscript();
-    setResult(null);
-    setDetailedResult(null);
-    setAccuracyScore(null);
-    setCanRetry(false);
-    SpeechRecognition.startListening({ continuous: false, language: "en-US" });
-  }, [resetTranscript]);
+    startRecording();
+  }, [startRecording]);
 
   const handleReplay = useCallback(() => {
     const current = dialogue[currentIndex];
@@ -400,10 +535,7 @@ function ConversationPracticeContent() {
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
           className="absolute -top-20 -right-20 w-96 h-96 bg-gradient-to-br from-orange-300/30 to-pink-300/30 rounded-full blur-3xl"
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 90, 0],
-          }}
+          animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
           transition={{
             duration: 20,
             repeat: Number.POSITIVE_INFINITY,
@@ -412,10 +544,7 @@ function ConversationPracticeContent() {
         />
         <motion.div
           className="absolute -bottom-20 -left-20 w-96 h-96 bg-gradient-to-br from-pink-300/30 to-purple-300/30 rounded-full blur-3xl"
-          animate={{
-            scale: [1.2, 1, 1.2],
-            rotate: [90, 0, 90],
-          }}
+          animate={{ scale: [1.2, 1, 1.2], rotate: [90, 0, 90] }}
           transition={{
             duration: 20,
             repeat: Number.POSITIVE_INFINITY,
@@ -433,8 +562,6 @@ function ConversationPracticeContent() {
               Roleplay AI
             </span>
           </div>
-
-          {/* Nút Mở Settings */}
           <button
             onClick={() => setShowSettings(true)}
             className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/5 text-slate-600 transition-colors"
@@ -446,7 +573,6 @@ function ConversationPracticeContent() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto p-4 relative scroll-smooth pb-48 z-0">
-        {/* <div className="max-w-3xl mx-auto w-full h-full flex flex-col"> */}
         <AnimatePresence mode="wait">
           {!role ? (
             <motion.div
@@ -496,7 +622,7 @@ function ConversationPracticeContent() {
                 dialogue={dialogue}
                 currentIndex={currentIndex}
                 role={role}
-                listening={listening}
+                listening={isRecording}
                 isAISpeaking={isAISpeaking}
                 isAITyping={isAITyping}
                 detailedResult={detailedResult}
@@ -504,7 +630,6 @@ function ConversationPracticeContent() {
             </motion.div>
           )}
         </AnimatePresence>
-        {/* </div> */}
       </main>
 
       {/* Controls */}
@@ -515,18 +640,16 @@ function ConversationPracticeContent() {
             <ConversationControls
               t={t}
               isUserTurn={isUserTurn}
-              listening={listening}
+              listening={isRecording}
+              isProcessing={isProcessing}
               transcript={transcript}
               result={result}
               accuracyScore={accuracyScore}
               canRetry={canRetry}
               isAISpeaking={isAISpeaking}
-              onStartListening={() =>
-                SpeechRecognition.startListening({
-                  continuous: false,
-                  language: "en-US",
-                })
-              }
+              onStartListening={
+                isRecording ? stopRecordingAndSend : startRecording
+              } // Toggle logic
               onRetry={handleRetry}
               onNext={handleNext}
               onReplay={handleReplay}

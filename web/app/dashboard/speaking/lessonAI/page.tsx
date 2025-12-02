@@ -8,9 +8,6 @@ import {
   useMemo,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import SpeechRecognition, {
-  useSpeechRecognition,
-} from "react-speech-recognition";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Mic,
@@ -23,6 +20,7 @@ import {
   Check,
   Lock,
   ChevronRight,
+  Loader2, 
 } from "lucide-react";
 import {
   Dialog,
@@ -44,7 +42,10 @@ import {
   updateMasteryScoreRPC,
 } from "@/app/apiClient/learning/vocabulary/vocabulary";
 import ClickToSpeak from "../../vocabulary/components/ClickToSpeak";
-import { generateSpeakingExerciseByAI } from "@/app/apiClient/learning/speaking/speaking";
+import {
+  generateSpeakingExerciseByAI,
+  speechToText,
+} from "@/app/apiClient/learning/speaking/speaking";
 import {
   getLevelBySlug,
   getTopicBySlug,
@@ -55,6 +56,10 @@ interface Lesson {
   id: number;
   content: string;
 }
+
+// Cấu hình phát hiện im lặng
+const SILENCE_THRESHOLD = 30;
+const SILENCE_DURATION = 1200; // 1.2 giây
 
 function LessonAIContent() {
   const router = useRouter();
@@ -75,12 +80,24 @@ function LessonAIContent() {
     new Set()
   );
 
-  const { transcript, listening, resetTranscript } = useSpeechRecognition();
+  const [transcript, setTranscript] = useState<string>("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false); // Flag chặn nhảy bài
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
   const [result, setResult] = useState<JSX.Element | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [browserSupports, setBrowserSupports] = useState(false);
   const [sentenceComplete, setSentenceComplete] = useState(false);
-  const wasListeningRef = useRef(false);
 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceForSentence, setVoiceForSentence] =
@@ -96,6 +113,130 @@ function LessonAIContent() {
         .trim(),
     []
   );
+
+  const resetTranscript = useCallback(() => {
+    setTranscript("");
+    setResult(null);
+  }, []);
+
+  const stopRecordingAndSend = useCallback(() => {
+    if (
+      !mediaRecorderRef.current ||
+      mediaRecorderRef.current.state === "inactive"
+    )
+      return;
+
+    mediaRecorderRef.current.stop();
+    setIsRecording(false);
+
+    // Cleanup AudioContext & Timer
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    if (animationFrameRef.current)
+      cancelAnimationFrame(animationFrameRef.current);
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch((e) => console.error(e));
+      audioContextRef.current = null;
+    }
+  }, []);
+
+  const startRecording = async () => {
+    resetTranscript();
+    setIsTransitioning(false);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+
+      // Setup MediaRecorder
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: "audio/webm;codecs=opus",
+      });
+
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        setIsProcessing(true); // Loading ON
+
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm;codecs=opus",
+        });
+
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+
+        reader.onloadend = async () => {
+          const base64Audio = (reader.result as string).split(",")[1];
+          try {
+            const resData = await speechToText(base64Audio);
+            if (resData.success && resData.data?.transcript) {
+              setTranscript(resData.data.transcript);
+            }
+          } catch (err) {
+            console.error(err);
+          } finally {
+            setIsProcessing(false); // Loading OFF
+            if (streamRef.current) {
+              streamRef.current.getTracks().forEach((track) => track.stop());
+            }
+          }
+        };
+      };
+
+      // Setup Silence Detection
+      const audioContext = new AudioContext();
+      audioContextRef.current = audioContext;
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.1;
+      analyserRef.current = analyser;
+
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      const checkSilence = () => {
+        analyser.getByteFrequencyData(dataArray);
+
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          sum += dataArray[i];
+        }
+        const average = sum / bufferLength;
+
+        if (average > SILENCE_THRESHOLD) {
+          if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+          }
+        } else {
+          if (!silenceTimerRef.current) {
+            silenceTimerRef.current = setTimeout(() => {
+              stopRecordingAndSend();
+            }, SILENCE_DURATION);
+          }
+        }
+
+        if (mediaRecorder.state === "recording") {
+          animationFrameRef.current = requestAnimationFrame(checkSilence);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      checkSilence();
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+      alert("Không thể truy cập Microphone. Vui lòng cấp quyền.");
+    }
+  };
 
   const update_mastery_on_success = useCallback(
     async (userId: string, word: string) => {
@@ -198,9 +339,10 @@ function LessonAIContent() {
       if (index <= completedSentences) {
         setCurrentLessonIndex(index);
         setShowExerciseList(false);
+        resetTranscript(); // Reset khi nhảy bài
       }
     },
-    [completedSentences]
+    [completedSentences, resetTranscript]
   );
 
   const clickableSentence = useMemo(() => {
@@ -239,7 +381,9 @@ function LessonAIContent() {
     hasFetchedRef.current = true;
 
     setIsClient(true);
-    setBrowserSupports(SpeechRecognition.browserSupportsSpeechRecognition());
+    setBrowserSupports(
+      !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+    );
     setWindowSize({ width: window.innerWidth, height: window.innerHeight });
     const handleResize = () => {
       setWindowSize({ width: window.innerWidth, height: window.innerHeight });
@@ -253,27 +397,34 @@ function LessonAIContent() {
 
   useEffect(() => {
     if (lessons.length > 0 && currentLessonIndex < lessons.length) {
-      // Thêm kiểm tra currentLessonIndex
       setCurrentSentence(lessons[currentLessonIndex].content);
-      resetTranscript();
-      setResult(null);
+     // Xử lý ở logic check
       setSentenceComplete(false);
-      wasListeningRef.current = false; // Reset ref khi chuyển câu
+      setIsTransitioning(false); // Mở khóa cho bài mới
     }
-  }, [lessons, currentLessonIndex, resetTranscript]);
+  }, [lessons, currentLessonIndex]);
 
   useEffect(() => {
-    if (listening) {
-      wasListeningRef.current = true;
-    }
-    if (!listening && wasListeningRef.current && !showCelebration) {
-      wasListeningRef.current = false;
+    // Check: Có transcript + Không ghi âm + Không xử lý API + Không chuyển bài
+    if (
+      transcript &&
+      !isRecording &&
+      !isProcessing &&
+      !showCelebration &&
+      !isTransitioning
+    ) {
       const correct = buildResultAndCheck();
+
       if (correct) {
+        setIsTransitioning(true); // KHÓA NGAY
         setSentenceComplete(true);
         setCompletedSentences((prev) => prev + 1);
         setCompletedLessons((prev) => new Set(prev).add(currentLessonIndex));
+
         setTimeout(async () => {
+          setTranscript("");
+          setResult(null);
+
           if (currentLessonIndex < lessons.length - 1) {
             setCurrentLessonIndex((idx) => idx + 1);
           } else {
@@ -301,36 +452,41 @@ function LessonAIContent() {
                   </motion.div>
                 );
               });
-              // update roadmap
+              // update roadmap (Logic riêng của AI Content)
               const level = await getLevelBySlug(String(levelSlug));
               const topic = await getTopicBySlug(String(topicSlug));
-              await updateLessonCompletedCount(
-                user.id,
-                String(level.id),
-                String(topic.id),
-                "Speaking"
-              );
+              if (level && topic) {
+                await updateLessonCompletedCount(
+                  user.id,
+                  String(level.id),
+                  String(topic.id),
+                  "Speaking"
+                );
+              }
             }
           }
         }, 1500);
       } else {
         setTimeout(() => {
           checkPronunciation();
-          resetTranscript();
-          setResult(null);
+          // Không reset ngay để user xem lỗi
         }, 1200);
       }
     }
   }, [
-    listening,
+    transcript,
+    isRecording,
+    isProcessing,
     showCelebration,
     currentLessonIndex,
     lessons,
     user,
     t,
+    isTransitioning,
     buildResultAndCheck,
     checkPronunciation,
-    resetTranscript,
+    levelSlug,
+    topicSlug,
   ]);
 
   const getLessonsAI = async (levelSlug: string, topicSlug: string) => {
@@ -348,19 +504,7 @@ function LessonAIContent() {
   if (!isClient) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-        <div className="max-w-2xl w-full mx-auto p-6">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-200 rounded mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded mb-6"></div>
-            <div className="flex gap-3 mb-6 justify-center">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-10 w-20 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-            <div className="h-40 bg-gray-200 rounded mb-4"></div>
-            <div className="h-32 bg-gray-200 rounded"></div>
-          </div>
-        </div>
+        <Loader2 className="w-10 h-10 animate-spin text-purple-500" />
       </div>
     );
   }
@@ -394,6 +538,7 @@ function LessonAIContent() {
         />
       )}
 
+      {/* BACKGROUND */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
           className="absolute -top-20 -right-20 w-96 h-96 bg-gradient-to-br from-orange-300/30 to-pink-300/30 rounded-full blur-3xl"
@@ -540,25 +685,25 @@ function LessonAIContent() {
               className="bg-white rounded-2xl shadow-xl p-8 space-y-6 border border-gray-100"
             >
               <div className="flex flex-wrap gap-3 justify-center">
+                {/* NÚT RECORDING */}
                 <motion.button
-                  onClick={() => {
-                    SpeechRecognition.startListening({
-                      continuous: false,
-                      language: "en-US",
-                    });
-                  }}
-                  disabled={listening}
+                  onClick={isRecording ? stopRecordingAndSend : startRecording}
+                  disabled={isProcessing}
                   className={`flex items-center gap-2 px-8 py-3.5 rounded-xl text-white transition-all font-bold shadow-lg cursor-pointer hover:shadow-xl ${
-                    listening
+                    isProcessing
                       ? "bg-gray-400 cursor-not-allowed"
+                      : isRecording
+                      ? "bg-red-500 hover:bg-red-600 animate-pulse"
                       : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
                   }`}
                 >
-                  {listening ? (
+                  {isProcessing ? (
                     <>
-                      <Mic className="w-5 h-5 animate-ping" />
-                      {t("learning.listening")}
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      {t("learning.processing") || "Đang xử lý..."}
                     </>
+                  ) : isRecording ? (
+                    <>{t("learning.stop")}</>
                   ) : (
                     <>
                       <Mic className="w-5 h-5" />
@@ -576,7 +721,11 @@ function LessonAIContent() {
                   </h3>
                   <div className="p-5 border-2 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-white min-h-[70px] shadow-inner">
                     <p className="text-gray-700 text-base leading-relaxed">
-                      {transcript || t("learning.noData")}
+                      {isRecording
+                        ? "Đang lắng nghe..."
+                        : isProcessing
+                        ? "Đang phân tích..."
+                        : transcript || t("learning.noData")}
                     </p>
                   </div>
                 </div>
@@ -862,7 +1011,7 @@ export default function LessonPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen">
-          Loading...
+          <Loader2 className="w-10 h-10 animate-spin text-purple-500" />
         </div>
       }
     >
