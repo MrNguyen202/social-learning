@@ -20,7 +20,7 @@ import {
   Check,
   Lock,
   ChevronRight,
-  Loader2, 
+  Loader2,
 } from "lucide-react";
 import {
   Dialog,
@@ -398,7 +398,7 @@ function LessonAIContent() {
   useEffect(() => {
     if (lessons.length > 0 && currentLessonIndex < lessons.length) {
       setCurrentSentence(lessons[currentLessonIndex].content);
-     // Xử lý ở logic check
+      // Xử lý ở logic check
       setSentenceComplete(false);
       setIsTransitioning(false); // Mở khóa cho bài mới
     }
@@ -469,7 +469,8 @@ function LessonAIContent() {
       } else {
         setTimeout(() => {
           checkPronunciation();
-          // Không reset ngay để user xem lỗi
+          resetTranscript();
+          setResult(null);
         }, 1200);
       }
     }
