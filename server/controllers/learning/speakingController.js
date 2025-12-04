@@ -20,7 +20,7 @@ const speakingController = {
 
   async transcribeAudio(req, res) {
     try {
-      const { audioContent } = req.body;
+      const { audioContent, encoding, sampleRate } = req.body;
 
       if (!audioContent) {
         return res.status(400).json({
@@ -29,7 +29,7 @@ const speakingController = {
         });
       }
 
-      const transcript = await speakingService.speechToText(audioContent);
+      const transcript = await speakingService.speechToText(audioContent, encoding, sampleRate);
 
       return res.status(200).json({
         success: true,

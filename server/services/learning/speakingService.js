@@ -19,15 +19,15 @@ const speakingService = {
     return { data: random10, error: null };
   },
 
-  async speechToText(audioContent) {
+  async speechToText(audioContent, encoding = 'WEBM_OPUS', sampleRate = 48000) {
     try {
       const request = {
         audio: {
           content: audioContent,
         },
         config: {
-          encoding: "WEBM_OPUS", // Chuẩn format ghi âm từ trình duyệt
-          sampleRateHertz: 48000,
+          encoding: encoding, // Chuẩn format ghi âm từ trình duyệt
+          sampleRateHertz: sampleRate,
           languageCode: "en-US", // Có thể truyền dynamic nếu muốn
           enableAutomaticPunctuation: true,
         },
