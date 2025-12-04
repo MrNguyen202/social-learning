@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   statsCardText: {
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(12),
     fontWeight: '600',
     color: '#374151',
     marginTop: verticalScale(8),

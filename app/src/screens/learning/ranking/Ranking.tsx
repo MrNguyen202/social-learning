@@ -5,67 +5,129 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
-  SafeAreaView,
+  StyleSheet,
+  StatusBar,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
-  useAnimatedStyle,
-  withTiming,
-  withRepeat,
+  FadeInDown,
+  FadeInUp,
 } from 'react-native-reanimated';
-import { getUserImageSrc } from '../../../api/image/route';
-import {
-  ArrowLeft,
-  AwardIcon,
-  CrownIcon,
-  MedalIcon,
-  SparklesIcon,
-  StarIcon,
-  TrophyIcon,
-} from 'lucide-react-native';
-import LeaderboardCard from './components/LeaderboardCard';
-import { getLeaderBoardByType } from '../../../api/learning/ranking/route';
+import { ArrowLeft, Crown, Trophy } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import {
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+
+import { getUserImageSrc } from '../../../api/image/route';
+import { getLeaderBoardByType } from '../../../api/learning/ranking/route';
 import useAuth from '../../../../hooks/useAuth';
-import { StyleSheet } from 'react-native';
+import LeaderboardCard from './components/LeaderboardCard';
+
+const { width } = Dimensions.get('window');
+
+// Component hiển thị Top 1, 2, 3 (Podium)
+const PodiumItem = ({
+  item,
+  rank,
+  isUser,
+}: {
+  item: any;
+  rank: number;
+  isUser: boolean;
+}) => {
+  if (!item) return <View style={styles.podiumPlaceholder} />;
+
+  // Cấu hình kích thước và màu sắc dựa trên thứ hạng
+  const isFirst = rank === 1;
+  const isSecond = rank === 2;
+
+  const size = isFirst ? 100 : 80;
+  const podiumHeight = isFirst ? 160 : isSecond ? 130 : 110;
+  const borderColor = isFirst ? '#FFD700' : isSecond ? '#C0C0C0' : '#CD7F32';
+  const crownColor = isFirst ? '#FFD700' : isSecond ? '#C0C0C0' : '#CD7F32';
+
+  // Animation delay dựa trên thứ hạng để tạo hiệu ứng xuất hiện lần lượt
+  const delay = isFirst ? 200 : isSecond ? 100 : 300;
+
+  return (
+    <Animated.View
+      entering={FadeInDown.delay(delay).springify()}
+      style={[styles.podiumItemContainer, { marginTop: isFirst ? 0 : 30 }]}
+    >
+      <View style={styles.avatarContainer}>
+        {isFirst && (
+          <View style={styles.crownContainer}>
+            <Crown size={32} color="#FFD700" fill="#FFD700" />
+          </View>
+        )}
+        <View
+          style={[
+            styles.avatarBorder,
+            { width: size, height: size, borderRadius: size / 2, borderColor },
+          ]}
+        >
+          <Image
+            source={{
+              uri:
+                getUserImageSrc(item.users?.avatar) ||
+                require('../../../../assets/images/default-avatar-profile-icon.jpg'),
+            }}
+            style={{
+              width: size - 6,
+              height: size - 6,
+              borderRadius: (size - 6) / 2,
+            }}
+            resizeMode="cover"
+          />
+        </View>
+        <View style={[styles.rankBadge, { backgroundColor: borderColor }]}>
+          <Text style={styles.rankText}>{rank}</Text>
+        </View>
+      </View>
+
+      <Text
+        numberOfLines={1}
+        style={[styles.podiumName, isUser && styles.highlightName]}
+      >
+        {item.users?.nick_name || item.users?.name}
+      </Text>
+
+      <Text style={styles.podiumScore}>{item.score}</Text>
+
+      {/* Cột bục vinh quang */}
+      <LinearGradient
+        colors={
+          isFirst
+            ? ['rgba(255, 215, 0, 0.3)', 'rgba(255, 215, 0, 0.05)']
+            : ['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.05)']
+        }
+        style={[styles.podiumBase, { height: podiumHeight }]}
+      >
+        <Text
+          style={{
+            color: 'rgba(255,255,255,0.5)',
+            fontSize: 10,
+            marginTop: 10,
+          }}
+        >
+          {isFirst ? 'TOP 1' : rank === 2 ? 'TOP 2' : 'TOP 3'}
+        </Text>
+      </LinearGradient>
+    </Animated.View>
+  );
+};
 
 export default function Ranking() {
   const { user } = useAuth();
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
+
   const [activeTab, setActiveTab] = useState<'practice' | 'test'>('practice');
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-
-  const orangeBubbleStyle = useAnimatedStyle(() => ({
-    position: 'absolute',
-    top: -100,
-    right: -100,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: 'rgba(249, 115, 22, 0.1)',
-    transform: [
-      {
-        scale: withRepeat(withTiming(1.2, { duration: 20000 }), -1, true),
-      },
-    ],
-  }));
-
-  const pinkBubbleStyle = useAnimatedStyle(() => ({
-    position: 'absolute',
-    bottom: -100,
-    left: -100,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: 'rgba(236, 72, 153, 0.1)',
-    transform: [
-      {
-        scale: withRepeat(withTiming(1.2, { duration: 20000 }), -1, true),
-      },
-    ],
-  }));
 
   useEffect(() => {
     if (!user) return;
@@ -85,456 +147,314 @@ export default function Ranking() {
   };
 
   const userRank = leaderboardData.find(entry => entry.users?.id === user?.id);
-  const topThree = leaderboardData.slice(0, 3);
-  const restOfList = leaderboardData.slice(3, leaderboardData.length);
 
-  const renderTopThree = ({ item, index }: { item: any; index: number }) => {
-    const rankColor =
-      index === 0
-        ? ['#ffd700', '#ffa500']
-        : index === 1
-        ? ['#c0c0c0', '#a9a9a9']
-        : ['#cd7f32', '#c68e17'];
-    const height = index === 0 ? 180 : index === 1 ? 160 : 140;
+  // Logic sắp xếp cho Podium: 2 - 1 - 3
+  const top1 = leaderboardData[0];
+  const top2 = leaderboardData[1];
+  const top3 = leaderboardData[2];
 
-    return (
-      <View
-        style={{
-          width: 120,
-          alignItems: 'center',
-          marginHorizontal: 8,
-        }}
-      >
-        <View style={{ position: 'relative', marginBottom: 12 }}>
-          <LinearGradient
-            colors={rankColor}
-            style={{
-              width: 80,
-              height: 80,
-              borderRadius: 40,
-              justifyContent: 'center',
-              alignItems: 'center',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.2,
-              shadowRadius: 4,
-              elevation: 5,
-            }}
-          >
-            <Image
-              source={{
-                uri:
-                  getUserImageSrc(item.users?.avatar) ||
-                  require('../../../../assets/images/default-avatar-profile-icon.jpg'),
-              }}
-              style={{
-                width: 76,
-                height: 76,
-                borderRadius: 38,
-                borderWidth: 2,
-                borderColor: '#fff',
-              }}
-              resizeMode="cover"
-            />
-          </LinearGradient>
-          {index < 3 && (
-            <View
-              style={{
-                position: 'absolute',
-                top: -8,
-                right: -8,
-                backgroundColor: '#fff',
-                borderRadius: 12,
-                padding: 4,
-                borderWidth: 1,
-                borderColor: '#f59e0b',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.1,
-                shadowRadius: 2,
-                elevation: 2,
-              }}
-            >
-              {index === 0 ? (
-                <CrownIcon size={16} />
-              ) : index === 1 ? (
-                <MedalIcon size={16} />
-              ) : (
-                <AwardIcon size={16} />
-              )}
-            </View>
-          )}
-        </View>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: 'bold',
-            color: '#1f2937',
-            textAlign: 'center',
-          }}
-        >
-          {item.users?.name}
-        </Text>
-        <Text style={{ fontSize: 12, color: '#6b7280', textAlign: 'center' }}>
-          {item.users?.nick_name}
-        </Text>
-        <LinearGradient
-          colors={rankColor}
-          style={{
-            width: '80%',
-            height: height,
-            borderTopLeftRadius: 12,
-            borderTopRightRadius: 12,
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginTop: 8,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-            elevation: 5,
-          }}
-        >
-          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#fff' }}>
-            #{item.rank}
-          </Text>
-          <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#fff' }}>
-            {item.score}
-          </Text>
-          <Text style={{ fontSize: 12, color: '#fff' }}>điểm</Text>
-        </LinearGradient>
-      </View>
-    );
-  };
+  // Danh sách còn lại (từ hạng 4 trở đi)
+  const restOfList = leaderboardData.slice(3);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#4F46E5" />
+
+      {/* Background Header Lớn */}
       <LinearGradient
-        colors={['#FFD93D', '#FF6A00']}
+        colors={['#4F46E5', '#4F46E5', '#4F46E5']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.headerGradient}
+        style={[styles.headerGradient, { paddingTop: insets.top + 10 }]}
       >
-        <View style={styles.headerContent}>
+        {/* Header Navigation */}
+        <View style={styles.navBar}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={styles.backButton}
-            activeOpacity={0.8}
           >
             <ArrowLeft size={24} color="#fff" />
           </TouchableOpacity>
-
-          <View style={styles.headerCenter}>
-            <View>
-              <Text style={styles.headerTitle}>Bảng Xếp Hạng</Text>
-              <Text style={styles.headerSubtitle}>
-                Thể hiện kỹ năng của bạn
-              </Text>
-            </View>
-          </View>
-          <View style={styles.headerRight} />
+          <Text style={styles.screenTitle}>Bảng Xếp Hạng</Text>
+          <View style={{ width: 40 }} />
         </View>
-      </LinearGradient>
 
-      <View style={styles.contentArea}>
-        {loading ? (
-          <View
-            style={{
-              flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <ActivityIndicator size="large" color="#f59e0b" />
+        {/* Tab Switcher */}
+        <View style={styles.tabContainer}>
+          <View style={styles.tabWrapper}>
+            <TouchableOpacity
+              style={[
+                styles.tabButton,
+                activeTab === 'practice' && styles.activeTab,
+              ]}
+              onPress={() => setActiveTab('practice')}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === 'practice' && styles.activeTabText,
+                ]}
+              >
+                Luyện tập
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.tabButton,
+                activeTab === 'test' && styles.activeTab,
+              ]}
+              onPress={() => setActiveTab('test')}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === 'test' && styles.activeTabText,
+                ]}
+              >
+                Kiểm tra
+              </Text>
+            </TouchableOpacity>
           </View>
-        ) : (
-          <View style={{ flex: 1, padding: 16 }}>
-            <SafeAreaView style={{ flex: 1, backgroundColor: '#fafafa' }}>
-              <Animated.View style={orangeBubbleStyle} />
-              <Animated.View style={pinkBubbleStyle} />
+        </View>
 
-              <View style={{ padding: 16 }}>
-                {/* User Rank */}
-                {userRank && (
-                  <View
-                    style={{
-                      padding: 16,
-                      marginBottom: 24,
-                      borderRadius: 16,
-                      backgroundColor: 'rgba(255,255,255,0.9)',
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 4,
-                      elevation: 3,
-                      borderWidth: 2,
-                      borderColor: '#fee2e2',
-                    }}
-                  >
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <View
-                        style={{ flexDirection: 'row', alignItems: 'center' }}
-                      >
-                        <LinearGradient
-                          colors={['#f59e0b', '#ef4444']}
-                          style={{
-                            width: 50,
-                            height: 50,
-                            borderRadius: 25,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            marginRight: 12,
-                          }}
-                        >
-                          <Image
-                            source={{
-                              uri:
-                                getUserImageSrc(userRank?.users?.avatar) ||
-                                require('../../../../assets/images/default-avatar-profile-icon.jpg'),
-                            }}
-                            style={{
-                              width: 46,
-                              height: 46,
-                              borderRadius: 23,
-                              borderWidth: 2,
-                              borderColor: '#fff',
-                            }}
-                            resizeMode="cover"
-                          />
-                        </LinearGradient>
-                        <View>
-                          <Text
-                            style={{
-                              fontSize: 18,
-                              fontWeight: 'bold',
-                              color: '#1f2937',
-                            }}
-                          >
-                            Xếp hạng của bạn{' '}
-                            <StarIcon size={20} color="#ffd700" />
-                          </Text>
-                          <Text style={{ fontSize: 14, color: '#6b7280' }}>
-                            {userRank.users?.nick_name}
-                          </Text>
-                        </View>
-                      </View>
-                      <View>
-                        <Text
-                          style={{
-                            fontSize: 24,
-                            fontWeight: 'bold',
-                            color: '#f59e0b',
-                          }}
-                        >
-                          #{userRank.rank}
-                        </Text>
-                        <Text style={{ fontSize: 16, color: '#1f2937' }}>
-                          {userRank.score} điểm
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                )}
-
-                {/* Tab Buttons */}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    marginBottom: 24,
-                    gap: 12,
-                  }}
-                >
-                  <TouchableOpacity
-                    onPress={() => setActiveTab('practice')}
-                    style={{
-                      paddingHorizontal: 20,
-                      paddingVertical: 12,
-                      borderRadius: 20,
-                      backgroundColor:
-                        activeTab === 'practice'
-                          ? '#f59e0b'
-                          : 'rgba(255,255,255,0.9)',
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 4,
-                      elevation: 3,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: 'bold',
-                        color: activeTab === 'practice' ? '#fff' : '#1f2937',
-                      }}
-                    >
-                      Luyện tập
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => setActiveTab('test')}
-                    style={{
-                      paddingHorizontal: 20,
-                      paddingVertical: 12,
-                      borderRadius: 20,
-                      backgroundColor:
-                        activeTab === 'test'
-                          ? '#f59e0b'
-                          : 'rgba(255,255,255,0.9)',
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 4,
-                      elevation: 3,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: 'bold',
-                        color: activeTab === 'test' ? '#fff' : '#1f2937',
-                      }}
-                    >
-                      Kiểm tra
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Top Three */}
-                <FlatList
-                  data={topThree}
-                  renderItem={renderTopThree}
-                  keyExtractor={item => item.users?.id}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{
-                    paddingVertical: 16,
-                    justifyContent: 'center',
-                    alignItems: 'flex-end',
-                  }}
-                  style={{ marginBottom: 24 }}
-                />
-
-                {/* Rest of List */}
-                <FlatList
-                  data={restOfList}
-                  renderItem={({ item, index }) => (
-                    <LeaderboardCard
-                      entry={item}
-                      index={index + 3}
-                      isCurrentUser={item.users?.id === user?.id}
-                      onPress={() =>
-                        navigation.navigate('UserFollow', {
-                          userSearch: item.users,
-                        })
-                      }
-                    />
-                  )}
-                  keyExtractor={item => item.users?.id}
-                  contentContainerStyle={{ paddingBottom: 300 }} // ẩn các user ở dưới cùng
-                  showsVerticalScrollIndicator={false}
-                  ListEmptyComponent={
-                    <View style={{ padding: 40, alignItems: 'center' }}>
-                      <TrophyIcon size={60} color="#9ca3af" />
-                      <Text
-                        style={{
-                          fontSize: 16,
-                          color: '#6b7280',
-                          textAlign: 'center',
-                          marginTop: 16,
-                        }}
-                      >
-                        Không có dữ liệu xếp hạng
-                      </Text>
-                    </View>
-                  }
-                />
-              </View>
-            </SafeAreaView>
+        {/* Podium Section (Hiển thị Top 3 ngay trên nền Gradient) */}
+        {!loading && leaderboardData.length > 0 && (
+          <View style={styles.podiumContainer}>
+            <PodiumItem
+              item={top2}
+              rank={2}
+              isUser={top2?.users?.id === user?.id}
+            />
+            <PodiumItem
+              item={top1}
+              rank={1}
+              isUser={top1?.users?.id === user?.id}
+            />
+            <PodiumItem
+              item={top3}
+              rank={3}
+              isUser={top3?.users?.id === user?.id}
+            />
           </View>
         )}
+      </LinearGradient>
+
+      {/* Body Content */}
+      <View style={styles.bodyContainer}>
+        {loading ? (
+          <View style={styles.centerLoading}>
+            <ActivityIndicator size="large" color="#7C3AED" />
+          </View>
+        ) : (
+          <FlatList
+            data={restOfList}
+            keyExtractor={item => item.users?.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingBottom: 100,
+              paddingTop: 20,
+              paddingHorizontal: 16,
+            }}
+            ListHeaderComponent={() =>
+              // Thẻ Rank của user hiện tại (nếu user nằm ngoài top 3)
+              userRank && userRank.rank > 3 ? (
+                <View style={styles.currentUserContainer}>
+                  <Text style={styles.sectionTitle}>Vị trí của bạn</Text>
+                  <LeaderboardCard
+                    entry={userRank}
+                    index={userRank.rank - 1}
+                    isCurrentUser={true}
+                  />
+                  <View style={styles.divider} />
+                </View>
+              ) : null
+            }
+            renderItem={({ item, index }) => (
+              <Animated.View entering={FadeInUp.delay(index * 50).springify()}>
+                <LeaderboardCard
+                  entry={item}
+                  index={index + 3} // +3 vì đã trừ top 3
+                  isCurrentUser={item.users?.id === user?.id}
+                  onPress={() =>
+                    navigation.navigate('UserFollow', {
+                      userSearch: item.users,
+                    })
+                  }
+                />
+              </Animated.View>
+            )}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Trophy size={60} color="#E5E7EB" />
+                <Text style={styles.emptyText}>Chưa có dữ liệu xếp hạng</Text>
+              </View>
+            }
+          />
+        )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#F3F4F6',
   },
-
   headerGradient: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
     paddingBottom: 20,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    zIndex: 10,
   },
-
-  headerContent: {
+  navBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 20,
   },
-
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    padding: 8,
     backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 50,
   },
-
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
-
-  headerTitle: {
-    textAlign: 'center',
+  screenTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: '#fff',
   },
 
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#fff',
-    opacity: 0.9,
-  },
-  headerRight: { width: 40 },
-  contentArea: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    marginTop: -16,
-    overflow: 'hidden',
-  },
-  backButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  headerContainer: {
+  // Tabs
+  tabContainer: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
-  headerTopRow: {
-    alignSelf: 'flex-start',
-    marginBottom: 12,
+  tabWrapper: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 25,
+    padding: 4,
   },
-  headerText: {
-    fontSize: 24,
+  tabButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+  },
+  activeTab: {
+    backgroundColor: '#fff',
+  },
+  tabText: {
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: '600',
+  },
+  activeTabText: {
+    color: '#7C3AED',
+    fontWeight: '700',
+  },
+
+  // Podium
+  podiumContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    paddingHorizontal: 10,
+    marginTop: 10,
+  },
+  podiumPlaceholder: {
+    width: width * 0.28,
+  },
+  podiumItemContainer: {
+    alignItems: 'center',
+    width: width * 0.28,
+  },
+  avatarContainer: {
+    marginBottom: 8,
+    alignItems: 'center',
+  },
+  avatarBorder: {
+    borderWidth: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  crownContainer: {
+    position: 'absolute',
+    top: -24,
+    zIndex: 1,
+  },
+  rankBadge: {
+    position: 'absolute',
+    bottom: -6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  rankText: {
+    color: '#fff',
+    fontSize: 10,
     fontWeight: 'bold',
-    color: '#1f2937',
-    marginHorizontal: 8,
+  },
+  podiumName: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 2,
+    maxWidth: '90%',
+  },
+  highlightName: {
+    color: '#FFD700',
+    fontWeight: 'bold',
+  },
+  podiumScore: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  podiumBase: {
+    width: '100%',
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    alignItems: 'center',
+  },
+
+  // Body
+  bodyContainer: {
+    flex: 1,
+    marginTop: 0,
+  },
+  centerLoading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  currentUserContainer: {
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginVertical: 16,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 50,
+  },
+  emptyText: {
+    marginTop: 10,
+    color: '#9CA3AF',
+    fontSize: 14,
   },
 });

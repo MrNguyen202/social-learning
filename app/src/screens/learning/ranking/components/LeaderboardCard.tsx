@@ -1,6 +1,5 @@
-import { AwardIcon, CrownIcon, MedalIcon } from 'lucide-react-native';
 import React from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -27,123 +26,136 @@ export default function LeaderboardCard({
     transform: [{ scale: scale.value }],
   }));
 
-  const getRankIcon = () => {
-    switch (index + 1) {
-      case 1:
-        return <CrownIcon size={20} />;
-      case 2:
-        return <MedalIcon size={20} />;
-      case 3:
-        return <AwardIcon size={20} />;
-      default:
-        return null;
-    }
-  };
-
   const handlePressIn = () => {
-    scale.value = withSpring(0.95);
+    scale.value = withSpring(0.97);
   };
 
   const handlePressOut = () => {
     scale.value = withSpring(1);
   };
 
+  // Màu sắc rank chỉ dùng cho text số thứ tự
+  const getRankColor = (rank: number) => {
+    if (rank === 1) return '#EAB308'; // Gold
+    if (rank === 2) return '#94A3B8'; // Silver
+    if (rank === 3) return '#B45309'; // Bronze
+    return '#6B7280'; // Gray
+  };
+
   return (
-    <Animated.View style={animatedStyle}>
+    <Animated.View style={[styles.container, animatedStyle]}>
       <TouchableOpacity
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        activeOpacity={0.9}
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          padding: 12,
-          marginBottom: 8,
-          borderRadius: 12,
-          backgroundColor: 'rgba(255,255,255,0.9)',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 3,
-          borderWidth: 1,
-          borderColor: isCurrentUser ? '#f59e0b' : '#e5e7eb',
-        }}
+        activeOpacity={1}
+        style={[
+          styles.card,
+          isCurrentUser && styles.currentUserCard
+        ]}
       >
-        <View style={{ width: 40, alignItems: 'center' }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              color: isCurrentUser ? '#f59e0b' : '#1f2937',
-            }}
-          >
+        {/* Rank Number */}
+        <View style={styles.rankContainer}>
+          <Text style={[styles.rankText, { color: getRankColor(index + 1) }]}>
             #{index + 1}
           </Text>
-          {getRankIcon()}
         </View>
-        <View
-          style={{
-            width: 40,
-            height: 40,
-            marginRight: 12,
-            borderRadius: 20,
-            overflow: 'hidden',
+
+        {/* Avatar */}
+        <Image
+          source={{
+            uri: getUserImageSrc(entry.users?.avatar) || require('../../../../../assets/images/default-avatar-profile-icon.jpg'),
           }}
-        >
-          <Image
-            source={{
-              uri:
-                getUserImageSrc(entry.users?.avatar) ||
-                require('../../../../../assets/images/default-avatar-profile-icon.jpg'),
-            }}
-            style={{ width: '100%', height: '100%' }}
-            resizeMode="cover"
-          />
-        </View>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              color: isCurrentUser ? '#fff' : '#1f2937',
-              marginBottom: 2,
-            }}
-            numberOfLines={1}
-          >
-            {entry.users?.name}
+          style={styles.avatar}
+          resizeMode="cover"
+        />
+
+        {/* Info */}
+        <View style={styles.infoContainer}>
+          <Text style={styles.name} numberOfLines={1}>
+            {entry.users?.name || 'Unknown'}
           </Text>
-          <Text
-            style={{
-              fontSize: 12,
-              color: isCurrentUser ? '#fff' : '#6b7280',
-            }}
-            numberOfLines={1}
-          >
-            {entry.users?.nick_name}
+          <Text style={styles.nickname} numberOfLines={1}>
+            @{entry.users?.nick_name || 'user'}
           </Text>
         </View>
-        <View style={{ alignItems: 'flex-end' }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              color: isCurrentUser ? '#fff' : '#1f2937',
-            }}
-          >
-            {entry.score}
-          </Text>
-          <Text
-            style={{
-              fontSize: 12,
-              color: isCurrentUser ? '#fff' : '#6b7280',
-            }}
-          >
-            điểm
-          </Text>
+
+        {/* Score */}
+        <View style={styles.scoreContainer}>
+          <Text style={styles.scoreText}>{entry.score}</Text>
+          <Text style={styles.pointsLabel}>pts</Text>
         </View>
       </TouchableOpacity>
     </Animated.View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: 12,
+  },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    // Soft shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  currentUserCard: {
+    borderColor: '#7C3AED',
+    backgroundColor: '#F5F3FF'
+  },
+  rankContainer: {
+    width: 30,
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  rankText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 12,
+    backgroundColor: '#F3F4F6',
+  },
+  infoContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  name: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 2,
+  },
+  nickname: {
+    fontSize: 13,
+    color: '#9CA3AF',
+  },
+  scoreContainer: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  scoreText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#7C3AED', 
+  },
+  pointsLabel: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    fontWeight: '500',
+  },
+});
