@@ -98,6 +98,7 @@
   "checkAnswers": "Press \"Check Answers\" to see if you filled in correctly.",
   "hint": "The blanks will turn green if correct and red if incorrect.",
   "retry": "You can try again by editing the blanks and pressing \"Check Answers\" again.",
+  "retrySpeaking": "Try Again",
   "completed": "Completed!",
   "submitted": "Submitted!",
   "tryMore": "Try more!",

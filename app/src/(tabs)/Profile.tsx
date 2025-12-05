@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   View,
   StyleSheet,
+  ScrollView,
 } from 'react-native';
 import ProfileHeader from '../screens/user/components/ProfileHeader';
 import { useNavigation } from '@react-navigation/native';
@@ -57,24 +58,32 @@ export default function ProfileScreen() {
 
       {/* Content */}
       <View style={styles.content}>
-        <ProfileHeader />
-        <StoryHighlights />
-        <ProfileTabs active={active} setActive={setActive} />
-        <View style={styles.tabContent}>
-          {active === 'posts' && <PhotoGrid />}
-          {active === 'saved' && (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>Chưa có bài viết đã lưu</Text>
-            </View>
-          )}
-          {active === 'tagged' && (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>
-                Chưa có bài viết được gắn thẻ
-              </Text>
-            </View>
-          )}
-        </View>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <ProfileHeader />
+          <StoryHighlights />
+          <ProfileTabs active={active} setActive={setActive} />
+          <View style={styles.tabContent}>
+            {active === 'posts' && <PhotoGrid />}
+            {active === 'saved' && (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>
+                  Chưa có bài viết đã lưu
+                </Text>
+              </View>
+            )}
+            {active === 'tagged' && (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>
+                  Chưa có bài viết được gắn thẻ
+                </Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
@@ -135,6 +144,13 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: moderateScale(20),
     borderTopRightRadius: moderateScale(20),
     overflow: 'hidden',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: scale(4),
+    paddingBottom: verticalScale(100),
   },
   tabContent: {
     flex: 1,

@@ -439,7 +439,7 @@ export default function ProgressScreen() {
 
       {/* Header với gradient */}
       <LinearGradient
-        colors={['#6BCF7F', '#04c22a']}
+        colors={['#4F46E5', '#7C3AED', '#DB2777']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
@@ -454,9 +454,6 @@ export default function ProgressScreen() {
           </TouchableOpacity>
 
           <View style={styles.headerCenter}>
-            <View style={styles.headerIconContainer}>
-              <BarChart3 size={24} color="#fff" />
-            </View>
             <View>
               <Text style={styles.headerTitle}>Tiến trình học tập</Text>
               <Text style={styles.headerSubtitle}>

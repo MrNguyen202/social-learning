@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import useAuth from "@/hooks/useAuth";
 import {
@@ -34,7 +34,6 @@ import {
   deductSnowflakeFromUser,
   getScoreUserByUserId,
 } from "@/app/apiClient/learning/score/score";
-import { get } from "http";
 
 const shuffle = (array: any[]) => {
   let currentIndex = array.length,
@@ -76,6 +75,7 @@ export default function WordPracticeAI() {
   const [wrongPile, setWrongPile] = useState<any[]>([]);
   // State cho SRS (lưu các từ đã từng làm sai)
   const [implicitlyHardWords, setImplicitlyHardWords] = useState<string[]>([]);
+  const isFinishedRef = useRef(false);
 
   const update_mastery_on_success = async (userId: string, word: string) => {
     await updateMasteryScoreRPC({ userId, word });
@@ -118,12 +118,15 @@ export default function WordPracticeAI() {
   }, [current, exercises]);
 
   // Logic `handleNext`
-  const handleNext = () => {
+  const handleNext = async () => {
     setFeedbackStatus(null); // Ẩn footer
 
     if (current < exercises.length - 1) {
       setCurrent((c) => c + 1);
     } else {
+      if (isFinishedRef.current) return;
+      isFinishedRef.current = true; // Khóa lại ngay lập tức
+
       // Đã đến câu cuối cùng
       // Lấy tín hiệu
       const firstGraduationId = sessionStorage.getItem("masteryReviewId"); // Luyện 100%
@@ -132,11 +135,6 @@ export default function WordPracticeAI() {
       const reviewGraduationId = JSON.parse(
         sessionStorage.getItem("reviewGraduationId") || "null"
       ); // Luyện tập sau 7 ngày (lấy từ notification)
-
-      // Dọn dẹp session
-      sessionStorage.removeItem("masteryReviewId");
-      sessionStorage.removeItem("masteryReviewScore");
-      sessionStorage.removeItem("reviewGraduationId");
 
       // Lấy điểm
       const score = parseInt(firstGraduationScore || "0", 10);
@@ -148,7 +146,7 @@ export default function WordPracticeAI() {
         if (reviewGraduationId) {
           // Thất bại "Luyện tập Tái tốt nghiệp" (7 ngày)
           // -> Reset điểm thông thạo về 70%
-          resetReviewWordRPC({ personalVocabId: reviewGraduationId });
+          await resetReviewWordRPC({ personalVocabId: reviewGraduationId });
           setGraduationType("review_fail"); // Đặt thông báo thất bại
         } else if (firstGraduationId && score === 100) {
           // Thất bại "Luyện tập để ẩn từ"
@@ -166,41 +164,73 @@ export default function WordPracticeAI() {
         setExercises(shuffle(wrongPile)); // Lấy các câu sai, xáo trộn
         setWrongPile([]); // Xóa pile cũ
         setCurrent(0); // Bắt đầu lại từ câu 0
+        setLoading(false);
+        return;
       } else {
         // ------------------------------------
         //  USER THÀNH CÔNG (không có wrongPile)
         // ------------------------------------
 
-        if (reviewGraduationId) {
-          // Thành công "Luyện tập Tái tốt nghiệp" (7 ngày)
-          // -> XÓA từ vựng
-          deletePersonalVocabRPC({ personalVocabId: reviewGraduationId }); // xóa từ vựng khỏi bộ nhớ cá nhân
-          deleteUserVocabErrorsRPC({ userId: user.id, word: words[0] }); // xóa từ khỏi lỗi từ vựng
-          const notifiIdParsed = JSON.parse(
-            sessionStorage.getItem("notifiId") || "null"
-          );
+        try {
+          setLoading(true);
 
-          if (notifiIdParsed) {
-            deleteNotificationLearning(notifiIdParsed, reviewGraduationId); // xóa notification
-            sessionStorage.removeItem("notifiId");
+          if (reviewGraduationId) {
+            console.log("DEBUG: Review graduation delete word", {
+              reviewGraduationId,
+            });
+            // Thành công "Luyện tập Tái tốt nghiệp" (7 ngày)
+            // -> XÓA từ vựng
+            await deletePersonalVocabRPC({
+              personalVocabId: reviewGraduationId,
+            }); // xóa từ vựng khỏi bộ nhớ cá nhân
+            await deleteUserVocabErrorsRPC({ userId: user.id, word: words[0] }); // xóa từ khỏi lỗi từ vựng
+            const notifiIdParsed = JSON.parse(
+              sessionStorage.getItem("notifiId") || "null"
+            );
+
+            if (notifiIdParsed) {
+              deleteNotificationLearning(notifiIdParsed, reviewGraduationId); // xóa notification
+              sessionStorage.removeItem("notifiId");
+            }
+
+            setGraduationType("review_pass_delete"); // Thông báo XÓA thành công
+          } else if (firstGraduationId && score === 100) {
+            console.log("DEBUG: First graduation archive word", {
+              firstGraduationId,
+            });
+            // Thành công "Luyện tập Lần đầu để ẩn từ"
+            // -> ẨN từ vựng
+            await archiveMasteredWordRPC({
+              personalVocabId: firstGraduationId,
+            }); // ẩn từ vựng và xuất hiện sau 7 ngày
+            setGraduationType("first_pass_archive"); // Thông báo ẨN
+          } else {
+            // Thành công "Luyện tập bình thường"
+            // words.forEach((word: string) => {
+            //   update_mastery_on_success(user.id, word);
+            // });
+
+            await Promise.all(
+              words.map((word: string) =>
+                update_mastery_on_success(user.id, word)
+              )
+            );
+            setGraduationType("normal_pass"); // Thông báo bình thường
           }
 
-          setGraduationType("review_pass_delete"); // Thông báo XÓA thành công
-        } else if (firstGraduationId && score === 100) {
-          // Thành công "Luyện tập Lần đầu để ẩn từ"
-          // -> ẨN từ vựng
-          archiveMasteredWordRPC({ personalVocabId: firstGraduationId }); // ẩn từ vựng và xuất hiện sau 7 ngày
-          setGraduationType("first_pass_archive"); // Thông báo ẨN
-        } else {
-          // Thành công "Luyện tập bình thường"
-          words.forEach((word: string) => {
-            update_mastery_on_success(user.id, word);
-          });
-          setGraduationType("normal_pass"); // Thông báo bình thường
-        }
+          // Dọn dẹp session
+          sessionStorage.removeItem("masteryReviewId");
+          sessionStorage.removeItem("masteryReviewScore");
+          sessionStorage.removeItem("reviewGraduationId");
 
-        // Hiển thị chúc mừng
-        setShowCelebration(true);
+          // Hiển thị chúc mừng
+          setShowCelebration(true);
+        } catch (err) {
+          console.error("Lỗi khi update database:", err);
+          toast.error("Có lỗi xảy ra khi lưu kết quả!");
+        } finally {
+          setLoading(false);
+        }
       }
     }
   };
@@ -213,7 +243,7 @@ export default function WordPracticeAI() {
       case "sentence_order":
         return exercise.data.answer_en;
       case "synonym_match":
-        return "Hoàn thành ghép cặp"; // Dạng này luôn đúng
+        return "Hoàn thành ghép cặp";
       case "speaking":
         return exercise.data.sentence;
       case "word_build":
@@ -225,7 +255,7 @@ export default function WordPracticeAI() {
     }
   };
 
-  // CẬP NHẬT: Logic `handleCheck` cho Vòng lặp và SRS
+  // Logic `handleCheck` cho Vòng lặp và SRS
   const handleCheck = (isCorrect: boolean, correctAnswer: string) => {
     if (isCorrect) {
       setFeedbackStatus({
@@ -237,7 +267,7 @@ export default function WordPracticeAI() {
       return;
     }
 
-    // --- Xử lý khi trả lời SAI ---
+    // Xử lý khi trả lời SAI
     const exercise = exercises[current];
     const wordToMark = getCorrectAnswer(exercise);
 
@@ -417,7 +447,7 @@ export default function WordPracticeAI() {
         }`}
       >
         <div className="p-6 md:p-12 pb-0">
-          {/* Thanh Header mới bao gồm Progress và Lives */}
+          {/* Thanh Header bao gồm Progress và Lives */}
           <div className="flex items-center gap-4 mb-2">
             <div className="flex-1">
               <ProgressBar progress={progress} />

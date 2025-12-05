@@ -2,13 +2,9 @@
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
-import SpeechRecognition, {
-  useSpeechRecognition,
-} from "react-speech-recognition";
 import {
   Loader2,
   Mic,
-  MicOff,
   Repeat,
   Languages,
   Lightbulb,
@@ -22,6 +18,7 @@ import {
   Ban,
   Trophy,
   Flag,
+  Square,
 } from "lucide-react";
 import Confetti from "react-confetti";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,6 +32,7 @@ import { toast } from "react-toastify";
 import { ExtendTurnModal } from "./ExtendTurnModal";
 import { addSkillScore } from "@/app/apiClient/learning/score/score";
 import { useWindowSize } from "react-use";
+import { speechToText } from "@/app/apiClient/learning/speaking/speaking";
 import {
   Dialog,
   DialogContent,
@@ -110,12 +108,18 @@ export const ActiveChatSession = ({
   const [rewardClaimed, setRewardClaimed] = useState(false);
   const { width, height } = useWindowSize();
 
-  const {
-    transcript,
-    listening,
-    resetTranscript,
+  const [transcript, setTranscript] = useState<string>("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // Trạng thái gửi API
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const [
     browserSupportsSpeechRecognition,
-  } = useSpeechRecognition();
+    setBrowserSupportsSpeechRecognition,
+  ] = useState(false);
 
   const { messages, isLoading, setInput, append } = useChat({
     api: "/api/speaking",
@@ -139,7 +143,7 @@ export const ActiveChatSession = ({
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, transcript, hint]);
+  }, [messages, transcript, hint, isProcessing]);
 
   useAISpeech(
     messages[messages.length - 1],
@@ -156,6 +160,100 @@ export const ActiveChatSession = ({
       setSelectedVoice(randomVoice);
     }
   }, [googleVoices, selectedVoice]);
+
+  useEffect(() => {
+    setBrowserSupportsSpeechRecognition(
+      !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+    );
+  }, []);
+
+  const stopRecordingAndSend = useCallback(() => {
+    if (
+      !mediaRecorderRef.current ||
+      mediaRecorderRef.current.state === "inactive"
+    )
+      return;
+    mediaRecorderRef.current.stop();
+    setIsRecording(false);
+  }, []);
+
+  const startRecording = useCallback(async () => {
+    setTranscript("");
+    window.speechSynthesis.cancel();
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: "audio/webm;codecs=opus",
+      });
+
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+
+      // Xử lý khi người dùng bấm Stop
+      mediaRecorder.onstop = async () => {
+        setIsProcessing(true); // Bắt đầu loading
+
+        // Tắt Mic NGAY LẬP TỨC tại đây, không đợi API
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+        }
+
+        // Tắt luôn AudioContext nếu đang chạy silence detection
+        if (audioContextRef.current) {
+          audioContextRef.current.close().catch(() => {});
+          audioContextRef.current = null;
+        }
+
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm;codecs=opus",
+        });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+
+        reader.onloadend = async () => {
+          const base64Audio = (reader.result as string).split(",")[1];
+          try {
+            const resData = await speechToText(base64Audio);
+
+            if (resData.success && resData.data?.transcript) {
+              const text = resData.data.transcript;
+              setTranscript(text);
+
+              if (text.trim().length > 0 && !isChatLocked) {
+                const newMsgId = `user-${Date.now()}`;
+                await append({ id: newMsgId, role: "user", content: text });
+                fetchFeedback(newMsgId, text);
+                setUserTurnCount((p) => p + 1);
+                setTranscript("");
+                setHint("");
+                setSummary("");
+              }
+            }
+          } catch (err) {
+            console.error("Speech to text error:", err);
+            toast.error("Không nghe rõ, vui lòng thử lại.");
+          } finally {
+            setIsProcessing(false);
+          }
+        };
+      };
+
+      // Bắt đầu ghi âm
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+      toast.error("Không thể truy cập Microphone.");
+    }
+  }, [append, isChatLocked]);
 
   const fetchFeedback = async (messageId: string, userTranscript: string) => {
     setLoadingStates((prev) => ({ ...prev, feedbackId: messageId }));
@@ -262,32 +360,17 @@ export const ActiveChatSession = ({
     topic,
   ]);
 
-  useEffect(() => {
-    if (!listening && transcript.trim().length > 0 && !isChatLocked) {
-      const newMsgId = `user-${Date.now()}`;
-      append({ id: newMsgId, role: "user", content: transcript });
-      fetchFeedback(newMsgId, transcript);
-      setUserTurnCount((p) => p + 1);
-      resetTranscript();
-      setInput("");
-      setHint("");
-      setSummary("");
-    }
-  }, [listening, transcript, isChatLocked]);
-
   const handleFinishSession = useCallback(() => {
     setShowCelebration(true);
-    // Kiểm tra xem đã cộng điểm chưa
     if (!rewardClaimed && user?.id) {
       addSkillScore(user.id, "speaking", 10);
-      setRewardClaimed(true); // Đánh dấu đã cộng rồi
+      setRewardClaimed(true);
     }
   }, [rewardClaimed, user?.id]);
 
   const handleMicClick = useCallback(() => {
     if (isChatLocked) {
       if (hasPurchased) {
-        // Hết lượt hoàn toàn -> Gợi ý kết thúc
         toast.info("Bạn đã hết lượt nói. Hãy nhấn kết thúc để nhận điểm!", {
           autoClose: 2000,
         });
@@ -298,14 +381,20 @@ export const ActiveChatSession = ({
       return;
     }
 
-    if (listening) {
-      SpeechRecognition.stopListening();
+    // Toggle recording manual
+    if (isRecording) {
+      stopRecordingAndSend();
     } else {
-      window.speechSynthesis.cancel();
-      resetTranscript();
-      SpeechRecognition.startListening({ continuous: true, language: "en-US" });
+      startRecording();
     }
-  }, [listening, resetTranscript, isChatLocked, hasPurchased]);
+  }, [
+    isRecording,
+    startRecording,
+    stopRecordingAndSend,
+    isChatLocked,
+    hasPurchased,
+    handleFinishSession,
+  ]);
 
   const handleExtendSuccess = (addedTurns: number) => {
     setMaxTurns((prev) => prev + addedTurns);
@@ -507,7 +596,7 @@ export const ActiveChatSession = ({
           );
         })}
 
-        {hint && !listening && (
+        {hint && !isRecording && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -519,14 +608,29 @@ export const ActiveChatSession = ({
             "{hint}"
           </motion.div>
         )}
-        {listening && (
+
+        {/* HIỂN THỊ TRẠNG THÁI GHI ÂM / XỬ LÝ */}
+        {(isRecording || isProcessing) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="flex flex-col items-end"
           >
-            <div className="bg-indigo-600/10 text-indigo-800 border border-indigo-200 border-dashed p-4 rounded-2xl rounded-tr-sm max-w-[85%] animate-pulse">
-              {transcript || "Listening..."}
+            <div
+              className={`border p-4 rounded-2xl rounded-tr-sm max-w-[85%] ${
+                isProcessing
+                  ? "bg-purple-50 text-purple-700 border-purple-200"
+                  : "bg-indigo-600/10 text-indigo-800 border-indigo-200 border-dashed animate-pulse"
+              }`}
+            >
+              {isProcessing ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="animate-spin w-4 h-4" />
+                  {t("learning.processing") || "Đang gửi..."}
+                </span>
+              ) : (
+                "Đang nghe..."
+              )}
             </div>
           </motion.div>
         )}
@@ -560,9 +664,9 @@ export const ActiveChatSession = ({
             </button>
           </div>
 
-          {/* Center */}
+          {/* Center - Nút Mic */}
           <div className="relative flex justify-center pointer-events-auto">
-            {listening && (
+            {isRecording && (
               <>
                 <motion.div
                   animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
@@ -578,16 +682,21 @@ export const ActiveChatSession = ({
             )}
             <button
               onClick={handleMicClick}
+              disabled={isProcessing}
               className={`relative z-10 w-20 h-20 rounded-full shadow-2xl flex items-center justify-center text-white transition-all duration-300 border-4 border-white ${
-                listening
+                isProcessing
+                  ? "bg-purple-400 cursor-wait"
+                  : isRecording
                   ? "bg-gradient-to-r from-rose-500 to-red-600 scale-110 shadow-red-500/40"
                   : isChatLocked
                   ? "bg-slate-200 border-slate-100 text-slate-400 cursor-pointer hover:bg-slate-300"
                   : "bg-gradient-to-r from-green-500 to-green-600 hover:shadow-indigo-500/40 hover:-translate-y-1"
               }`}
             >
-              {listening ? (
-                <MicOff size={32} />
+              {isProcessing ? (
+                <Loader2 size={32} className="animate-spin" />
+              ) : isRecording ? (
+                <Square size={28} fill="currentColor" />
               ) : isChatLocked ? (
                 hasPurchased ? (
                   <div className="flex flex-col items-center">

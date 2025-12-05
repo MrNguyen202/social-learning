@@ -19,7 +19,10 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import Voice from '@react-native-voice/voice';
+import AudioRecord from 'react-native-audio-record';
+import RNFS from 'react-native-fs';
+import { Buffer } from 'buffer';
+
 import LinearGradient from 'react-native-linear-gradient';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import Modal from 'react-native-modal';
@@ -36,12 +39,16 @@ import {
   Volume2,
   X,
   Sparkles,
-  Star, // Giống web
+  Star,
+  Square,
 } from 'lucide-react-native';
 import useAuth from '../../../../../hooks/useAuth';
 import { supabase } from '../../../../../lib/supabase';
 import { insertOrUpdateVocabularyErrors } from '../../../../api/learning/vocabulary/route';
-import { generateSpeakingExerciseByAI } from '../../../../api/learning/speaking/route';
+import {
+  generateSpeakingExerciseByAI,
+  speechToText,
+} from '../../../../api/learning/speaking/route';
 import {
   addSkillScore,
   getScoreUserByUserId,
@@ -71,6 +78,7 @@ export default function LessonSpeakingAI() {
 
   const [transcript, setTranscript] = useState<string>('');
   const [isListening, setIsListening] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // State loading khi gọi API
   const [result, setResult] = useState<React.ReactNode | null>(null);
   const [sentenceComplete, setSentenceComplete] = useState(false);
   const [error, setError] = useState('');
@@ -78,76 +86,51 @@ export default function LessonSpeakingAI() {
   const [isLoading, setIsLoading] = useState(true);
   const [totalScore, setTotalScore] = useState<number>(0);
 
-  const wasListeningRef = useRef(false);
+  // Cấu hình ghi âm
+  const audioConfig = {
+    sampleRate: 16000, // Google Speech thường dùng 16000Hz tốt nhất
+    channels: 1,
+    bitsPerSample: 16,
+    audioSource: 6, // VoiceRecognition source
+    wavFile: 'test.wav', // Tên file tạm
+  };
 
   useEffect(() => {
-    Voice.removeAllListeners();
-    Voice.onSpeechStart = () => {
-      setError('');
-      setIsListening(true);
-      wasListeningRef.current = true; // Đánh dấu là đã bắt đầu nghe
-    };
-    let speechEndTimeout: any;
-
-    Voice.onSpeechEnd = () => {
-      if (speechEndTimeout) clearTimeout(speechEndTimeout);
-
-      speechEndTimeout = setTimeout(() => {
-        setIsListening(false);
-      }, 700); // delay 700ms để cho user nói tiếp
-    };
-    Voice.onSpeechResults = event => {
-      if (event.value && event.value.length > 0) {
-        setTranscript(event.value[0]);
-      }
-    };
-    Voice.onSpeechPartialResults = event => {
-      if (event.value && event.value.length > 0) {
-        setTranscript(event.value[0]);
-      }
-    };
-    Voice.onSpeechError = e => {
-      if (e.error?.code === '11') {
-        setError('Không nghe rõ. Hãy thử nói lại.');
-        setTranscript('');
-        return;
-      }
-
-      setIsListening(false);
-    };
-
     const setup = async () => {
       await requestPermission();
+      // Khởi tạo Audio Recorder
+      if (Platform.OS === 'android' || Platform.OS === 'ios') {
+        AudioRecord.init(audioConfig);
+      }
       await loadLessonData();
       setIsLoading(false);
     };
     setup();
-
-    return () => {
-      Voice.destroy().then(Voice.removeAllListeners);
-    };
   }, []);
 
   const requestPermission = async () => {
     let granted = false;
     if (Platform.OS === 'android') {
-      const result = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-        {
-          title: 'Quyền sử dụng microphone',
-          message: 'Ứng dụng cần quyền microphone để nhận diện giọng nói.',
-          buttonPositive: 'Đồng ý',
-          buttonNegative: 'Hủy',
-        },
-      );
-      granted = result === PermissionsAndroid.RESULTS.GRANTED;
+      try {
+        const grants = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        ]);
+
+        if (
+          grants['android.permission.RECORD_AUDIO'] ===
+          PermissionsAndroid.RESULTS.GRANTED
+        ) {
+          granted = true;
+        }
+      } catch (err) {
+        console.warn(err);
+      }
     } else {
-      granted = true; // Quyền được xử lý tự động trên iOS
+      granted = true; // iOS xử lý qua Info.plist
     }
     setHasPermission(granted);
-    if (!granted) {
-      Alert.alert('Lỗi', 'Cần cấp quyền microphone để sử dụng tính năng này.');
-    }
   };
 
   const loadLessonData = async () => {
@@ -170,17 +153,12 @@ export default function LessonSpeakingAI() {
       setTranscript('');
       setResult(null);
       setSentenceComplete(false);
-      wasListeningRef.current = false;
     }
   }, [lessons, currentLessonIndex]);
 
+  // LOGIC CHECK KẾT QUẢ
   useEffect(() => {
-    // Chỉ chạy khi:
-    // 1. Vừa dừng nghe (isListening = false)
-    // 2. Trước đó CÓ nghe (wasListeningRef.current = true)
-    // 3. Chưa hiện bảng chúc mừng
-    if (!isListening && wasListeningRef.current && !showCelebration) {
-      wasListeningRef.current = false; // Reset ref
+    if (transcript && !isListening && !isProcessing && !showCelebration) {
       const correct = buildResultAndCheck();
 
       if (correct) {
@@ -194,18 +172,13 @@ export default function LessonSpeakingAI() {
           } else {
             handleLessonComplete();
           }
-        }, 1500); // Delay 1.5s
+        }, 1500);
       } else {
-        // Phát âm sai
         checkPronunciation();
-        setTimeout(() => {
-          // Tự động reset để thử lại
-          setResult(null);
-          setTranscript('');
-        }, 1200); // Delay 1.2s
+        // Không tự động reset transcript ngay lập tức để user xem lỗi
       }
     }
-  }, [isListening, showCelebration]);
+  }, [transcript, isListening, isProcessing, showCelebration]);
 
   const normalize = useCallback(
     (s: string) =>
@@ -314,18 +287,55 @@ export default function LessonSpeakingAI() {
     }
   };
 
-  const startListening = async () => {
+  // --- HÀM BẮT ĐẦU GHI ÂM ---
+  const startRecording = async () => {
     if (!hasPermission) {
       Alert.alert('Lỗi', 'Cần cấp quyền microphone');
       return;
     }
-    if (isListening) return;
+    setError('');
+    setResult(null);
+    setTranscript('');
 
     try {
-      await Voice.start('en-US');
+      setIsListening(true);
+      AudioRecord.start(); // Bắt đầu ghi file
     } catch (e) {
-      console.error('Error starting voice:', e);
-      setError('Không thể bắt đầu nhận diện giọng nói');
+      console.error('Error starting audio record:', e);
+      setError('Không thể bắt đầu ghi âm');
+      setIsListening(false);
+    }
+  };
+
+  // --- HÀM DỪNG GHI ÂM VÀ GỬI API ---
+  const stopRecording = async () => {
+    if (!isListening) return;
+
+    setIsListening(false);
+    setIsProcessing(true); // Bắt đầu loading
+
+    try {
+      // 1. Dừng ghi âm và lấy đường dẫn file
+      const audioFile = await AudioRecord.stop();
+
+      // 2. Đọc file và chuyển sang Base64
+      const base64String = await RNFS.readFile(audioFile, 'base64');
+
+      // 3. Gửi lên Server (Google Cloud API)
+      const data = await speechToText(base64String);
+
+      // 4. Xử lý kết quả trả về
+      if (data && data.data && data.data.transcript) {
+        setTranscript(data.data.transcript);
+      } else {
+        setTranscript('');
+        setError('Không nhận diện được giọng nói.');
+      }
+    } catch (e) {
+      console.error('Error processing audio:', e);
+      setError('Lỗi kết nối máy chủ.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -445,6 +455,8 @@ export default function LessonSpeakingAI() {
               <Sparkles size={28} color="#fff" />
               <Text style={styles.cardTitle}>Câu {currentLessonIndex + 1}</Text>
             </View>
+
+            {/* TỐI ƯU: Clickable Sentence */}
             <View style={styles.sentenceBox}>
               <View style={styles.sentenceWrap}>{clickableSentence}</View>
             </View>
@@ -461,16 +473,36 @@ export default function LessonSpeakingAI() {
 
         <View style={styles.controlsSection}>
           <TouchableOpacity
-            onPress={startListening}
-            disabled={isListening}
+            // Nếu đang nghe -> Stop, nếu chưa -> Start
+            onPress={isListening ? stopRecording : startRecording}
+            disabled={isProcessing} // Disable khi đang gửi API
             style={[
               styles.micButton,
-              isListening ? styles.micButtonListening : styles.micButtonActive,
+              isProcessing
+                ? styles.micButtonProcessing
+                : isListening
+                ? styles.micButtonListening
+                : styles.micButtonActive,
             ]}
           >
-            <Mic size={24} color="#fff" />
+            {isProcessing ? (
+              <ActivityIndicator
+                color="#fff"
+                size="small"
+                style={{ marginRight: 8 }}
+              />
+            ) : isListening ? (
+              <Square size={24} color="#fff" fill="#fff" />
+            ) : (
+              <Mic size={24} color="#fff" />
+            )}
+
             <Text style={styles.micButtonText}>
-              {isListening ? 'Đang nghe...' : 'Bắt đầu'}
+              {isProcessing
+                ? 'Đang xử lý...'
+                : isListening
+                ? 'Dừng nói'
+                : 'Bắt đầu'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -808,6 +840,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 16,
   },
+  micButtonProcessing: { backgroundColor: '#9CA3AF' },
   resultsSection: {
     paddingHorizontal: 16,
     paddingBottom: 32,
