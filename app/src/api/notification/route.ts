@@ -24,3 +24,8 @@ export const fetchNotificationsLearning = async (userId: string) => {
   const response = await api.get(`/api/notifications/learning/${userId}`);
   return response.data;
 };
+
+export const deleteNotificationLearning = async (notificationId: string, personalVocabId: string) => {
+  const response = await api.delete(`/api/notifications/learning/${notificationId}/${personalVocabId}`);
+  return response.data;
+}

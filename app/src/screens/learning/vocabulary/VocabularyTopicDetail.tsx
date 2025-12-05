@@ -8,6 +8,8 @@ import {
   ScrollView,
   SafeAreaView,
   ActivityIndicator,
+  Animated,
+  Dimensions,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
@@ -19,6 +21,7 @@ import {
   Volume2,
   Search,
   X,
+  Check,
 } from 'lucide-react-native';
 import Tts from 'react-native-tts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -38,6 +41,7 @@ const CustomButton = ({ onPress, style, children, disabled = false }: any) => (
     onPress={onPress}
     style={[styles.buttonBase, style, disabled && styles.buttonDisabled]}
     disabled={disabled}
+    activeOpacity={0.7}
   >
     {children}
   </TouchableOpacity>
@@ -52,13 +56,17 @@ export default function VocabularyTopicDetail() {
   const [originalVocabs, setOriginalVocabs] = useState<VocabItem[]>([]);
   const [nameEn, setNameEn] = useState('');
   const [nameVi, setNameVi] = useState('');
+  const [loading, setLoading] = useState(false);
+  const isInitialLoad = useRef(true);
+
   const [shuffle, setShuffle] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
-  const [loading, setLoading] = useState(false);
-  const isInitialLoad = useRef(true);
+
+  const [selectedWords, setSelectedWords] = useState<string[]>([]);
+  const slideAnim = useRef(new Animated.Value(150)).current;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -99,6 +107,24 @@ export default function VocabularyTopicDetail() {
     );
   }, []);
 
+  // Animation cho Sticky Bottom Bar
+  useEffect(() => {
+    if (selectedWords.length > 0) {
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        friction: 8,
+        tension: 40,
+      }).start();
+    } else {
+      Animated.timing(slideAnim, {
+        toValue: 150,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [selectedWords]);
+
   const speakWord = useCallback(async (text: string) => {
     Tts.stop();
     Tts.setDefaultLanguage('en-US');
@@ -138,29 +164,39 @@ export default function VocabularyTopicDetail() {
   useEffect(() => {
     setCurrentIndex(0);
     setIsFlipped(false);
+    setSelectedWords([]); // Reset selection khi filter/shuffle
   }, [shuffle, originalVocabs]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedLetter, shuffledVocabs]);
+    setSelectedWords([]); // Reset selection khi filter đổi
+  }, [searchQuery, selectedLetter]);
 
   const currentVocab = shuffledVocabs[currentIndex];
 
+  // Flashcard
   const handleNextCard = () => {
     setIsFlipped(false);
     setCurrentIndex(prev =>
       prev < shuffledVocabs.length - 1 ? prev + 1 : prev,
     );
   };
-
   const handlePreviousCard = () => {
     setIsFlipped(false);
     setCurrentIndex(prev => (prev > 0 ? prev - 1 : prev));
   };
 
-  const handleResetCard = () => {
-    setIsFlipped(false);
-    setCurrentIndex(0);
+  // Pagination
+  const totalPages = Math.ceil(filteredVocabs.length / itemsPerPage);
+  const displayedVocabs = filteredVocabs.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(p => p + 1);
+  };
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(p => p - 1);
   };
 
   const getMasteryColor = (score: number) => {
@@ -168,36 +204,42 @@ export default function VocabularyTopicDetail() {
     if (score >= 30) return '#D97706';
     return '#DC2626';
   };
-
   const getMasteryBarColor = (score: number) => {
     if (score >= 70) return '#10B981';
     if (score >= 30) return '#F59E0B';
     return '#EF4444';
   };
 
-  const totalPages = Math.ceil(filteredVocabs.length / itemsPerPage);
-  const displayedVocabs = filteredVocabs.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(p => p + 1);
-    }
+  const handleToggleWord = (id: string) => {
+    setSelectedWords(prev =>
+      prev.includes(id) ? prev.filter(w => w !== id) : [...prev, id],
+    );
   };
 
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(p => p - 1);
+  const handleSelectAll = () => {
+    if (
+      selectedWords.length === filteredVocabs.length &&
+      filteredVocabs.length > 0
+    ) {
+      setSelectedWords([]);
+    } else {
+      setSelectedWords(filteredVocabs.map(v => v.id));
     }
   };
-
-  const getWords = filteredVocabs.map(v => v.word);
 
   const handlePracticePress = async () => {
+    // Lấy danh sách từ ID
+    const wordsToPractice = originalVocabs
+      .filter(v => selectedWords.includes(v.id))
+      .map(v => v.word);
+
+    if (wordsToPractice.length === 0) return;
+
     try {
-      await AsyncStorage.setItem('practiceWords', JSON.stringify(getWords));
+      await AsyncStorage.setItem(
+        'practiceWords',
+        JSON.stringify(wordsToPractice),
+      );
       navigation.navigate('VocabularyPracticeAI');
     } catch (e) {
       console.error('Failed to save practice words to AsyncStorage', e);
@@ -206,249 +248,367 @@ export default function VocabularyTopicDetail() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <ActivityIndicator
           size="large"
           color="#FF6347"
           style={{ marginTop: 50 }}
         />
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={styles.backButton}
-              activeOpacity={0.8}
-            >
-              <ArrowLeft size={24} color="black" />
-              <Text style={styles.backButtonText}>Quay lại</Text>
-            </TouchableOpacity>
+      <View style={{ flex: 1, position: 'relative' }}>
+        {/* Scrollable Content */}
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={{ paddingBottom: 120 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.headerTopRow}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.backButton}
+                activeOpacity={0.8}
+              >
+                <ArrowLeft size={20} color="#4B5563" />
+                <Text style={styles.backButtonText}>Quay lại</Text>
+              </TouchableOpacity>
+
+              {/* Nút Select All */}
+              <TouchableOpacity
+                onPress={handleSelectAll}
+                style={styles.selectAllBtn}
+                activeOpacity={0.6}
+              >
+                <Text style={styles.selectAllText}>
+                  {selectedWords.length === filteredVocabs.length &&
+                  filteredVocabs.length > 0
+                    ? 'Bỏ chọn'
+                    : 'Chọn tất cả'}
+                </Text>
+              </TouchableOpacity>
+            </View>
             <Text style={styles.title}>{nameEn}</Text>
             <Text style={styles.subtitle}>{nameVi}</Text>
           </View>
-          <CustomButton
-            onPress={handlePracticePress}
-            style={styles.practiceButton}
-          >
-            <Text style={styles.practiceButtonText}>Luyện tập</Text>
-          </CustomButton>
-        </View>
 
-        {/* Flashcard Section */}
-        <View style={styles.flashcardSection}>
-          {currentVocab ? (
-            <>
-              <Pressable
-                onPress={() => setIsFlipped(!isFlipped)}
-                style={styles.cardContainer}
-              >
-                {!isFlipped ? (
-                  <View style={styles.cardFace}>
-                    <Pressable
-                      style={styles.listenButton}
-                      onPress={() => speakWord(currentVocab.word)}
-                    >
-                      <Volume2 size={16} color="#F97316" />
-                      <Text style={styles.listenButtonText}>Nghe mẫu</Text>
-                    </Pressable>
-                    <Text style={styles.cardWord}>{currentVocab.word}</Text>
-                  </View>
-                ) : (
-                  // Back
-                  <View style={styles.cardFace}>
-                    <Text style={styles.cardWord}>
-                      {currentVocab.translation}
-                    </Text>
-                  </View>
-                )}
-              </Pressable>
+          {/* Flashcard Section */}
+          <View style={styles.flashcardSection}>
+            {currentVocab ? (
+              <>
+                <Pressable
+                  onPress={() => setIsFlipped(!isFlipped)}
+                  style={styles.cardContainer}
+                >
+                  {!isFlipped ? (
+                    // Front Side
+                    <View style={styles.cardFace}>
+                      <View style={styles.flashcardLabel}>
+                        <Text style={styles.flashcardLabelText}>Word</Text>
+                      </View>
+                      <Pressable
+                        style={styles.listenButton}
+                        onPress={() => speakWord(currentVocab.word)}
+                      >
+                        <Volume2 size={16} color="#F97316" />
+                        <Text style={styles.listenButtonText}>Nghe mẫu</Text>
+                      </Pressable>
+                      <Text style={styles.cardWord}>{currentVocab.word}</Text>
+                    </View>
+                  ) : (
+                    // Back Side
+                    <View style={[styles.cardFace, styles.cardFaceBack]}>
+                      <View
+                        style={[
+                          styles.flashcardLabel,
+                          { backgroundColor: '#1E293B' },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.flashcardLabelText,
+                            { color: '#94A3B8' },
+                          ]}
+                        >
+                          Meaning
+                        </Text>
+                      </View>
+                      <Text style={styles.cardWordBack}>
+                        {currentVocab.translation}
+                      </Text>
+                    </View>
+                  )}
+                </Pressable>
 
-              {/* Flashcard navigation */}
-              <View style={styles.flashcardNav}>
-                <CustomButton
-                  onPress={handlePreviousCard}
-                  disabled={currentIndex === 0}
-                  style={styles.navButton}
-                >
-                  <ChevronLeft size={20} color="#4B5563" />
-                </CustomButton>
-                <CustomButton
-                  onPress={handleResetCard}
-                  style={styles.navButton}
-                >
-                  <RotateCcw size={20} color="#4B5563" />
-                </CustomButton>
-                <CustomButton
-                  onPress={handleNextCard}
-                  disabled={currentIndex === shuffledVocabs.length - 1}
-                  style={styles.navButton}
-                >
-                  <ChevronRight size={20} color="#4B5563" />
-                </CustomButton>
-              </View>
-            </>
-          ) : (
-            <Text style={styles.emptyText}>
-              Không có từ vựng trong chủ đề này
-            </Text>
-          )}
-        </View>
-
-        {/* Search */}
-        <View style={styles.searchContainer}>
-          <View style={styles.searchInputWrapper}>
-            <Search size={20} color="#6B7280" style={styles.searchIcon} />
-            <TextInput
-              placeholder={'Tìm kiếm từ vựng'}
-              placeholderTextColor="#6B7280"
-              value={searchQuery}
-              onChangeText={text => {
-                setSearchQuery(text);
-              }}
-              style={styles.searchInput}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity
-                onPress={() => setSearchQuery('')}
-                style={styles.clearIcon}
-              >
-                <X size={20} color="#9CA3AF" />
-              </TouchableOpacity>
+                {/* Flashcard Navigation */}
+                <View style={styles.flashcardNav}>
+                  <CustomButton
+                    onPress={handlePreviousCard}
+                    disabled={currentIndex === 0}
+                    style={styles.navButton}
+                  >
+                    <ChevronLeft size={20} color="#4B5563" />
+                  </CustomButton>
+                  <Text style={styles.flashcardCountText}>
+                    {currentIndex + 1} / {shuffledVocabs.length}
+                  </Text>
+                  <CustomButton
+                    onPress={handleNextCard}
+                    disabled={currentIndex === shuffledVocabs.length - 1}
+                    style={styles.navButton}
+                  >
+                    <ChevronRight size={20} color="#4B5563" />
+                  </CustomButton>
+                </View>
+              </>
+            ) : (
+              <Text style={styles.emptyText}>
+                Không có từ vựng trong chủ đề này
+              </Text>
             )}
           </View>
-        </View>
 
-        {/* Alphabet Filter */}
-        {alphabet.length > 0 && (
-          <View style={styles.alphabetContainer}>
-            <Text style={styles.alphabetTitle}>Lọc theo chữ cái </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <TouchableOpacity
-                onPress={() => setSelectedLetter(null)}
-                style={[
-                  styles.letterButton,
-                  selectedLetter === null && styles.letterButtonActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.letterButtonText,
-                    selectedLetter === null && styles.letterButtonTextActive,
-                  ]}
-                >
-                  Tất cả
-                </Text>
-              </TouchableOpacity>
-              {alphabet.map(letter => (
+          {/* Search */}
+          <View style={styles.searchSection}>
+            <View style={styles.searchInputWrapper}>
+              <Search size={20} color="#6B7280" style={styles.searchIcon} />
+              <TextInput
+                placeholder={'Tìm kiếm từ vựng...'}
+                placeholderTextColor="#6B7280"
+                value={searchQuery}
+                onChangeText={text => {
+                  setSearchQuery(text);
+                  setCurrentPage(1);
+                }}
+                style={styles.searchInput}
+              />
+              {searchQuery.length > 0 && (
                 <TouchableOpacity
-                  key={letter}
-                  onPress={() =>
-                    setSelectedLetter(selectedLetter === letter ? null : letter)
-                  }
+                  onPress={() => setSearchQuery('')}
+                  style={styles.clearIcon}
+                >
+                  <X size={20} color="#9CA3AF" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
+          {/* Alphabet Filter */}
+          {!searchQuery && alphabet.length > 0 && (
+            <View style={styles.alphabetContainer}>
+              <Text style={styles.alphabetTitle}>Lọc theo chữ cái</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <TouchableOpacity
+                  onPress={() => setSelectedLetter(null)}
                   style={[
                     styles.letterButton,
-                    selectedLetter === letter && styles.letterButtonActive,
+                    selectedLetter === null && styles.letterButtonActive,
                   ]}
                 >
                   <Text
                     style={[
                       styles.letterButtonText,
-                      selectedLetter === letter &&
-                        styles.letterButtonTextActive,
+                      selectedLetter === null && styles.letterButtonTextActive,
                     ]}
                   >
-                    {letter}
+                    Tất cả
                   </Text>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
 
-        {/* Pagination Header */}
-        <View style={styles.paginationHeader}>
-          <Text style={styles.totalText}>
-            Tổng:{' '}
-            <Text style={{ color: '#F97316' }}>{filteredVocabs.length}</Text> từ
-          </Text>
-          <View style={styles.paginationControls}>
-            <CustomButton
-              onPress={handlePrevPage}
-              disabled={currentPage === 1}
-              style={styles.pageButton}
-            >
-              <ChevronLeft size={16} color="#4B5563" />
-            </CustomButton>
-            <Text style={styles.pageText}>
-              {currentPage} / {totalPages > 0 ? totalPages : 1}
-            </Text>
-            <CustomButton
-              onPress={handleNextPage}
-              disabled={currentPage === totalPages || totalPages === 0}
-              style={styles.pageButton}
-            >
-              <ChevronRight size={16} color="#4B5563" />
-            </CustomButton>
-          </View>
-        </View>
-
-        {/* List (Grid đã được chuyển thành List) */}
-        <View style={styles.listContainer}>
-          {displayedVocabs.map((v: VocabItem, index: number) => (
-            <Pressable
-              key={v.id || index}
-              style={styles.vocabCard}
-              onPress={() =>
-                navigation.navigate('VocabularyDetail', { id: v.id })
-              }
-            >
-              <View>
-                <View style={styles.cardTopRow}>
-                  <View style={styles.cardWordContainer}>
-                    <Text style={styles.cardWordText}>{v.word}</Text>
-                    <Text style={styles.cardTranslationText}>
-                      {v.translation}
-                    </Text>
-                  </View>
-                  <Pressable onPress={() => speakWord(v.word)}>
-                    <Volume2 size={24} color="#F97316" />
-                  </Pressable>
-                </View>
-                <View style={styles.cardBottomRow}>
-                  <Text style={styles.masteryLabel}>Trình độ thành thạo</Text>
-                  <Text
+                {alphabet.map(letter => (
+                  <TouchableOpacity
+                    key={letter}
+                    onPress={() => {
+                      setSelectedLetter(
+                        selectedLetter === letter ? null : letter,
+                      );
+                      setCurrentPage(1);
+                      setSelectedWords([]);
+                    }}
                     style={[
-                      styles.masteryScore,
-                      { color: getMasteryColor(v.mastery_score) },
+                      styles.letterButton,
+                      selectedLetter === letter && styles.letterButtonActive,
                     ]}
                   >
-                    {v.mastery_score}%
-                  </Text>
-                </View>
-                <View style={styles.progressBg}>
-                  {/* Đã bỏ motion.div */}
-                  <View
-                    style={[
-                      styles.progressBar,
-                      {
-                        width: `${v.mastery_score}%`,
-                        backgroundColor: getMasteryBarColor(v.mastery_score),
-                      },
-                    ]}
-                  />
-                </View>
+                    <Text
+                      style={[
+                        styles.letterButtonText,
+                        selectedLetter === letter &&
+                          styles.letterButtonTextActive,
+                      ]}
+                    >
+                      {letter}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Pagination Info */}
+          <View style={styles.paginationHeader}>
+            <Text style={styles.totalText}>
+              Tổng:{' '}
+              <Text style={{ color: '#F97316' }}>{filteredVocabs.length}</Text>{' '}
+              từ
+            </Text>
+            <View style={styles.paginationControls}>
+              <CustomButton
+                onPress={handlePrevPage}
+                disabled={currentPage === 1}
+                style={styles.pageButton}
+              >
+                <ChevronLeft size={18} color="#4B5563" />
+              </CustomButton>
+              <Text style={styles.pageText}>
+                {currentPage} / {totalPages > 0 ? totalPages : 1}
+              </Text>
+              <CustomButton
+                onPress={handleNextPage}
+                disabled={currentPage === totalPages || totalPages === 0}
+                style={styles.pageButton}
+              >
+                <ChevronRight size={18} color="#4B5563" />
+              </CustomButton>
+            </View>
+          </View>
+
+          {/* Vocab List with Selection */}
+          <View style={styles.listContainer}>
+            {displayedVocabs.map(v => {
+              const isSelected = selectedWords.includes(v.id);
+              return (
+                <Pressable
+                  key={v.id}
+                  style={[
+                    styles.vocabCard,
+                    isSelected && styles.vocabCardSelected,
+                  ]}
+                  onPress={() =>
+                    // Navigate to detail on card press
+                    navigation.navigate('VocabularyDetail', { id: v.id })
+                  }
+                >
+                  {/* Checkbox Touch Area - Top Right */}
+                  <TouchableOpacity
+                    style={styles.checkboxArea}
+                    onPress={() => handleToggleWord(v.id)}
+                    activeOpacity={0.8}
+                  >
+                    <View
+                      style={[
+                        styles.checkbox,
+                        isSelected
+                          ? styles.checkboxChecked
+                          : styles.checkboxUnchecked,
+                      ]}
+                    >
+                      {isSelected && (
+                        <Check size={14} color="white" strokeWidth={3} />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+
+                  <View>
+                    <View style={styles.cardTopRow}>
+                      <View style={styles.cardWordContainer}>
+                        <Text
+                          style={[
+                            styles.cardWordText,
+                            isSelected && { color: '#EA580C' },
+                          ]}
+                        >
+                          {v.word}
+                        </Text>
+                        <Text style={styles.cardTranslationText}>
+                          {v.translation}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Divider */}
+                    <View style={styles.divider} />
+
+                    <View style={styles.cardBottomRow}>
+                      <Pressable
+                        style={styles.miniSpeaker}
+                        onPress={() => speakWord(v.word)}
+                      >
+                        <Volume2
+                          size={20}
+                          color={isSelected ? '#EA580C' : '#9CA3AF'}
+                        />
+                      </Pressable>
+
+                      <View style={styles.scoreGroup}>
+                        <View style={styles.progressBg}>
+                          <View
+                            style={[
+                              styles.progressBar,
+                              {
+                                width: `${v.mastery_score}%`,
+                                backgroundColor: getMasteryBarColor(
+                                  v.mastery_score,
+                                ),
+                              },
+                            ]}
+                          />
+                        </View>
+                        <Text
+                          style={[
+                            styles.masteryScore,
+                            { color: getMasteryColor(v.mastery_score) },
+                          ]}
+                        >
+                          {v.mastery_score}%
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        </ScrollView>
+
+        {/* Sticky Bottom Action Bar */}
+        {selectedWords.length > 0 && (
+          <Animated.View
+            style={[
+              styles.bottomBarContainer,
+              { transform: [{ translateY: slideAnim }] },
+            ]}
+          >
+            <View style={styles.bottomBarContent}>
+              <View style={styles.selectedCountContainer}>
+                <Text style={styles.countNumber}>{selectedWords.length}</Text>
+                <Text style={styles.countLabel}>từ đã chọn</Text>
               </View>
-            </Pressable>
-          ))}
-        </View>
-      </ScrollView>
+              <View style={styles.bottomActions}>
+                <TouchableOpacity
+                  onPress={() => setSelectedWords([])}
+                  style={styles.closeBtn}
+                >
+                  <Text style={styles.closeBtnText}>Hủy</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handlePracticePress}
+                  style={styles.practiceBtnSticky}
+                >
+                  <Text style={styles.practiceBtnTextSticky}>
+                    Luyện tập ngay
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Animated.View>
+        )}
+      </View>
     </SafeAreaView>
   );
 }
@@ -456,131 +616,166 @@ export default function VocabularyTopicDetail() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#F9FAFB', // Slate 50
   },
   container: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: 20,
+    paddingTop: 16,
   },
   // Header
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 24,
   },
-  headerLeft: {
-    flex: 1,
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   backButton: {
-    width: 120,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#E5E7EB',
-    alignItems: 'center',
-    justifyContent: 'center',
     flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     marginBottom: 12,
+    alignSelf: 'flex-start',
   },
   backButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#4B5563',
-    marginLeft: 8,
+    fontWeight: '600',
+    marginLeft: 6,
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: '800',
     color: '#1F2937',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   subtitle: {
     fontSize: 16,
-    color: '#4B5563',
+    color: '#6B7280',
+    fontWeight: '500',
   },
-  practiceButton: {
-    backgroundColor: '#FF6347',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+  selectAllBtn: {
+    backgroundColor: 'white',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 20,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginBottom: 12,
   },
-  practiceButtonText: {
+  selectAllText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: '600',
+    color: '#64748B',
   },
+
   // Flashcard
   flashcardSection: {
     marginBottom: 40,
   },
   cardContainer: {
     width: '100%',
-    maxWidth: 450,
     height: 256,
-    alignSelf: 'center',
     marginBottom: 24,
   },
   cardFace: {
     width: '100%',
     height: '100%',
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 24,
+    backgroundColor: 'white',
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: '#E2E8F0',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
+    position: 'relative',
+  },
+  cardFaceBack: {
+    backgroundColor: '#0F172A', // Slate 900
+    borderColor: '#1E293B',
+  },
+  flashcardLabel: {
+    position: 'absolute',
+    top: 20,
+    backgroundColor: '#F1F5F9',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 99,
+  },
+  flashcardLabelText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   listenButton: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    bottom: 20,
+    right: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'transparent',
-    borderColor: '#FDBA74',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    backgroundColor: '#FFEDD5', // Orange 100
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
   listenButtonText: {
-    color: '#F97316',
-    marginLeft: 8,
+    color: '#EA580C', // Orange 600
+    marginLeft: 6,
+    fontSize: 12,
+    fontWeight: '700',
   },
   cardWord: {
     fontSize: 36,
-    fontWeight: 'bold',
+    fontWeight: '800',
     color: '#1F2937',
+    textAlign: 'center',
+  },
+  cardWordBack: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: 'white',
     textAlign: 'center',
   },
   flashcardNav: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
     gap: 16,
   },
   navButton: {
     padding: 12,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'white',
     borderRadius: 99,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  flashcardCountText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#9CA3AF',
   },
   emptyText: {
-    color: '#4B5563',
+    color: '#6B7280',
     textAlign: 'center',
     paddingVertical: 48,
   },
+
   // Search
-  searchContainer: {
-    marginBottom: 24,
+  searchSection: {
+    marginBottom: 20,
   },
   searchInputWrapper: {
     position: 'relative',
@@ -588,23 +783,26 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     position: 'absolute',
-    left: 16,
+    left: 12,
     zIndex: 1,
   },
   searchInput: {
     height: 48,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderColor: '#E5E7EB',
+    backgroundColor: 'white',
+    borderColor: '#E2E8F0',
     borderWidth: 1,
-    borderRadius: 8,
-    paddingLeft: 48,
+    borderRadius: 12,
+    paddingLeft: 44,
     paddingRight: 40,
     fontSize: 16,
+    color: '#1F2937',
   },
   clearIcon: {
     position: 'absolute',
-    right: 16,
+    right: 12,
+    padding: 4,
   },
+
   // Alphabet Filter
   alphabetContainer: {
     marginBottom: 32,
@@ -631,91 +829,139 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF6347',
   },
   letterButtonText: {
-    fontWeight: '600',
-    color: '#374151',
+    fontWeight: 'bold',
+    color: '#6B7280',
   },
   letterButtonTextActive: {
-    color: '#FFFFFF',
+    color: 'white',
   },
+
   // Pagination
   paginationHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   totalText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: '#4B5563',
   },
   paginationControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   pageButton: {
-    padding: 8,
-    backgroundColor: '#F3F4F6',
+    padding: 6,
+    backgroundColor: 'white',
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   pageText: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '600',
     color: '#4B5563',
   },
+
   // Vocab List
   listContainer: {
     gap: 16,
-    marginBottom: 62,
   },
   vocabCard: {
     backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 20,
+    padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
     elevation: 2,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    position: 'relative',
   },
+  vocabCardSelected: {
+    borderColor: '#EA580C',
+    backgroundColor: '#FFF7ED',
+  },
+  checkboxArea: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    zIndex: 10,
+    padding: 4,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxUnchecked: {
+    borderColor: '#CBD5E1',
+    backgroundColor: 'white',
+  },
+  checkboxChecked: {
+    borderColor: '#EA580C',
+    backgroundColor: '#EA580C',
+  },
+
   cardTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 8,
+    paddingRight: 32, // Avoid overlap with checkbox
   },
   cardWordContainer: {
     flex: 1,
   },
   cardWordText: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '800',
     color: '#1F2937',
+    marginBottom: 4,
   },
   cardTranslationText: {
-    fontSize: 14,
-    color: '#4B5563',
-    marginLeft: 2,
+    fontSize: 15,
+    color: '#64748B',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginVertical: 12,
   },
   cardBottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+  },
+  miniSpeaker: {
+    padding: 8,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 20,
+    marginLeft: -8,
+  },
+  scoreGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   masteryLabel: {
     fontSize: 12,
     color: '#4B5563',
   },
   masteryScore: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '800',
   },
   progressBg: {
-    height: 8,
+    width: 60,
+    height: 6,
     backgroundColor: '#E5E7EB',
     borderRadius: 99,
     overflow: 'hidden',
@@ -723,7 +969,67 @@ const styles = StyleSheet.create({
   progressBar: {
     height: '100%',
   },
-  // Base button
+
+  // Sticky Bottom Bar
+  bottomBarContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 16,
+    right: 16,
+    backgroundColor: '#0F172A', // Slate 900
+    borderRadius: 20,
+    padding: 16,
+    zIndex: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  bottomBarContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  selectedCountContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  countNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#F97316',
+    marginRight: 6,
+  },
+  countLabel: {
+    color: '#94A3B8',
+    fontSize: 14,
+  },
+  bottomActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  closeBtn: {
+    padding: 8,
+  },
+  closeBtnText: {
+    color: '#CBD5E1',
+    fontWeight: '600',
+  },
+  practiceBtnSticky: {
+    backgroundColor: '#F97316',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  practiceBtnTextSticky: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+
+  // Shared
   buttonBase: {
     flexDirection: 'row',
     alignItems: 'center',

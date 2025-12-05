@@ -160,18 +160,24 @@ export default function Vocabulary() {
       title: 'Cần ôn gấp',
       count: lowCount,
       icon: AlertCircle,
+      background: '#FEE2E2',
+      color: '#B91C1C',
     },
     {
       key: 'mid',
       title: 'Đang tiến bộ',
       count: midCount,
       icon: TrendingUp,
+      background: '#FEF3C7',
+      color: '#B45309',
     },
     {
       key: 'high',
       title: 'Sắp thành thạo',
       count: highCount,
       icon: BookOpen,
+      background: '#D1FAE5',
+      color: '#065F46',
     },
   ];
 
@@ -205,15 +211,18 @@ export default function Vocabulary() {
       </LinearGradient>
 
       <View style={styles.contentArea}>
-        <ScrollView style={styles.container}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          style={styles.container}
+        >
           {/* Stats Cards */}
           <View style={styles.statsContainer}>
             {/* Card 1: Total Words */}
             <View style={styles.statCard}>
               <View style={styles.statContent}>
                 <View>
-                  <Text style={styles.statLabel}>Tổng số từ</Text>
                   <Text style={styles.statValue}>{totalWords}</Text>
+                  <Text style={styles.statLabel}>Tổng số từ</Text>
                 </View>
               </View>
             </View>
@@ -221,10 +230,10 @@ export default function Vocabulary() {
             <View style={styles.statCard}>
               <View style={styles.statContent}>
                 <View>
-                  <Text style={styles.statLabel}>Trung bình thành thạo</Text>
                   <Text style={[styles.statValue, { color: '#34D399' }]}>
                     {averageMastery}%
                   </Text>
+                  <Text style={styles.statLabel}>Trung bình thành thạo</Text>
                 </View>
               </View>
             </View>
@@ -232,10 +241,10 @@ export default function Vocabulary() {
             <View style={styles.statCard}>
               <View style={styles.statContent}>
                 <View>
-                  <Text style={styles.statLabel}>Cần xem lại</Text>
                   <Text style={[styles.statValue, { color: '#F59E0B' }]}>
                     {wordsToReview}
                   </Text>
+                  <Text style={styles.statLabel}>Cần xem lại</Text>
                 </View>
               </View>
             </View>
@@ -297,6 +306,7 @@ export default function Vocabulary() {
               </TouchableOpacity>
             </View>
           </View>
+
           {/* Tabs Content */}
           <View>
             {activeTab === 'overview' && (
@@ -329,8 +339,8 @@ export default function Vocabulary() {
                                   {loading ? '…' : card.count}
                                 </Text>
                               </View>
-                              <View style={styles.overviewCardIconWrapper}>
-                                <Icon size={28} color="#374151" />
+                              <View style={[styles.overviewCardIconWrapper, { backgroundColor: card.background }]}>
+                                <Icon size={28} color={card.color} />
                               </View>
                             </View>
                           </TouchableOpacity>
@@ -508,6 +518,7 @@ const styles = StyleSheet.create({
 
   overviewGrid: {
     gap: 16,
+    paddingBottom: 12,
   },
 
   overviewCard: {
@@ -540,7 +551,6 @@ const styles = StyleSheet.create({
 
   overviewCardIconWrapper: {
     padding: 12,
-    backgroundColor: '#F9FAFB',
     borderRadius: 12,
   },
 

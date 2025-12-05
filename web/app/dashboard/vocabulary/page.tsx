@@ -83,7 +83,7 @@ export default function VocabularyPage() {
     (v) => v.mastery_score >= 30 && v.mastery_score <= 69
   ).length;
   const highCount = listPersonalVocab.filter(
-    (v) => v.mastery_score >= 70
+    (v) => v.mastery_score >= 70 && v.mastery_score < 100
   ).length;
 
   return (
