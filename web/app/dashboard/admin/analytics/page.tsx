@@ -273,8 +273,7 @@ export default function AnalyticsPage() {
                       {t("dashboard.growthOverview")}
                     </CardTitle>
                     <CardDescription>
-                      {t("dashboard.growthDescription") ||
-                        "Track users and revenue over time"}
+                      {t("dashboard.growthDescription")}
                     </CardDescription>
                   </div>
                 </div>
@@ -282,7 +281,7 @@ export default function AnalyticsPage() {
                 {/* Tabs Switcher */}
                 <TabsList className="grid w-full sm:w-[200px] grid-cols-2">
                   <TabsTrigger value="users">
-                    {t("dashboard.users") || "Users"}
+                    {t("dashboard.users")}
                   </TabsTrigger>
                   <TabsTrigger value="revenue">
                     {t("dashboard.revenue")}
@@ -436,7 +435,7 @@ export default function AnalyticsPage() {
           </Tabs>
         </Card>
 
-        {/* Skill Performance Chart (Giữ nguyên) */}
+        {/* Skill Performance Chart */}
         <Card className="border-0 shadow-md ring-1 ring-slate-100">
           <CardHeader>
             <div className="flex items-center gap-2">
