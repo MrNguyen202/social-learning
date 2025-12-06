@@ -46,8 +46,4 @@ jobs:
             # Nếu web là Next.js (SSR) thì giữ dòng dưới:
             pm2 restart web-app || pm2 start npm --name "webapp" -- run start
 
-            # Retart nginx
-            echo "Restarting Nginx..."
-            sudo systemctl restart nginx
-
             echo "Deployment Completed!"
