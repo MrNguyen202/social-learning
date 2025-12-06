@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import { BookOpen } from 'lucide-react-native';
+import { BookOpen, Eye, EyeOff } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { register, resendOtp, verifyOtp } from '../../api/auth/route';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
@@ -26,6 +26,8 @@ const Register = () => {
   const [sentOtp, setSentOtp] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // regex giống web
   const nameRegex = /^[a-zA-Z0-9\s]{1,30}$/;
@@ -116,21 +118,6 @@ const Register = () => {
   return (
     <>
       <LinearGradient colors={['#FFF7ED', '#FDF2F8']} style={styles.container}>
-        {/* Logo */}
-        <View style={styles.logoContainer}>
-          <LinearGradient
-            colors={['#F97316', '#EC4899']}
-            style={styles.logo}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <BookOpen size={20} color="#fff" />
-          </LinearGradient>
-          <TouchableOpacity onPress={() => navigation.navigate('Welcome')}>
-            <Text style={styles.logoText}>SocialLearning</Text>
-          </TouchableOpacity>
-        </View>
-
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <LinearGradient
@@ -167,21 +154,47 @@ const Register = () => {
                   keyboardType="email-address"
                 />
                 <Text style={styles.label}>Mật khẩu</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Mật khẩu"
-                  secureTextEntry
-                  value={password}
-                  onChangeText={setPassword}
-                />
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Mật khẩu"
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onChangeText={setPassword}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.eyeIcon}
+                  >
+                    {showPassword ? (
+                      <EyeOff size={moderateScale(20)} color="#9CA3AF" />
+                    ) : (
+                      <Eye size={moderateScale(20)} color="#9CA3AF" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                {/* --- Xác nhận mật khẩu --- */}
                 <Text style={styles.label}>Xác nhận mật khẩu</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Xác nhận mật khẩu"
-                  secureTextEntry
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                />
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Xác nhận mật khẩu"
+                    secureTextEntry={!showConfirmPassword}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={styles.eyeIcon}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={moderateScale(20)} color="#9CA3AF" />
+                    ) : (
+                      <Eye size={moderateScale(20)} color="#9CA3AF" />
+                    )}
+                  </TouchableOpacity>
+                </View>
 
                 <TouchableOpacity
                   onPress={handleSignUp}
@@ -336,6 +349,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(8),
     marginBottom: verticalScale(12),
     fontSize: moderateScale(14),
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: moderateScale(8),
+    marginBottom: verticalScale(12),
+    backgroundColor: '#fff',
+  },
+  passwordInput: {
+    flex: 1,
+    paddingVertical: verticalScale(8),
+    paddingHorizontal: scale(8),
+    fontSize: moderateScale(14),
+  },
+  eyeIcon: {
+    padding: scale(10),
   },
   buttonWrapper: {
     marginTop: verticalScale(8),

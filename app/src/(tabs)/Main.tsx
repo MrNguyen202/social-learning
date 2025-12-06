@@ -25,7 +25,7 @@ var limit = 0;
 const Main = () => {
   const navigation = useNavigation<any>();
 
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
 
   const [posts, setPosts] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState(true);

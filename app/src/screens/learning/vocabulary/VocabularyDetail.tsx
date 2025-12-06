@@ -27,6 +27,7 @@ import {
   Link2,
 } from 'lucide-react-native';
 import Tts from 'react-native-tts';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Skeleton = ({ style }: { style: any }) => (
   <Animated.View style={[styles.skeleton, style]} />
@@ -148,6 +149,31 @@ export default function VocabularyDetail() {
       ),
     };
   });
+
+  const handlePractice = async () => {
+    if (!personalVocab) return;
+
+    try {
+      const relatedWords = personalVocab.related_words || [];
+      const wordsToPractice =
+        relatedWords.length > 0
+          ? relatedWords.map((v: any) => v.word)
+          : [personalVocab.word];
+
+      // Lưu vào AsyncStorage
+      await AsyncStorage.multiSet([
+        ['practiceWords', JSON.stringify(wordsToPractice)],
+        ['masteryReviewId', personalVocab.id],
+        ['masteryReviewScore', personalVocab.mastery_score.toString()],
+      ]);
+
+      // Điều hướng sang màn hình luyện tập
+      navigation.navigate('VocabularyPracticeAI');
+    } catch (error) {
+      console.error('Lỗi lưu dữ liệu luyện tập:', error);
+      Alert.alert('Lỗi', 'Không thể bắt đầu bài tập lúc này.');
+    }
+  };
 
   if (loading) {
     return <SkeletonLoader />;
@@ -273,12 +299,11 @@ export default function VocabularyDetail() {
 
           {/* Actions */}
           <View style={styles.actionsContainer}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handlePractice}>
               <LinearGradient
                 colors={['#f97316', '#ef4444']}
                 style={styles.actionButton}
               >
-                <Sparkles size={16} color="#fff" style={{ marginRight: 8 }} />
                 <Text style={styles.actionButtonText}>Luyện tập ngay</Text>
               </LinearGradient>
             </TouchableOpacity>
