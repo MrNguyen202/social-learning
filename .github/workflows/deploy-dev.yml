@@ -3,6 +3,9 @@ name: Deploy DEPLOY Branch
 on:
   push:
     branches: [ "deploy" ]
+  # schedule:
+  #   # Phút / Giờ / Ngày / Tháng / Thứ trong tuần
+  #   - cron: '0 20 * * *'
 
 jobs:
   deploy:
@@ -29,7 +32,7 @@ jobs:
             cd server
             npm install
             # Restart nếu đã có, hoặc Start mới nếu chưa có
-            pm2 restart server || pm2 start index.js --name "server"
+            pm2 restart server || pm2 start npm --name "server" -- run start
             cd ..
 
             # --- 3. XỬ LÝ WEB (FRONTEND) ---
@@ -40,6 +43,10 @@ jobs:
             
             # LƯU Ý QUAN TRỌNG: 
             # Nếu web là Next.js (SSR) thì giữ dòng dưới:
-            pm2 restart web-app || pm2 start npm --name "web-app" -- start
+            pm2 restart web-app || pm2 start npm --name "webapp" -- run start
+
+            # Retart nginx
+            echo "Restarting Nginx..."
+            sudo systemctl restart nginx
 
             echo "Deployment Completed!"
