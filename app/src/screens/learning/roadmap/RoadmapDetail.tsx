@@ -324,13 +324,14 @@ const RoadmapDetailScreen = () => {
                                                             start={{ x: 0, y: 0 }}
                                                             end={{ x: 1, y: 0 }}
                                                             style={{borderRadius: 24, width: '48%'}}
+                                                            className='items-center'
                                                         >
                                                             <TouchableOpacity
                                                                 onPress={() => handleGenerateAI(lesson)}
                                                                 activeOpacity={0.8}
                                                                 className='flex-row items-center px-4 py-2 gap-2'
                                                             >
-                                                                <Sparkles size={16} color="#fff" />
+                                                                {/* <Sparkles size={16} color="#fff" /> */}
                                                                 <Text className='text-white'>
                                                                     Tạo bài tập AI
                                                                 </Text>
@@ -342,14 +343,15 @@ const RoadmapDetailScreen = () => {
                                                             start={{ x: 0, y: 0 }}
                                                             end={{ x: 1, y: 0 }}
                                                             style={{borderRadius: 24 , width: '48%'}}
+                                                            className='items-center'
                                                         >
                                                             <TouchableOpacity
                                                                 className='flex-row items-center px-4 py-2 gap-2'
                                                                 onPress={() => handleSystemExercise(lesson)}
                                                                 activeOpacity={0.8}
                                                             >
-                                                                <BookOpenIcon size={16} color="#fff" />
-                                                                <Text className='text-white'>
+                                                                {/* <BookOpenIcon size={16} color="#fff" /> */}
+                                                                <Text className='text-white text-center'>
                                                                     Bài tập hệ thống
                                                                 </Text>
                                                             </TouchableOpacity>

@@ -462,7 +462,7 @@ export default function ProgressScreen() {
           </TouchableOpacity>
 
           <View style={styles.headerCenter}>
-            <View>
+            <View className='flex items-center'>
               <Text style={styles.headerTitle}>Tiến trình học tập</Text>
               <Text style={styles.headerSubtitle}>
                 Theo dõi sự tiến bộ của bạn

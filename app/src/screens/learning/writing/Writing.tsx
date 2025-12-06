@@ -141,7 +141,7 @@ export default function Writing() {
                 onPress={handleGenerateAI}
                 activeOpacity={0.8}
               >
-                <Sparkles size={18} color="#fff" />
+                {/* <Sparkles size={18} color="#fff" /> */}
                 <Text style={styles.aiButtonText}>Tạo bài AI</Text>
               </TouchableOpacity>
 
@@ -315,7 +315,6 @@ const styles = StyleSheet.create({
   aiButtonText: {
     color: '#ffffff',
     fontWeight: 'bold',
-    marginLeft: 8,
   },
   nextButton: {
     flex: 1,

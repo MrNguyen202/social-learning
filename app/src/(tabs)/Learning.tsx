@@ -110,11 +110,6 @@ const LearningTab = () => {
           >
             <item.icon size={28} color={item.color} />
           </View>
-          {item.special && (
-            <View style={styles.hotBadge}>
-              <Text style={styles.hotBadgeText}>HOT</Text>
-            </View>
-          )}
         </View>
 
         <Text style={styles.cardTitle}>{item.label}</Text>
