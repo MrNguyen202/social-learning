@@ -6,6 +6,8 @@ import {
   Alert,
   Share,
   Image,
+  Platform,
+  PermissionsAndroid,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import Avatar from '../../components/Avatar';
@@ -13,7 +15,9 @@ import Video from 'react-native-video';
 import { theme } from '../../../constants/theme';
 import { stripHtmlTags } from '../../../helpers/common';
 import {
+  Download,
   Edit2,
+  FileText,
   Forward,
   Heart,
   MessageCircle,
@@ -25,6 +29,30 @@ import Loading from '../../components/Loading';
 import { likePost, unlikePost } from '../../api/post/route';
 import { convertToDate, formatTime } from '../../../helpers/formatTime';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import FileViewer from 'react-native-file-viewer';
+
+const getMimeType = (extension: string) => {
+  switch (extension.toLowerCase()) {
+    case 'pdf':
+      return 'application/pdf';
+    case 'doc':
+    case 'docx':
+      return 'application/msword'; // hoặc application/vnd.openxmlformats-officedocument.wordprocessingml.document
+    case 'xls':
+    case 'xlsx':
+      return 'application/vnd.ms-excel';
+    case 'ppt':
+    case 'pptx':
+      return 'application/vnd.ms-powerpoint';
+    case 'zip':
+      return 'application/zip';
+    case 'rar':
+      return 'application/x-rar-compressed';
+    default:
+      return '*/*';
+  }
+};
 
 const PostCard = ({
   item,
@@ -39,6 +67,7 @@ const PostCard = ({
 }: any) => {
   const [likes, setLikes] = useState<{ userId: string; postId: number }[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     setLikes(item?.postLikes);
@@ -97,6 +126,91 @@ const PostCard = ({
         style: 'destructive',
       },
     ]);
+  };
+
+  const onDownloadFile = async () => {
+    if (!item.file) return;
+
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('Permission denied');
+        }
+      } catch (err) {
+        console.warn(err);
+      }
+    }
+
+    setIsDownloading(true);
+    const { config, fs } = ReactNativeBlobUtil;
+    const fileUrl = getSupabaseFileUrl(item.file) as string;
+    const fileName = item.original_name;
+
+    // Lấy đuôi file
+    const extension = item.file.split('.').pop();
+
+    // Lấy MIME Type quan trọng
+    const mimeType = getMimeType(extension || '');
+
+    // Cấu hình đường dẫn lưu file
+    // Android: Lưu vào thư mục Download để user dễ tìm
+    // iOS: Lưu vào DocumentDir
+    const downloadDir =
+      Platform.OS === 'android' ? fs.dirs.DownloadDir : fs.dirs.DocumentDir;
+    const path = `${downloadDir}/${fileName}`;
+
+    const options = Platform.select({
+      ios: {
+        fileCache: true,
+        path: path,
+        // iOS cần cấu hình này để mở file sau khi tải
+        notification: true,
+      },
+      android: {
+        fileCache: true,
+        addAndroidDownloads: {
+          useDownloadManager: true, // Dùng trình quản lý download của Android
+          notification: true, // Hiện thông báo trên noti
+          path: path,
+          description: 'Đang tải tệp xuống...',
+          title: fileName,
+          mime: mimeType,
+          mediaScannable: true,
+        },
+      },
+    });
+
+    if (!options) return;
+
+    config(options)
+      .fetch('GET', fileUrl)
+      .then(res => {
+        setIsDownloading(false);
+        const filePath = res.path();
+        // Sau khi tải xong
+        FileViewer.open(filePath, { showOpenWithDialog: true })
+          .then(() => {
+            // Mở thành công
+            console.log('File opened successfully');
+          })
+          .catch(error => {
+            // Trường hợp máy không có app nào đọc được file này
+            console.log('Error opening file:', error);
+            Alert.alert(
+              'Đã tải xong',
+              `File đã được lưu tại thư mục Download.\nTên file: ${fileName}`,
+              [{ text: 'OK' }],
+            );
+          });
+      })
+      .catch(errorMessage => {
+        setIsDownloading(false);
+        Alert.alert('Lỗi', 'Tải xuống thất bại.');
+        console.error(errorMessage);
+      });
   };
 
   const createAt =
@@ -194,7 +308,37 @@ const PostCard = ({
               paused={true}
             />
           </View>
-        ) : null}
+        ) : (
+          // file dạng pdf, docx, excel,...
+          <TouchableOpacity
+            style={styles.fileContainer}
+            onPress={onDownloadFile}
+            activeOpacity={0.7}
+            disabled={isDownloading}
+          >
+            <View style={styles.fileIconBox}>
+              {/* Icon đại diện file */}
+              <FileText size={moderateScale(24)} color="#667eea" />
+            </View>
+
+            <View style={styles.fileInfo}>
+              <Text style={styles.fileName} numberOfLines={1}>
+                {item.original_name || 'Tài liệu đính kèm'}
+              </Text>
+              <Text style={styles.fileSubText}>
+                {isDownloading ? 'Đang tải...' : 'Nhấn để tải về'}
+              </Text>
+            </View>
+
+            <View style={styles.downloadIconBox}>
+              {isDownloading ? (
+                <Loading size="small" color="#667eea" />
+              ) : (
+                <Download size={moderateScale(20)} color="#6b7280" />
+              )}
+            </View>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Footer */}
@@ -326,6 +470,41 @@ const styles = StyleSheet.create({
   videoContainer: {
     borderRadius: moderateScale(12),
     overflow: 'hidden',
+  },
+  fileContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6', // Màu nền nhẹ
+    borderRadius: moderateScale(12),
+    padding: scale(12),
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  fileIconBox: {
+    width: moderateScale(40),
+    height: moderateScale(40),
+    borderRadius: moderateScale(8),
+    backgroundColor: '#e0e7ff', // Màu nền icon (tím nhạt)
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: scale(12),
+  },
+  fileInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  fileName: {
+    fontSize: moderateScale(14),
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: verticalScale(2),
+  },
+  fileSubText: {
+    fontSize: moderateScale(12),
+    color: '#6b7280',
+  },
+  downloadIconBox: {
+    padding: scale(4),
   },
   footer: {
     flexDirection: 'row',

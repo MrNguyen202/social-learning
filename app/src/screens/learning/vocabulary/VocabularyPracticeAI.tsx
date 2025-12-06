@@ -478,7 +478,10 @@ import { ProgressBar } from './components/ProgressBar';
 import LivesIndicator from './components/LivesIndicator';
 import ExerciseItem from './components/ExerciseItem';
 import OutOfLivesModal from './components/OutOfLivesModal';
-import { deductSnowflakeFromUser, getScoreUserByUserId } from '../../../api/learning/score/route';
+import {
+  deductSnowflakeFromUser,
+  getScoreUserByUserId,
+} from '../../../api/learning/score/route';
 import { deleteNotificationLearning } from '../../../api/notification/route';
 
 // --- Hàm tiện ích ---
@@ -522,6 +525,7 @@ export default function VocabularyPracticeAI() {
   const [wrongPile, setWrongPile] = useState<any[]>([]);
   const [implicitlyHardWords, setImplicitlyHardWords] = useState<string[]>([]);
   const [graduationType, setGraduationType] = useState<string | null>(null);
+  const nextTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Lưu các ID đặc biệt (Review/Mastery)
   const [reviewContext, setReviewContext] = useState<{
@@ -619,8 +623,21 @@ export default function VocabularyPracticeAI() {
       setProgress(((current + 1) / exercises.length) * 100);
   }, [current, exercises]);
 
+  useEffect(() => {
+    return () => {
+      if (nextTimeoutRef.current) {
+        clearTimeout(nextTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // 3. Logic Handle Next (Bao gồm Logic Tốt nghiệp)
   const handleNext = async () => {
+    if (nextTimeoutRef.current) {
+      clearTimeout(nextTimeoutRef.current);
+      nextTimeoutRef.current = null;
+    }
+
     setFeedbackStatus(null);
 
     if (current < exercises.length - 1) {
@@ -739,12 +756,16 @@ export default function VocabularyPracticeAI() {
   };
 
   const handleCheck = (isCorrect: boolean, correctAnswer: string) => {
+    if (nextTimeoutRef.current) clearTimeout(nextTimeoutRef.current);
+
     if (isCorrect) {
       setFeedbackStatus({
         status: 'correct',
         correctAnswer: correctAnswer,
       });
-      setTimeout(handleNext, PRACTICE_DELAY.CORRECT);
+      nextTimeoutRef.current = setTimeout(() => {
+        handleNext();
+      }, PRACTICE_DELAY.CORRECT);
       return;
     }
 
@@ -771,7 +792,9 @@ export default function VocabularyPracticeAI() {
         status: 'incorrect',
         correctAnswer: correctAnswer,
       });
-      setTimeout(handleNext, PRACTICE_DELAY.INCORRECT);
+      nextTimeoutRef.current = setTimeout(() => {
+        handleNext();
+      }, PRACTICE_DELAY.INCORRECT);
     }
   };
 
@@ -890,6 +913,7 @@ export default function VocabularyPracticeAI() {
 
           <View style={styles.exerciseItemContainer}>
             <ExerciseItem
+              key={currentExercise?.id || current}
               exercise={currentExercise}
               onCheck={handleCheck}
               isChecking={feedbackStatus !== null || showOutOfLivesModal}
