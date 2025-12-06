@@ -69,7 +69,7 @@ export default function page() {
           <CardTitle className="text-3xl">
             {t("dashboard.achievementsGamification")}
           </CardTitle>
-          <Button onClick={handleCreate} className="cursor-pointer">
+          <Button onClick={handleCreate} className="bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 cursor-pointer">
             <Plus className="w-4 h-4 mr-2" />
             {t("dashboard.createNew")}
           </Button>

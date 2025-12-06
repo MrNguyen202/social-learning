@@ -14,4 +14,6 @@ router.get("/vocabulary-overview", analyticsController.loadVocabularyOverview);
 
 router.get("/vocabulary-topics", analyticsController.loadVocabularyTopics);
 
+router.get("/revenue-trends", analyticsController.getRevenueAnalytics);
+
 module.exports = router;

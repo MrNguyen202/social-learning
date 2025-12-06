@@ -73,6 +73,21 @@ const analyticsService = {
     if (error) return { data: null, error };
     return { data, error: null };
   },
+
+  async getRevenueAnalytics(fromDate, toDate) {
+    const { data, error } = await supabase.rpc("get_revenue_analytics", {
+      from_date_filter: fromDate || null,
+      to_date_filter: toDate || null,
+    });
+
+    if (error) {
+      console.error("RPC Error:", error);
+      return { success: false, message: error.message };
+    }
+    console.log("Revenue Data:", data);
+
+    return { success: true, data: data };
+  },
 };
 
 module.exports = analyticsService;

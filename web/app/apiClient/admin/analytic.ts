@@ -33,3 +33,10 @@ export const loadVocabularyTopics = async () => {
   const response = await api.get("/api/admin/analytics/vocabulary-topics");
   return response.data;
 };
+
+export const loadRevenueTrends = async ({ fromDate, toDate }: any) => {
+  const response = await api.get("/api/admin/analytics/revenue-trends", {
+    params: { fromDate, toDate },
+  });
+  return response.data;
+}

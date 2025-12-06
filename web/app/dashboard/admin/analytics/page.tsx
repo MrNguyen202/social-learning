@@ -27,10 +27,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "react-toastify";
 import {
   loadAnalyticOverview,
   loadLeaderboard,
+  loadRevenueTrends,
   loadSkillBreakdown,
 } from "@/app/apiClient/admin/analytic";
 import { useLanguage } from "@/components/contexts/LanguageContext";
@@ -46,12 +48,25 @@ import {
   Area,
   Legend,
 } from "recharts";
-import { Users, TrendingUp, Award, Calendar, Gift } from "lucide-react";
+import {
+  Users,
+  TrendingUp,
+  Award,
+  Calendar,
+  Gift,
+  DollarSign,
+} from "lucide-react";
 import { getUserImageSrc } from "@/app/apiClient/image/image";
 
 type AnalyticsData = {
   date: string;
   user_count: number;
+};
+
+type RevenueData = {
+  date: string;
+  revenue: number;
+  displayDate?: string;
 };
 
 type SkillData = {
@@ -71,14 +86,14 @@ type LeaderboardEntry = {
   score: number;
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label, unit = "" }: any) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-3 border border-slate-200 shadow-lg rounded-lg text-sm">
         <p className="font-bold text-slate-700 mb-1">{label}</p>
         {payload.map((entry: any, index: number) => (
           <p key={index} style={{ color: entry.color }} className="font-medium">
-            {entry.name}: {entry.value}
+            {entry.name}: {entry.value.toLocaleString()} {unit}
           </p>
         ))}
       </div>
@@ -91,13 +106,16 @@ export default function AnalyticsPage() {
   const { t } = useLanguage();
   const [fromDate, setFromDate] = useState<string | null>(null);
   const [toDate, setToDate] = useState<string | null>(null);
+
   const [analyticsData, setAnalyticsData] = useState<any[]>([]);
+  const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
   const [skillData, setSkillData] = useState<SkillData[]>([]);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>(
     []
   );
 
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [revenueLoading, setRevenueLoading] = useState(true);
   const [skillLoading, setSkillLoading] = useState(true);
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
 
@@ -139,18 +157,24 @@ export default function AnalyticsPage() {
 
   const fetchAnalytics = useCallback(async () => {
     setAnalyticsLoading(true);
+    setRevenueLoading(true);
     try {
-      const response = await loadAnalyticOverview({
+      const params = {
         fromDate: fromDate || undefined,
         toDate: toDate || undefined,
-      });
-      if (response.success) {
-        const sortedData = response.data.sort(
+      };
+
+      const [userResponse, revenueResponse] = await Promise.all([
+        loadAnalyticOverview(params),
+        loadRevenueTrends(params),
+      ]);
+
+      if (userResponse.success) {
+        const sortedData = userResponse.data.sort(
           (a: AnalyticsData, b: AnalyticsData) => {
             return new Date(a.date).getTime() - new Date(b.date).getTime();
           }
         );
-
         const formattedData = sortedData.map((item: AnalyticsData) => ({
           ...item,
           displayDate: new Date(item.date).toLocaleDateString("vi-VN", {
@@ -160,12 +184,31 @@ export default function AnalyticsPage() {
         }));
         setAnalyticsData(formattedData);
       } else {
-        toast.error(response.message);
+        toast.error(userResponse.message);
+      }
+
+      if (revenueResponse.success) {
+        const sortedRevenue = revenueResponse.data.sort(
+          (a: RevenueData, b: RevenueData) => {
+            return new Date(a.date).getTime() - new Date(b.date).getTime();
+          }
+        );
+        const formattedRevenue = sortedRevenue.map((item: RevenueData) => ({
+          ...item,
+          displayDate: new Date(item.date).toLocaleDateString("vi-VN", {
+            day: "2-digit",
+            month: "2-digit",
+          }),
+        }));
+        setRevenueData(formattedRevenue);
+      } else {
+        toast.error(revenueResponse.message);
       }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
       setAnalyticsLoading(false);
+      setRevenueLoading(false);
     }
   }, [fromDate, toDate]);
 
@@ -216,92 +259,180 @@ export default function AnalyticsPage() {
 
       {/* Main Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* User Growth Chart */}
+        {/*Growth & Revenue Tabs Chart */}
         <Card className="border-0 shadow-md ring-1 ring-slate-100">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
-                <TrendingUp size={20} />
+          <Tabs defaultValue="users" className="w-full">
+            <CardHeader className="pb-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+                    <TrendingUp size={20} />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">
+                      {t("dashboard.growthOverview")}
+                    </CardTitle>
+                    <CardDescription>
+                      {t("dashboard.growthDescription")}
+                    </CardDescription>
+                  </div>
+                </div>
+
+                {/* Tabs Switcher */}
+                <TabsList className="grid w-full sm:w-[200px] grid-cols-2">
+                  <TabsTrigger value="users">
+                    {t("dashboard.users")}
+                  </TabsTrigger>
+                  <TabsTrigger value="revenue">
+                    {t("dashboard.revenue")}
+                  </TabsTrigger>
+                </TabsList>
               </div>
-              <div>
-                <CardTitle className="text-lg">
-                  {t("dashboard.userGrowth")}
-                </CardTitle>
-                <CardDescription>
-                  {t("dashboard.userGrowthDescription")}
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-6 pt-2">
-            {analyticsLoading ? (
-              <Skeleton className="h-[300px] w-full rounded-xl" />
-            ) : analyticsData.length === 0 ? (
-              <div className="h-[300px] flex items-center justify-center text-slate-400">
-                {t("dashboard.noData")}
-              </div>
-            ) : (
-              <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={analyticsData}
-                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                  >
-                    <defs>
-                      <linearGradient
-                        id="colorUsers"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
+            </CardHeader>
+
+            <CardContent className="p-6 pt-2">
+              {/* TAB 1: USERS */}
+              <TabsContent value="users" className="mt-0">
+                {analyticsLoading ? (
+                  <Skeleton className="h-[300px] w-full rounded-xl" />
+                ) : analyticsData.length === 0 ? (
+                  <div className="h-[300px] flex items-center justify-center text-slate-400">
+                    {t("dashboard.noData")}
+                  </div>
+                ) : (
+                  <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={analyticsData}
+                        margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                       >
-                        <stop
-                          offset="5%"
-                          stopColor="#6366f1"
-                          stopOpacity={0.3}
+                        <defs>
+                          <linearGradient
+                            id="colorUsers"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#6366f1"
+                              stopOpacity={0.3}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#6366f1"
+                              stopOpacity={0}
+                            />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          vertical={false}
+                          stroke="#f1f5f9"
                         />
-                        <stop
-                          offset="95%"
-                          stopColor="#6366f1"
-                          stopOpacity={0}
+                        <XAxis
+                          dataKey="displayDate"
+                          stroke="#94a3b8"
+                          fontSize={12}
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={10}
                         />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      stroke="#f1f5f9"
-                    />
-                    <XAxis
-                      dataKey="displayDate"
-                      stroke="#94a3b8"
-                      fontSize={12}
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={10}
-                    />
-                    <YAxis
-                      stroke="#94a3b8"
-                      fontSize={12}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(value) => `${value}`}
-                    />
-                    <RechartsTooltip content={<CustomTooltip />} />
-                    <Area
-                      type="monotone"
-                      dataKey="user_count"
-                      name="New Users"
-                      stroke="#6366f1"
-                      strokeWidth={3}
-                      fillOpacity={1}
-                      fill="url(#colorUsers)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
+                        <YAxis
+                          stroke="#94a3b8"
+                          fontSize={12}
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <RechartsTooltip content={<CustomTooltip />} />
+                        <Area
+                          type="monotone"
+                          dataKey="user_count"
+                          name="New Users"
+                          stroke="#6366f1"
+                          strokeWidth={3}
+                          fillOpacity={1}
+                          fill="url(#colorUsers)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* TAB 2: REVENUE */}
+              <TabsContent value="revenue" className="mt-0">
+                {revenueLoading ? (
+                  <Skeleton className="h-[300px] w-full rounded-xl" />
+                ) : revenueData.length === 0 ? (
+                  <div className="h-[300px] flex items-center justify-center text-slate-400">
+                    {t("dashboard.noData")}
+                  </div>
+                ) : (
+                  <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={revenueData}
+                        margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="colorRevenue"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#10b981"
+                              stopOpacity={0.3}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#10b981"
+                              stopOpacity={0}
+                            />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          vertical={false}
+                          stroke="#f1f5f9"
+                        />
+                        <XAxis
+                          dataKey="displayDate"
+                          stroke="#94a3b8"
+                          fontSize={12}
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={10}
+                        />
+                        <YAxis
+                          stroke="#94a3b8"
+                          fontSize={12}
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={(value) => `${value / 1000}k`} // Format số tiền gọn
+                        />
+                        <RechartsTooltip content={<CustomTooltip unit="đ" />} />
+                        <Area
+                          type="monotone"
+                          dataKey="revenue"
+                          name="Revenue"
+                          stroke="#10b981" // Màu xanh lá cho tiền
+                          strokeWidth={3}
+                          fillOpacity={1}
+                          fill="url(#colorRevenue)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </TabsContent>
+            </CardContent>
+          </Tabs>
         </Card>
 
         {/* Skill Performance Chart */}
@@ -387,8 +518,6 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Top Performers (Leaderboard) */}
       <Card className="border-0 shadow-md ring-1 ring-slate-100 overflow-hidden">
         <CardHeader>
           <div className="flex items-center gap-2">

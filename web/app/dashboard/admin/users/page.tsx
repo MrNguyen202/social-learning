@@ -103,7 +103,7 @@ export default function Users() {
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 />
-                <Button onClick={handleSearch} size="icon">
+                <Button onClick={handleSearch} size="icon" className="bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 cursor-pointer">
                   <Search className="w-4 h-4" />
                 </Button>
               </div>
@@ -203,7 +203,7 @@ export default function Users() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleViewUser(user.id)}
-                            className="cursor-pointer hover:bg-black hover:text-white"
+                            className="cursor-pointer bg-gradient-to-r hover:text-white hover:from-orange-500 hover:to-pink-500"
                           >
                             {t("dashboard.view")}
                           </Button>

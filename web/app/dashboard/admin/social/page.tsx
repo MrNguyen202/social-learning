@@ -211,7 +211,7 @@ export default function Social() {
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 />
-                <Button onClick={handleSearch} size="icon">
+                <Button onClick={handleSearch} size="icon" className="bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 cursor-pointer">
                   <Search className="w-4 h-4" />
                 </Button>
               </div>
