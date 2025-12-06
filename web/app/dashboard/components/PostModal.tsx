@@ -251,16 +251,8 @@ export function PostModal({
             {/* Comments */}
             <div className="lg:w-[450px] md:w-[400px] xl:h-[725px] lg:h-[630px] md:h-[540px] h-[530px] border-l flex flex-col">
               {/* Header */}
-              <DialogHeader className="p-4 border-b">
+              <DialogHeader className="p-6 border-b">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={getUserImageSrc(post?.user?.avatar)} />
-                    </Avatar>
-                    <span className="font-semibold text-sm">
-                      {post?.user?.nick_name}
-                    </span>
-                  </div>
                   {post?.user?.id === userId && (
                     <div className="px-10">
                       <Button
@@ -286,9 +278,7 @@ export function PostModal({
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold">
-                        {post?.user?.nick_name}
-                      </span>
+                      <span className="font-semibold">{post?.user?.name}</span>
                       <p className="text-xs text-gray-500 mt-1">
                         {convertToDate(post?.created_at)}{" "}
                         {formatTime(post?.created_at)}
@@ -343,7 +333,7 @@ export function PostModal({
                               );
                           }}
                         >
-                          {comment?.user?.nick_name}
+                          {comment?.user?.name}
                         </span>{" "}
                         <span className="text-xs text-gray-500 ml-2">
                           {convertToDate(comment?.created_at)}{" "}
