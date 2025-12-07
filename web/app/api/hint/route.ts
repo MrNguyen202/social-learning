@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     const { lastMessage, topic, level } = await request.json();
 
     const { text: hint } = await generateText({
-      model: google("gemini-2.0-flash"),
+      model: google("gemini-2.5-flash-lite"),
       system: `Bạn là trợ lý học tiếng Anh. Người học trình độ ${level} đang nói về ${topic}.`,
       prompt: `Câu cuối cùng của AI là: "${lastMessage}". 
       Người học đang bị bí ý. Hãy gợi ý MỘT câu trả lời (bằng tiếng Anh) thật ngắn gọn và đơn giản để người học có thể nói tiếp. 

@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     ];
 
     const stream = await streamText({
-      model: google("models/gemini-2.0-flash"),
+      model: google("models/gemini-2.5-flash-lite"),
       messages: messagesForAI,
       temperature: 0.7,
       maxTokens: 1000,

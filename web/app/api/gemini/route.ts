@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     }
 
     const stream = await streamText({
-      model: google("gemini-2.0-flash"),
+      model: google("gemini-2.5-flash-lite"),
       messages: buildOptimizedPrompt(messages),
       temperature: 0.7,
       maxTokens: 1000, // Giới hạn độ dài response

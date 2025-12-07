@@ -29,6 +29,7 @@ const botCoverLearningService = {
 
     // Lưu feedback bài tập viết
     async saveWritingFeedback(data) {
+        console.log("Saving writing feedback:", data);
         const { data: insertedData, error } = await supabase
             .from("feedbackParagraphAI")
             .insert([
@@ -42,6 +43,8 @@ const botCoverLearningService = {
                 }
             ])
             .select();
+
+        console.log("Inserted feedback data:", insertedData[0]);
 
         // Lưu errors vào bảng feedbackErrors
         if (data.errors && data.errors.length > 0) {

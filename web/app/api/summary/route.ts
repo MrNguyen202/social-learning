@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       .join("\n");
 
     const { text: summary } = await generateText({
-      model: google("gemini-2.0-flash"),
+      model: google("gemini-2.5-flash-lite"),
       system:
         "Bạn là một giáo viên tiếng Anh, trả lời bằng tiếng Việt (sử dụng Markdown).",
       prompt: `Dựa vào lịch sử hội thoại sau:

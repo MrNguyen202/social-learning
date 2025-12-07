@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const { text } = await request.json();
 
     const { text: translation } = await generateText({
-      model: google("gemini-2.0-flash"),
+      model: google("gemini-2.5-flash-lite"),
       prompt: `Hãy dịch chính xác câu sau sang tiếng Việt: "${text}"`,
       temperature: 0.1,
     });

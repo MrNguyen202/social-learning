@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const { transcript, level, context } = await request.json();
 
     const { text } = await generateText({
-      model: google("models/gemini-2.0-flash"), // Dùng model nhanh nhất
+      model: google("models/gemini-2.5-flash-lite"), // Dùng model nhanh nhất
       system: "Bạn là giáo viên tiếng Anh. Trả lời bằng JSON.",
       prompt: `
         Học viên (${level}) vừa nói: "${transcript}".
