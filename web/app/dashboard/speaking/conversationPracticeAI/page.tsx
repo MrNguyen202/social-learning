@@ -35,6 +35,7 @@ import {
 } from "@/app/apiClient/learning/learning";
 import { updateLessonCompletedCount } from "@/app/apiClient/learning/roadmap/roadmap";
 import SettingsModal from "./components/SettingsModal";
+import ClickToSpeak from "../../vocabulary/components/ClickToSpeak";
 
 // Cấu hình Silence Detection
 const SILENCE_THRESHOLD = 30;
@@ -290,7 +291,7 @@ function ConversationPracticeContent() {
                   : "bg-red-50 underline decoration-red-300"
               }`}
             >
-              {word}
+              <ClickToSpeak word={word} />
             </motion.span>
           );
         })}
