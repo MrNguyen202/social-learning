@@ -242,7 +242,7 @@ export default function ConversationInfo({
                             <div className="relative group cursor-pointer">
                                 <Avatar className="w-24 h-24 mb-3 border-4 border-white shadow-sm">
                                     <AvatarImage src={conversation?.avatar} />
-                                    <AvatarFallback>{conversation.name?.[0] || "G"}</AvatarFallback>
+                                    <AvatarFallback>{conversation?.name?.[0] || "G"}</AvatarFallback>
                                 </Avatar>
 
                                 {isGroup && (
@@ -296,7 +296,7 @@ export default function ConversationInfo({
                                 <div key={member.id} className="flex items-center justify-between group">
                                     <div className="flex items-center gap-2 overflow-hidden">
                                         <Avatar className="w-8 h-8 flex-shrink-0">
-                                            <AvatarImage src={getUserImageSrc(member.avatarUrl) || undefined} />
+                                            <AvatarImage src={getUserImageSrc(member?.avatarUrl)} />
                                             <AvatarFallback>{member.name?.[0] || "U"}</AvatarFallback>
                                         </Avatar>
                                         <div className="min-w-0">

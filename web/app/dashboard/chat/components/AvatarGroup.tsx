@@ -80,10 +80,10 @@ export default function AvatarGroup({ members }: { members: Member[] }) {
                 <AvatarFallback className="bg-gray-300 w-7 h-7">{members[2]?.name?.charAt(0)}</AvatarFallback>
             </Avatar>
             {/* Bottom Right hoặc số thêm */}
-            {members.length > 4 ? (
+            {members?.length > 4 ? (
                 <div className="absolute bottom-0 right-0 w-7 h-7 bg-gray-400 flex items-center justify-center rounded-full">
                     <span className="text-white text-xs font-bold">
-                        +{members.length - 3}
+                        +{members?.length - 3}
                     </span>
                 </div>
             ) : (
