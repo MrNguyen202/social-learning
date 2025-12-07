@@ -282,7 +282,7 @@ const botCoverLearningController = {
     );
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemma-3-27b-it" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
       const result = await model.generateContent(prompt);
       const text = result.response.text();
       // Lọc JSON thuần từ Gemini
