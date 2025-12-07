@@ -24,7 +24,7 @@ export function useRealtimePersonalVocab() {
           response.success &&
           response.message !== "User has no vocabularies..."
         ) {
-          console.log("Topics generated successfully");
+          return;
         }
       } catch (error) {
         console.error(error);

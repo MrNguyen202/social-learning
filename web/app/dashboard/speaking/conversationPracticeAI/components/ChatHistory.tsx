@@ -42,7 +42,7 @@ export default function ChatHistory({
         behavior: "smooth",
       });
     }
-  }, [currentIndex, isAITyping, isAISpeaking, detailedResult]);
+  }, [currentIndex, isAITyping, dialogue.length, detailedResult]);
 
   return (
     <div className="flex-1 overflow-y-auto px-2 sm:px-4" ref={chatContainerRef}>

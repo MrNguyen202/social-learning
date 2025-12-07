@@ -104,7 +104,7 @@ const botCoverLearningController = {
     );
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+      const model = genAI.getGenerativeModel({ model: "gemma-3-27b-it" });
       const result = await model.generateContent(prompt);
 
       const text = result.response.text();
@@ -168,7 +168,7 @@ const botCoverLearningController = {
     const prompt = promptGenerateListening(level.name_vi, topic.name_vi);
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+      const model = genAI.getGenerativeModel({ model: "gemma-3-27b-it" });
       const result = await model.generateContent(prompt);
 
       const text = result.response.text();
@@ -282,7 +282,7 @@ const botCoverLearningController = {
     );
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+      const model = genAI.getGenerativeModel({ model: "gemma-3-27b-it" });
       const result = await model.generateContent(prompt);
       const text = result.response.text();
       // Lọc JSON thuần từ Gemini
@@ -327,7 +327,7 @@ const botCoverLearningController = {
     const prompt = promptGenerateSpeaking(level.name_vi, topic.name_vi);
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+      const model = genAI.getGenerativeModel({ model: "gemma-3-27b-it" });
       const result = await model.generateContent(prompt);
 
       const text = result.response.text();
@@ -374,7 +374,7 @@ const botCoverLearningController = {
     const prompt = promptGeneratePersonalWord(word);
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+      const model = genAI.getGenerativeModel({ model: "gemma-3-27b-it" });
       const result = await model.generateContent(prompt);
 
       const text = result.response.text();
@@ -453,7 +453,7 @@ const botCoverLearningController = {
     );
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+      const model = genAI.getGenerativeModel({ model: "gemma-3-27b-it" });
       const result = await model.generateContent(prompt);
 
       const text = result.response.text();
@@ -499,7 +499,7 @@ const botCoverLearningController = {
     const prompt = promptGenerateWordsPractice(words);
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+      const model = genAI.getGenerativeModel({ model: "gemma-3-27b-it" });
       const result = await model.generateContent(prompt);
 
       const text = result.response.text();
@@ -576,7 +576,7 @@ const botCoverLearningController = {
     const prompt = promptGenerateTopicSpeaking(topic.name_vi);
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+      const model = genAI.getGenerativeModel({ model: "gemma-3-27b-it" });
       const result = await model.generateContent(prompt);
 
       const text = result.response.text();

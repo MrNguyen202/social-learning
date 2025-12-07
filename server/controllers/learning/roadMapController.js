@@ -67,7 +67,7 @@ const roadMapController = {
             // Sinh prompt mới
             const prompt = generateRoadMap(input, profileUser, exerciseList);
 
-            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+            const model = genAI.getGenerativeModel({ model: "gemma-3-27b-it" });
             const result = await model.generateContent(prompt);
             const text = result.response.text();
 
