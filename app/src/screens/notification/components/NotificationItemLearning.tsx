@@ -36,8 +36,6 @@ const NotificationItemLearning = ({ item, navigation, onRead }: any) => {
           personalVocabId: item.personalVocabId,
         });
 
-        console.log('Res ôn tập từ vựng:', res);
-
         if (res.data) {
           // Chuẩn bị dữ liệu từ vựng (dạng mảng)
           const wordsArray = Array.isArray(res.data.word)

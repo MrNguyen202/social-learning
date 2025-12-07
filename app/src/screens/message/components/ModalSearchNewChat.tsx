@@ -100,8 +100,6 @@ export default function ModalSearchNewChat({ visible, onClose }: ModalSearchNewC
     );
   }, [activeTab, followingList, followersList, searchTerm]);
 
-  console.log("Display List:", displayList);
-
   // 3. Handle Click User
   const handleUserClick = async (targetUser: any) => {
     if (!user || processing) return;

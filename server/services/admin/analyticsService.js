@@ -84,7 +84,6 @@ const analyticsService = {
       console.error("RPC Error:", error);
       return { success: false, message: error.message };
     }
-    console.log("Revenue Data:", data);
 
     return { success: true, data: data };
   },

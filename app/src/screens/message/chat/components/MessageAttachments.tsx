@@ -17,7 +17,6 @@ interface MessageAttachmentsProps {
 }
 
 export default function MessageAttachments({ images, file }: MessageAttachmentsProps) {
-  console.log("Attachments:", images, file);
   const renderFile = () => {
     if (!file) return null;
 
