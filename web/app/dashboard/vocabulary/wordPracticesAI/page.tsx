@@ -76,6 +76,7 @@ export default function WordPracticeAI() {
   // State cho SRS (lưu các từ đã từng làm sai)
   const [implicitlyHardWords, setImplicitlyHardWords] = useState<string[]>([]);
   const isFinishedRef = useRef(false);
+  const wrongPileRef = useRef<any[]>([]);
 
   const update_mastery_on_success = async (userId: string, word: string) => {
     await updateMasteryScoreRPC({ userId, word });
@@ -87,6 +88,10 @@ export default function WordPracticeAI() {
       setWords(data ? JSON.parse(data) : []);
     }
   }, []);
+
+  useEffect(() => {
+    wrongPileRef.current = wrongPile;
+  }, [wrongPile]);
 
   // Gọi API
   useEffect(() => {
@@ -123,6 +128,7 @@ export default function WordPracticeAI() {
 
     if (current < exercises.length - 1) {
       setCurrent((c) => c + 1);
+      return;
     } else {
       if (isFinishedRef.current) return;
       isFinishedRef.current = true; // Khóa lại ngay lập tức
@@ -139,10 +145,13 @@ export default function WordPracticeAI() {
       // Lấy điểm
       const score = parseInt(firstGraduationScore || "0", 10);
 
+      // Kiểm tra số câu sai bằng REF (đảm bảo chính xác nhất)
+      const currentWrongPile = wrongPileRef.current;
+
       // ------------------------------------
       //  USER THẤT BẠI (có wrongPile)
       // ------------------------------------
-      if (wrongPile.length > 0) {
+      if (currentWrongPile.length > 0) {
         if (reviewGraduationId) {
           // Thất bại "Luyện tập Tái tốt nghiệp" (7 ngày)
           // -> Reset điểm thông thạo về 70%
@@ -158,13 +167,14 @@ export default function WordPracticeAI() {
         }
         // Bắt đầu Vòng lặp Thử thách
         toast.info(
-          `Bắt đầu vòng thử thách! Bạn sẽ làm lại ${wrongPile.length} câu đã sai.`,
+          `Bắt đầu vòng thử thách! Bạn sẽ làm lại ${currentWrongPile.length} câu đã sai.`,
           { autoClose: 3000 }
         );
-        setExercises(shuffle(wrongPile)); // Lấy các câu sai, xáo trộn
+        setExercises(shuffle([...currentWrongPile])); // Lấy các câu sai, xáo trộn
         setWrongPile([]); // Xóa pile cũ
         setCurrent(0); // Bắt đầu lại từ câu 0
         setLoading(false);
+        isFinishedRef.current = false; // Mở khóa cho vòng mới
         return;
       } else {
         // ------------------------------------

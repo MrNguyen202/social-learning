@@ -85,10 +85,10 @@ export default function SpeakingPage() {
   //   setShowByLesson(true);
   // };
 
-  const handleConversationRealTimeAI_Click = () => {
-    setPendingAction(() => executeConversationRealTimeAI);
-    setShowByLesson(true);
-  };
+  // const handleConversationRealTimeAI_Click = () => {
+  //   setPendingAction(() => executeConversationRealTimeAI);
+  //   setShowByLesson(true);
+  // };
 
   const handleClearSelection = () => {
     setSelectedLevel(null);
@@ -310,7 +310,7 @@ export default function SpeakingPage() {
                       </Button>
                       {user && user.premium_expire_date != null ? (
                         <Button
-                          onClick={handleConversationRealTimeAI_Click}
+                          onClick={executeConversationRealTimeAI}
                           disabled={loading}
                           className="flex-1 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white cursor-pointer"
                         >

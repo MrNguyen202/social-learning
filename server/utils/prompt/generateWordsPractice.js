@@ -110,7 +110,7 @@ Yêu cầu:
 14. Ở loại "multiple_choice", hãy cố gắng tạo cả câu hỏi Anh-Việt (ví dụ: 'develop' nghĩa là gì?) và Việt-Anh (ví dụ: 'Phát triển' là gì?).
 15. Ở loại "word_build":
     - "letters" là mảng ký tự a–z, khoảng 5-20 ký tự tùy vào độ dài từ "answer".
-    - Lưu ý: Phải bao gồm *tất cả* các ký tự trong "answer", *kể cả các ký tự lặp lại* (ví dụ: 'always' phải cung cấp 2 chữ 'a', 'develop' phải cung cấp 2 chữ 'e'), và thêm 3–5 ký tự nhiễu.
+    - Lưu ý: Phải bao gồm *tất cả* các ký tự trong "answer", *kể cả các ký tự lặp lại* (ví dụ: 'always' phải cung cấp 2 chữ 'a', 'weekend' phải cung cấp 3 chữ 'e'), và thêm 3–5 ký tự nhiễu.
     - Thứ tự các ký tự được xáo trộn ngẫu nhiên.
     - "hint" là nghĩa tiếng Việt của từ "answer" để gợi ý.
 16. Mỗi từ trong danh sách chỉ được xuất hiện tối đa một lần trong loại "word_build".
