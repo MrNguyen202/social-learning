@@ -4,7 +4,7 @@ let socket = null;
 
 export const getSocket = () => {
     if (!socket && typeof window !== "undefined") {
-        socket = io("https://api.socialonlinelearning.tech", {
+        socket = io("http://localhost:5000", {
             transports: ["websocket"],
             reconnection: true,
             reconnectionAttempts: 5,

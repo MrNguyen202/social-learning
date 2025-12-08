@@ -9,7 +9,7 @@ const app = express();
 // Middleware
 const corsOptions = {
   // Add your allowed origins here
-  origin: ['https://www.socialonlinelearning.tech', 'https://socialonlinelearning.tech'],
+  origin: ['https://www.socialonlinelearning.tech', 'https://socialonlinelearning.tech', 'http://localhost:3000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Add OPTIONS
   credentials: true,
 };
