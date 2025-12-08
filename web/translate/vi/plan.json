@@ -47,11 +47,15 @@
         "expiresIn": "Hết hạn trong",
         "expired": "Mã đã hết hạn",
         "newCode": "Tạo mã thanh toán mới",
-        "startNow": "Bắt đầu sử dụng ngay"
+        "startNow": "Bắt đầu sử dụng ngay",
+        "cancelTitle": "Hủy thanh toán?",
+        "cancelDesc": "Bạn có chắc muốn hủy thanh toán này?"
     },
     "planName": "Tên gói",
     "back": "Quay lại",
     "common": {
-        "retry": "Quay lại tạo giao dịch mới"
+        "retry": "Quay lại tạo giao dịch mới",
+        "stay": "Ở lại",
+        "exit": "Thoát"
     }
 }

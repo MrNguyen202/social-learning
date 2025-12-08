@@ -21,7 +21,7 @@ interface Props {
     userId: string;
 }
 
-const skillsList = ['Writing', 'Listening', 'Speaking', 'Vocabulary'];
+const skillsList = ['Writing', 'Listening', 'Speaking'];
 
 const goalList = [
     'Đọc hiểu tài liệu chuyên ngành',
@@ -177,7 +177,7 @@ const CreatePathModal = ({ visible, onClose, userId }: Props) => {
                 <View style={styles.modalContent}>
                     {/* Header */}
                     <LinearGradient
-                        colors={['#6366f1', '#4f46e5']}
+                        colors={['#d11dce', '#6366f1']}
                         style={styles.header}
                     >
                         <TouchableOpacity
@@ -222,7 +222,7 @@ const CreatePathModal = ({ visible, onClose, userId }: Props) => {
                                 <Text style={styles.label}>
                                     Chọn kỹ năng muốn cải thiện
                                 </Text>
-                                <View style={styles.skillsGrid}>
+                                <View className='gird grid-cols-1 gap-4'>
                                     {skillsList.map((skill) => (
                                         <TouchableOpacity
                                             key={skill}
@@ -234,25 +234,32 @@ const CreatePathModal = ({ visible, onClose, userId }: Props) => {
                                             activeOpacity={0.8}
                                         >
                                             <View style={styles.checkboxContainer}>
-                                                <View
-                                                    style={[
-                                                        styles.checkbox,
-                                                        skills.includes(skill) && styles.checkboxActive,
-                                                    ]}
-                                                >
-                                                    {skills.includes(skill) && (
-                                                        <Check size={16} color="#fff" />
-                                                    )}
+                                                <View className='flex flex-row gap-2'>
+                                                    <View
+                                                        style={[
+                                                            styles.checkbox,
+                                                            skills.includes(skill) && styles.checkboxActive,
+                                                        ]}
+                                                    >
+                                                        {skills.includes(skill) && (
+                                                            <Check size={16} color="#fff" />
+                                                        )}
+                                                    </View>
+                                                    <Text
+                                                        style={[
+                                                            styles.skillButtonText,
+                                                            skills.includes(skill) &&
+                                                            styles.skillButtonTextActive,
+                                                        ]}
+                                                    >
+                                                        {skill}
+                                                    </Text>
                                                 </View>
-                                                <Text
-                                                    style={[
-                                                        styles.skillButtonText,
-                                                        skills.includes(skill) &&
-                                                        styles.skillButtonTextActive,
-                                                    ]}
-                                                >
-                                                    {skill}
-                                                </Text>
+                                                <View>
+                                                    <Text className='text-xl'>
+                                                        {skill === 'Writing' ? '✍️' : skill === 'Listening' ? '👂' : skill === 'Speaking' ? '🗣️' : '🎯'}
+                                                    </Text>
+                                                </View>
                                             </View>
                                         </TouchableOpacity>
                                     ))}
@@ -518,11 +525,6 @@ const styles = StyleSheet.create({
         color: '#1f2937',
         backgroundColor: '#fff',
     },
-    skillsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
-    },
     skillButton: {
         flex: 1,
         minWidth: '45%',
@@ -539,6 +541,7 @@ const styles = StyleSheet.create({
     checkboxContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
         gap: 8,
     },
     checkbox: {
@@ -564,7 +567,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     optionsList: {
-        gap: 12,
+        gap: 8,
     },
     optionButton: {
         backgroundColor: '#fff',

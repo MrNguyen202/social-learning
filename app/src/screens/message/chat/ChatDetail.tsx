@@ -8,17 +8,15 @@ import {
 } from '../../../api/chat/message/route';
 import MessageSender from './components/MessageSender';
 import MessageReceiver from './components/MessageReceiver';
-import { hp } from '../../../../helpers/common';
 import {
   ArrowLeft,
   Info,
-  Paperclip,
   Phone,
   Smile,
-  Video,
   Send,
-  MessageSquare,
-  Users,
+  Image,
+  Mic,
+  Ellipsis,
 } from 'lucide-react-native';
 import {
   Text,
@@ -29,11 +27,14 @@ import {
   SafeAreaView,
   StyleSheet,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { checkUserOnline } from '../../../api/user/route';
 import Toast from 'react-native-toast-message';
+import MessageSystem from './components/MessageSystem';
 
 const ChatDetail = () => {
   const route = useRoute<any>();
@@ -200,7 +201,7 @@ const ChatDetail = () => {
     };
 
     socket.emit('startCall', callPayload);
-    
+
     navigation.navigate('ConferenceCall', {
       userID: user?.id,
       conferenceID: conversation?.id,
@@ -230,147 +231,118 @@ const ChatDetail = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-[#f9fafb]">
+      {/* Header Gradient */}
       <LinearGradient
         colors={['#667eea', '#764ba2']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.headerGradient}
+        className="px-5 pt-3 pb-5"
       >
-        <View style={styles.headerContent}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-            activeOpacity={0.8}
-          >
+        {/* ... (Header code giữ nguyên từ câu trả lời trước, chỉ lưu ý dùng className) ... */}
+        <View className="flex-row items-center justify-between">
+          {/* Back Button */}
+          <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 rounded-full bg-white/20 items-center justify-center">
             <ArrowLeft size={24} color="#fff" />
           </TouchableOpacity>
 
-          <View style={styles.headerCenter}>
-            <View style={styles.headerInfo}>
-              <Text style={styles.headerTitle} numberOfLines={1}>
-                {getConversationName()}
-              </Text>
-
-              {loadingStatus ? (
-                <ActivityIndicator
-                  size="small"
-                  color="#ffffff"
-                  style={{ alignSelf: 'flex-start' }}
-                />
-              ) : conversation?.type === 'private' ? (
-                <View style={styles.statusContainer}>
-                  <View
-                    style={[
-                      styles.statusDot,
-                      onlineStatus ? styles.statusOnline : styles.statusOffline,
-                    ]}
-                  />
-                  <Text style={styles.headerSubtitle}>
-                    {onlineStatus
-                      ? 'Đang hoạt động'
-                      : offlineTime || 'Ngoại tuyến'}
-                  </Text>
-                </View>
-              ) : getMemberCount() ? (
-                <Text style={styles.headerSubtitle}>
-                  {getMemberCount()} thành viên
-                </Text>
-              ) : null}
-            </View>
+          {/* Title */}
+          <View className="flex-1 ml-4">
+            <Text className="text-lg font-bold text-white" numberOfLines={1}>{getConversationName()}</Text>
+            {onlineStatus && <Text className="text-xs text-green-300">Đang hoạt động</Text>}
           </View>
 
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handleStartCall}
-              activeOpacity={0.8}
-            >
+          {/* Call Button */}
+          <View className="flex-row items-center space-x-3 gap-4">
+            <TouchableOpacity onPress={handleStartCall} className="w-10 h-10 rounded-full bg-white/15 items-center justify-center">
               <Phone size={20} color="#fff" />
             </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => console.log('Info clicked')}
-              activeOpacity={0.8}
-            >
+            <TouchableOpacity onPress={() => navigation.navigate('ConversationInfo', { conversationId: conversation?.id })} className="w-10 h-10 rounded-full bg-white/15 items-center justify-center">
               <Info size={20} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>
       </LinearGradient>
 
-      <View style={styles.content}>
-        <FlatList
-          data={messages}
-          keyExtractor={item => item?._id}
-          renderItem={({ item }) => (
-            <View key={item?._id} style={styles.messageContainer}>
-              {item?.senderId === user?.id ? (
-                <MessageSender message={item} />
-              ) : (
-                <MessageReceiver message={item} />
-              )}
-            </View>
-          )}
-          inverted
-          contentContainerStyle={styles.messagesList}
-          showsVerticalScrollIndicator={false}
-        />
+      {/* Body Chat */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        className="flex-1"
+      >
+        <View className="flex-1 bg-white -mt-3 rounded-t-3xl overflow-hidden">
+          <FlatList
+            data={messages}
+            // Quan trọng: Inverted giúp tin nhắn mới nhất nằm dưới đáy, cuộn lên để xem tin cũ
+            inverted
+            keyExtractor={item => item?._id}
+            renderItem={({ item, index }) => {
+              const isMe = item?.senderId === user?.id;
+              const prevMessage = messages[index + 1]; // Vì inverted nên index+1 là tin cũ hơn
+              const nextMessage = messages[index - 1]; // index-1 là tin mới hơn
 
-        {/* Input area (Giữ nguyên) */}
-        <View style={styles.inputSection}>
-          <View style={styles.inputContainer}>
-            <View style={styles.inputRow}>
-              <TouchableOpacity
-                onPress={() => console.log('Smile clicked')}
-                style={styles.inputButton}
-                activeOpacity={0.8}
-              >
-                <Smile size={20} color="#9ca3af" />
-              </TouchableOpacity>
+              const isLastInSequence = !nextMessage || nextMessage.senderId !== item.senderId;
+              const showAvatar = !prevMessage || prevMessage.senderId !== item.senderId;
+              const showTimestamp = isLastInSequence;
 
-              <TouchableOpacity
-                onPress={() => console.log('Paperclip clicked')}
-                style={styles.inputButton}
-                activeOpacity={0.8}
-              >
-                <Paperclip size={20} color="#9ca3af" />
-              </TouchableOpacity>
+              if (item.content.type === "system") {
+                return <MessageSystem message={item.content} />;
+              }
+
+              return (
+                <View className="px-4 py-0.5">
+                  {isMe ? (
+                    <MessageSender
+                      message={item}
+                      showTimestamp={showTimestamp}
+                      isLastInSequence={isLastInSequence}
+                    />
+                  ) : (
+                    <MessageReceiver
+                      message={item}
+                      showAvatar={showAvatar}
+                      showTimestamp={showTimestamp}
+                    />
+                  )}
+                </View>
+              );
+            }}
+            contentContainerStyle={{ paddingVertical: 16 }}
+            showsVerticalScrollIndicator={false}
+            // Logic load more
+            onEndReached={() => {
+              // Gọi hàm load tin nhắn cũ hơn ở đây
+              // loadMoreMessages(); 
+            }}
+          />
+
+          {/* Input Bar */}
+          <View className="p-3 border-t border-gray-100 bg-white shadow-sm pb-5">
+            {/* Phần này copy từ code ChatDetail.tsx trước đó, dùng className */}
+            <View className="flex-row items-center bg-gray-100 rounded-3xl px-2 py-1 border border-gray-200">
+              <TouchableOpacity className="p-2"><Smile size={24} color="#9ca3af" /></TouchableOpacity>
 
               <TextInput
                 placeholder="Nhập tin nhắn..."
-                style={styles.textInput}
+                className="flex-1 text-base max-h-24 text-gray-800"
+                multiline
                 value={text}
                 onChangeText={setText}
-                onKeyPress={e => {
-                  if (e.nativeEvent.key === 'Enter') {
-                    e.preventDefault?.();
-                    handleSendMessage();
-                  }
-                }}
-                placeholderTextColor="#9ca3af"
-                multiline
-                maxLength={1000}
               />
 
-              <TouchableOpacity
-                onPress={handleSendMessage}
-                style={[
-                  styles.sendButton,
-                  text.trim()
-                    ? styles.sendButtonActive
-                    : styles.sendButtonInactive,
-                ]}
-                disabled={!text.trim()}
-                activeOpacity={0.8}
-              >
-                <Send size={18} color={text.trim() ? '#fff' : '#9ca3af'} />
-              </TouchableOpacity>
+              {text.trim() ? (
+                <TouchableOpacity onPress={handleSendMessage} className="bg-blue-600 w-9 h-9 rounded-full items-center justify-center ml-2">
+                  <Send size={18} color="white" />
+                </TouchableOpacity>
+              ) : (
+                <View className="flex-row">
+                  <TouchableOpacity className="p-2"><Mic size={24} color="#9ca3af" /></TouchableOpacity>
+                  <TouchableOpacity className="p-2"><Image size={24} color="#9ca3af" /></TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -470,7 +442,7 @@ const styles = StyleSheet.create({
   // Input (Giữ nguyên)
   inputSection: {
     backgroundColor: '#ffffff',
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6',
@@ -485,13 +457,13 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    paddingHorizontal: 4,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
   },
   inputRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
+    alignItems: 'center',
+    gap: 2,
   },
   inputButton: {
     width: 36,
@@ -503,12 +475,12 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 2,
     paddingVertical: 8,
     fontSize: 16,
     color: '#374151',
     maxHeight: 100,
-    textAlignVertical: 'top',
+    textAlignVertical: 'center',
   },
   sendButton: {
     width: 36,

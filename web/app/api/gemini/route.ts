@@ -22,7 +22,7 @@ const buildOptimizedPrompt = (messages: Message[]): Message[] => {
   // Tạo system message
   const systemMessage: Message = {
     id: generateId(),
-    role: "system",
+    role: "user",
     content: SYSTEM_PROMPT,
   };
 
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     }
 
     const stream = await streamText({
-      model: google("gemini-2.0-flash"),
+      model: google("gemma-3-27b-it"),
       messages: buildOptimizedPrompt(messages),
       temperature: 0.7,
       maxTokens: 1000, // Giới hạn độ dài response

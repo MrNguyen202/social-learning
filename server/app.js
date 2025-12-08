@@ -7,12 +7,19 @@ const loggerMiddleware = require("./middlewares/loggerMiddleware");
 const app = express();
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  // Add your allowed origins here
+  origin: ['https://www.socialonlinelearning.tech', 'https://socialonlinelearning.tech'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Add OPTIONS
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 // app.use(express.json());
 app.use(morgan("dev"));
 
-// Tăng giới hạn payload - ĐẶT TRƯỚC KHI DEFINE ROUTES
+// Increase payload size limit
 app.use(
   express.json({
     limit: "50mb",
@@ -29,7 +36,7 @@ app.use(
   })
 );
 
-// Error handling cho payload quá lớn
+// Error handling for payload too large
 app.use((error, req, res, next) => {
   if (error.type === "entity.too.large") {
     return res.status(413).json({
@@ -41,12 +48,12 @@ app.use((error, req, res, next) => {
   next(error);
 });
 
-// hệ thống ghi log
+// Logging system
 app.use(loggerMiddleware);
 
 // Routes
 
-// Error handler đặt cuối
+// Error handler placed at the end
 app.use(errorHandler);
 
 module.exports = app;

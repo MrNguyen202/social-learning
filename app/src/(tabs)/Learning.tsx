@@ -110,11 +110,6 @@ const LearningTab = () => {
           >
             <item.icon size={28} color={item.color} />
           </View>
-          {item.special && (
-            <View style={styles.hotBadge}>
-              <Text style={styles.hotBadgeText}>HOT</Text>
-            </View>
-          )}
         </View>
 
         <Text style={styles.cardTitle}>{item.label}</Text>
@@ -261,7 +256,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   statsCardText: {
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(12),
     fontWeight: '600',
     color: '#374151',
     marginTop: verticalScale(8),

@@ -28,7 +28,7 @@ module.exports = {
 
     // Gọi Gemini
     const prompt = promptGenerateTopicVocab(words, existingTopics);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemma-3-27b-it" });
     const result = await model.generateContent(prompt);
 
     // Xử lý JSON an toàn hơn

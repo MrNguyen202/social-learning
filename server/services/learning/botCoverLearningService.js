@@ -33,8 +33,10 @@ const botCoverLearningService = {
             .from("feedbackParagraphAI")
             .insert([
                 {
-                    score: data.score,
+                    final_score: data.final_score,
                     accuracy: data.accuracy,
+                    grammar: data.grammar,
+                    vocabulary: data.vocabulary,
                     strengths: data.strengths,
                     comment: data.comment,
                 }

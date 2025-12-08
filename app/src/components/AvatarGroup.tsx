@@ -13,17 +13,17 @@ export default function AvatarGroup({ members, size }: { members: Member[], size
     if (!members || members.length === 0) return null;
 
     // Avatar group 3 người
-    if (members.length === 3) {
+    if (members?.length === 3) {
         return (
             <View style={[styles.containerAvatar3, { width: size, height: size }]}>
-                <Avatar style={[styles.avatar3, styles.top3]} uri={getUserImageSrc(members[0].avatarUrl)} />
+                <Avatar style={[styles.avatar3, styles.top3]} uri={getUserImageSrc(members[0]?.avatarUrl)} />
                 <Avatar
                     style={[styles.avatar3, styles.bottomLeft3]}
-                    uri={getUserImageSrc(members[1].avatarUrl)}
+                    uri={getUserImageSrc(members[1]?.avatarUrl)}
                 />
                 <Avatar
                     style={[styles.avatar3, styles.bottomRight3]}
-                    uri={getUserImageSrc(members[2].avatarUrl)}
+                    uri={getUserImageSrc(members[2]?.avatarUrl)}
                 />
             </View>
         );
@@ -32,17 +32,17 @@ export default function AvatarGroup({ members, size }: { members: Member[], size
     // Avatar group 4 người trở lên
     return (
         <View style={[styles.containerAvatar4, { width: size, height: size }]}>
-            <Avatar style={[styles.avatar4, styles.topLeft4]} uri={getUserImageSrc(members[0].avatarUrl)} />
-            <Avatar style={[styles.avatar4, styles.topRight4]} uri={getUserImageSrc(members[1].avatarUrl)} />
-            <Avatar style={[styles.avatar4, styles.bottomLeft4]} uri={getUserImageSrc(members[2].avatarUrl)} />
-            {members.length > 4 ? (
+            <Avatar style={[styles.avatar4, styles.topLeft4]} uri={getUserImageSrc(members[0]?.avatarUrl)} />
+            <Avatar style={[styles.avatar4, styles.topRight4]} uri={getUserImageSrc(members[1]?.avatarUrl)} />
+            <Avatar style={[styles.avatar4, styles.bottomLeft4]} uri={getUserImageSrc(members[2]?.avatarUrl)} />
+            {members?.length > 4 ? (
                 <View style={styles.moreContainer4}>
-                    <Text style={styles.moreText4}>+{members.length - 3}</Text>
+                    <Text style={styles.moreText4}>+{members?.length - 3}</Text>
                 </View>
             ) : (
                 <Avatar
                     style={[styles.avatar4, styles.bottomRight4]}
-                    uri={getUserImageSrc(members[3].avatarUrl)}
+                    uri={getUserImageSrc(members[3]?.avatarUrl)}
                 />
             )}
         </View>

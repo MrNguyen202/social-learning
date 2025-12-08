@@ -1,13 +1,20 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Voice, {
-  SpeechErrorEvent,
-  SpeechResultsEvent,
-} from '@react-native-voice/voice';
-import { Mic, Volume2 } from 'lucide-react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+  PermissionsAndroid,
+  ActivityIndicator,
+} from 'react-native';
+import AudioRecord from 'react-native-audio-record';
+import RNFS from 'react-native-fs';
+import { Mic, Volume2, Square } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import Tts from 'react-native-tts';
 import ClickToSpeak from './ClickToSpeak';
+import { speechToText } from '../../../../api/learning/speaking/route';
 
 const normalize = (s: string) =>
   s
@@ -24,70 +31,69 @@ export default function ExerciseSpeaking({
   const { sentence, ipa, sentence_vi } = exercise.data;
 
   const [transcript, setTranscript] = useState('');
-  const [listening, setListening] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<React.ReactNode | null>(null);
   const [attemptCount, setAttemptCount] = useState(0);
-  const [error, setError] = useState('');
-  const MAX_WRONG_ATTEMPTS = 3;
 
+  const MAX_WRONG_ATTEMPTS = 3;
   const hasCheckedRef = useRef(false);
-  const wasListeningRef = useRef(false);
+
+  // Cấu hình ghi âm
+  const audioConfig = {
+    sampleRate: 16000,
+    channels: 1,
+    bitsPerSample: 16,
+    audioSource: 6,
+    wavFile: 'exercise_test.wav',
+  };
 
   useEffect(() => {
     Tts.getInitStatus().then(() => Tts.setDefaultLanguage('en-US'));
 
-    Voice.removeAllListeners();
-
-    const onSpeechStart = () => {
-      setError('');
-      setListening(true);
-      wasListeningRef.current = true;
-    };
-    let speechEndTimeout: any;
-    Voice.onSpeechEnd = () => {
-      if (speechEndTimeout) clearTimeout(speechEndTimeout);
-
-      speechEndTimeout = setTimeout(() => {
-        setListening(false);
-      }, 700); // delay 700ms để cho user nói tiếp
-    };
-    Voice.onSpeechResults = event => {
-      if (event.value && event.value.length > 0) {
-        setTranscript(event.value?.[0] || '');
+    // SETUP AUDIO RECORDER
+    const setupRecorder = async () => {
+      await requestPermission();
+      if (Platform.OS === 'android' || Platform.OS === 'ios') {
+        try {
+          AudioRecord.init(audioConfig);
+        } catch (e) {
+          console.log('Recorder init error (ignore if re-init):', e);
+        }
       }
     };
-    Voice.onSpeechPartialResults = event => {
-      if (event.value && event.value.length > 0) {
-        setTranscript(event.value?.[0] || '');
-      }
-    };
-    Voice.onSpeechError = e => {
-      if (e.error?.code === '11') {
-        setError('Không nghe rõ. Hãy thử nói lại.');
-        setTranscript('');
-        return;
-      }
+    setupRecorder();
 
-      setListening(false);
-    };
-
-    Voice.onSpeechStart = onSpeechStart;
-
+    // Cleanup khi thoát component
     return () => {
-      Voice.destroy().then(Voice.removeAllListeners);
+      try {
+        AudioRecord.stop();
+      } catch (e) {}
     };
   }, []);
 
+  // Reset khi đổi câu hỏi
   useEffect(() => {
-    resetTranscript();
+    setTranscript('');
     setResult(null);
     setAttemptCount(0);
     hasCheckedRef.current = false;
-    wasListeningRef.current = false;
+    setIsListening(false);
+    setIsProcessing(false);
   }, [exercise.id]);
 
-  const resetTranscript = () => {
-    setTranscript('');
+  const requestPermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const grants = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        ]);
+      } catch (err) {
+        console.warn(err);
+      }
+    }
   };
 
   const speak = () => {
@@ -95,6 +101,7 @@ export default function ExerciseSpeaking({
     Tts.speak(sentence);
   };
 
+  // Logic chấm điểm
   const checkPronunciation = (spokenText: string) => {
     const sample = normalize(sentence);
     const spoken = normalize(spokenText);
@@ -102,6 +109,7 @@ export default function ExerciseSpeaking({
     const spokenWords = spoken.split(' ');
 
     let isCorrect = true;
+    // nếu khác số lượng từ hoặc từ không khớp
     if (sampleWords.length !== spokenWords.length) isCorrect = false;
 
     const compared = sampleWords.map((word, i) => {
@@ -135,7 +143,9 @@ export default function ExerciseSpeaking({
     return isCorrect;
   };
 
+  // Logic xử lý kết quả
   const handleCheck = (spokenText: string) => {
+    // Nếu đang xử lý hoặc đã check rồi thì bỏ qua
     if (hasCheckedRef.current || isChecking) return;
     hasCheckedRef.current = true;
 
@@ -161,35 +171,57 @@ export default function ExerciseSpeaking({
           type: 'info',
           text1: `Sai rồi! Bạn còn ${attemptsLeft} lần thử.`,
         });
+        // Reset ref để cho phép thử lại
+        hasCheckedRef.current = false;
       }
     }
   };
 
   const startListening = async () => {
-    if (listening || isChecking) return;
+    if (isListening || isChecking || isProcessing) return;
 
-    resetTranscript();
+    setTranscript('');
     setResult(null);
     hasCheckedRef.current = false;
 
     try {
-      await Voice.start('en-US');
+      setIsListening(true);
+      AudioRecord.start();
     } catch (e) {
       console.error('startListening error: ', e);
+      setIsListening(false);
     }
   };
 
-  useEffect(() => {
-    if (
-      !listening &&
-      wasListeningRef.current &&
-      !isChecking &&
-      !hasCheckedRef.current
-    ) {
-      wasListeningRef.current = false;
-      handleCheck(transcript);
+  const stopListening = async () => {
+    if (!isListening) return;
+
+    setIsListening(false);
+    setIsProcessing(true); // Hiện loading
+
+    try {
+      const audioFile = await AudioRecord.stop();
+      const base64String = await RNFS.readFile(audioFile, 'base64');
+
+      // Gọi API Google Cloud
+      const data = await speechToText(base64String);
+
+      if (data && data.data && data.data.transcript) {
+        const resultText = data.data.transcript;
+        setTranscript(resultText);
+        // Có kết quả -> Chấm điểm ngay lập tức
+        handleCheck(resultText);
+      } else {
+        setTranscript('');
+        Toast.show({ type: 'error', text1: 'Không nghe rõ, vui lòng thử lại' });
+      }
+    } catch (error) {
+      console.error('API Error', error);
+      Toast.show({ type: 'error', text1: 'Lỗi kết nối' });
+    } finally {
+      setIsProcessing(false);
     }
-  }, [listening, isChecking, transcript]);
+  };
 
   const clickableSentence = useMemo(() => {
     return sentence.split(/(\s+)/g).map((part: string, index: number) => {
@@ -217,17 +249,37 @@ export default function ExerciseSpeaking({
       <Text style={styles.translation}>"{sentence_vi}"</Text>
 
       <View style={styles.micButtonContainer}>
+        {/* Nút Mic thông minh: Chuyển đổi trạng thái Start -> Stop -> Loading */}
         <TouchableOpacity
-          onPress={startListening}
-          disabled={listening || isChecking}
+          onPress={isListening ? stopListening : startListening}
+          disabled={isChecking || isProcessing} // Disable khi đang check hoặc loading API
           style={[
             styles.micButton,
-            listening ? styles.micButtonListening : styles.micButtonIdle,
+            isProcessing
+              ? styles.micButtonProcessing
+              : isListening
+              ? styles.micButtonListening
+              : styles.micButtonIdle,
           ]}
         >
-          <Mic size={24} color="white" />
+          {isProcessing ? (
+            <ActivityIndicator
+              color="white"
+              size="small"
+              style={{ marginRight: 8 }}
+            />
+          ) : isListening ? (
+            <Square size={24} color="white" fill="white" />
+          ) : (
+            <Mic size={24} color="white" />
+          )}
+
           <Text style={styles.micButtonText}>
-            {listening ? 'Đang nghe' : 'Bắt đầu nói'}
+            {isProcessing
+              ? 'Đang xử lý...'
+              : isListening
+              ? 'Dừng nói'
+              : 'Bắt đầu nói'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -237,7 +289,13 @@ export default function ExerciseSpeaking({
         {result ? (
           result
         ) : (
-          <Text style={styles.transcriptText}>{transcript || '...'}</Text>
+          <Text style={styles.transcriptText}>
+            {isListening
+              ? 'Đang nghe...'
+              : isProcessing
+              ? 'Đang phân tích...'
+              : transcript || '...'}
+          </Text>
         )}
       </View>
     </View>
@@ -297,7 +355,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#3B82F6',
   },
   micButtonListening: {
-    backgroundColor: '#9CA3AF',
+    backgroundColor: '#EF4444', // Màu đỏ khi đang nghe
+  },
+  micButtonProcessing: {
+    backgroundColor: '#9CA3AF', // Màu xám khi đang loading
   },
   micButtonText: {
     color: 'white',

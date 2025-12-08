@@ -18,6 +18,7 @@ interface Props {
 }
 
 const createClickableSentence = (content: string) => {
+  if (!content) return null;
   return content
     .split(/(\s+|[.,!?]$)/g)
     .filter(Boolean)
@@ -47,9 +48,7 @@ export default function ChatBubble({
       layout
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"} ${
-        isCurrent ? "opacity-100" : "opacity-70 grayscale-[0.5]"
-      }`}
+      className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}
     >
       {/* Avatar */}
       <div className="shrink-0 flex flex-col items-center justify-end">
@@ -78,8 +77,8 @@ export default function ChatBubble({
         <div
           className={`relative p-4 rounded-2xl shadow-sm text-[15px] leading-relaxed transition-all ${
             isUser
-              ? "bg-white text-slate-800 border border-slate-100 rounded-tr-sm" // User style
-              : "bg-white text-slate-800 border border-slate-100 rounded-tl-sm" // AI Style
+              ? "bg-white text-slate-800 border border-slate-100 rounded-tr-sm"
+              : "bg-white text-slate-800 border border-slate-100 rounded-tl-sm"
           } ${isListening ? "ring-2 ring-indigo-200 bg-indigo-50/50" : ""}`}
         >
           {isUser && isCurrent && detailedResult

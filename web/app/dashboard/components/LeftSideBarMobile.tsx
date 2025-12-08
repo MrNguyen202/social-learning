@@ -56,6 +56,7 @@ import { fetchTotalUnreadMessages } from "@/app/apiClient/chat/conversation/conv
 import { getSocket } from "@/socket/socketClient";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import PricingModal from "./PricingModal";
+import Image from "next/image";
 
 export function LeftSidebarMobile() {
   const { user } = useAuth();
@@ -458,7 +459,12 @@ export function LeftSidebarMobile() {
               className="cursor-pointer"
               onClick={toggleLanguage}
             >
-              {language === "vi" ? "English" : "Tiếng Việt"}
+              {language === "vi" ? "Tiếng việt" : "English"}
+              {language === "vi" ? (
+                <Image src="/vietnamese.png" alt="Vietnamese" width={20} height={20} />
+              ) : (
+                <Image src="/english.png" alt="English" width={20} height={20} />
+              )}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

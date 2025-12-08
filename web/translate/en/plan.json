@@ -47,11 +47,15 @@
         "expiresIn": "Expires in",
         "expired": "Code Expired",
         "newCode": "Generate New Payment Code",
-        "startNow": "Start Using Now"
+        "startNow": "Start Using Now",
+        "cancelTitle": "Cancel Payment?",
+        "cancelDesc": "Are you sure you want to cancel this payment?"
     },
     "planName": "Plan Name",
     "back": "Back",
     "common": {
-        "retry": "Go back to create a new transaction"
+        "retry": "Go back to create a new transaction",
+        "stay": "Stay on",
+        "exit": "Exit"
     }
 }

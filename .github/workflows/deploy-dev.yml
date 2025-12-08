@@ -1,0 +1,49 @@
+name: Deploy DEPLOY Branch
+
+on:
+  push:
+    branches: [ "deploy" ]
+  # schedule:
+  #   # Phút / Giờ / Ngày / Tháng / Thứ trong tuần
+  #   - cron: '0 20 * * *'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
+          password: ${{ secrets.PASSWORD }}
+          script: |
+            # --- 1. CẬP NHẬT CODE ---
+            cd /var/www/hero-app/social-learning
+            
+            # Reset cứng code server theo nhánh deploy (An toàn tuyệt đối)
+            git fetch --all
+            git checkout deploy
+            git reset --hard origin/deploy
+            
+            # --- 2. XỬ LÝ SERVER (BACKEND) ---
+            echo "Deploying Server..."
+            cd server
+            npm install
+            # Restart nếu đã có, hoặc Start mới nếu chưa có
+            pm2 restart server || pm2 start npm --name "server" -- run start
+            cd ..
+
+            # --- 3. XỬ LÝ WEB (FRONTEND) ---
+            echo "Deploying Web..."
+            cd web
+            npm install
+            npm run build
+            
+            # LƯU Ý QUAN TRỌNG: 
+            # Nếu web là Next.js (SSR) thì giữ dòng dưới:
+            pm2 restart web-app || pm2 start npm --name "webapp" -- run start
+
+            echo "Deployment Completed!"

@@ -8,9 +8,6 @@ import {
   useMemo,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import SpeechRecognition, {
-  useSpeechRecognition,
-} from "react-speech-recognition";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Mic,
@@ -23,6 +20,8 @@ import {
   Check,
   Lock,
   ChevronRight,
+  Square,
+  Loader2,
 } from "lucide-react";
 import {
   Dialog,
@@ -34,7 +33,10 @@ import {
 import Confetti from "react-confetti";
 import type { JSX } from "react/jsx-runtime";
 import { useLanguage } from "@/components/contexts/LanguageContext";
-import { getSpeakingByTopicAndLevel } from "@/app/apiClient/learning/speaking/speaking";
+import {
+  getSpeakingByTopicAndLevel,
+  speechToText,
+} from "@/app/apiClient/learning/speaking/speaking";
 import {
   addSkillScore,
   getScoreUserByUserId,
@@ -51,6 +53,10 @@ interface Lesson {
   id: number;
   content: string;
 }
+
+// Cấu hình phát hiện im lặng
+const SILENCE_THRESHOLD = 30; // Ngưỡng âm lượng (càng nhỏ càng nhạy)
+const SILENCE_DURATION = 1200; // 1.2 giây không nói sẽ tự ngắt
 
 function LessonContent() {
   const router = useRouter();
@@ -71,12 +77,24 @@ function LessonContent() {
     new Set()
   );
 
-  const { transcript, listening, resetTranscript } = useSpeechRecognition();
+  const [transcript, setTranscript] = useState<string>("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
   const [result, setResult] = useState<JSX.Element | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [browserSupports, setBrowserSupports] = useState(false);
   const [sentenceComplete, setSentenceComplete] = useState(false);
-  const wasListeningRef = useRef(false);
 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceForSentence, setVoiceForSentence] =
@@ -91,6 +109,134 @@ function LessonContent() {
         .trim(),
     []
   );
+
+  const resetTranscript = useCallback(() => {
+    setTranscript("");
+    setResult(null);
+  }, []);
+
+  // --- HÀM XỬ LÝ DỪNG GHI ÂM & GỌI API ---
+  const stopRecordingAndSend = useCallback(() => {
+    if (
+      !mediaRecorderRef.current ||
+      mediaRecorderRef.current.state === "inactive"
+    )
+      return;
+
+    mediaRecorderRef.current.stop();
+    setIsRecording(false);
+
+    // Cleanup AudioContext & Timer
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    if (animationFrameRef.current)
+      cancelAnimationFrame(animationFrameRef.current);
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch((e) => console.error(e));
+      audioContextRef.current = null;
+    }
+  }, []);
+
+  const startRecording = async () => {
+    resetTranscript();
+    setIsTransitioning(false); // Đảm bảo cho phép check
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+
+      // Setup MediaRecorder
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: "audio/webm;codecs=opus",
+      });
+
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        setIsProcessing(true); // Bắt đầu loading
+
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm;codecs=opus",
+        });
+
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+
+        reader.onloadend = async () => {
+          const base64Audio = (reader.result as string).split(",")[1];
+          try {
+            const resData = await speechToText(base64Audio);
+            if (resData.success && resData.data?.transcript) {
+              setTranscript(resData.data.transcript);
+            }
+          } catch (err) {
+            console.error(err);
+          } finally {
+            setIsProcessing(false);
+            if (streamRef.current) {
+              streamRef.current.getTracks().forEach((track) => track.stop());
+            }
+          }
+        };
+      };
+
+      // (Phát hiện im lặng)
+      const audioContext = new AudioContext();
+      audioContextRef.current = audioContext;
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.1; // Phản ứng nhanh với thay đổi âm thanh
+      analyserRef.current = analyser;
+
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      const checkSilence = () => {
+        analyser.getByteFrequencyData(dataArray);
+
+        // Tính âm lượng trung bình
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          sum += dataArray[i];
+        }
+        const average = sum / bufferLength;
+
+        if (average > SILENCE_THRESHOLD) {
+          // Nếu có âm thanh, reset timer
+          if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+          }
+        } else {
+          // Nếu im lặng và chưa có timer thì bắt đầu đếm ngược
+          if (!silenceTimerRef.current) {
+            silenceTimerRef.current = setTimeout(() => {
+              stopRecordingAndSend();
+            }, SILENCE_DURATION);
+          }
+        }
+
+        if (mediaRecorder.state === "recording") {
+          animationFrameRef.current = requestAnimationFrame(checkSilence);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      checkSilence(); // Bắt đầu vòng lặp kiểm tra
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+      alert("Không thể truy cập Microphone. Vui lòng cấp quyền.");
+    }
+  };
 
   const update_mastery_on_success = useCallback(
     async (userId: string, word: string) => {
@@ -161,9 +307,8 @@ function LessonContent() {
         });
       }
     });
-
+    
     wrongPairs.forEach(({ correct, spoken }: any) => {
-      // Chỉ lưu những từ sai không phải là số
       if (user?.id && correct && isNaN(Number(correct))) {
         insertOrUpdateVocabularyErrors({
           userId: user.id,
@@ -193,9 +338,10 @@ function LessonContent() {
       if (index <= completedSentences) {
         setCurrentLessonIndex(index);
         setShowExerciseList(false);
+        resetTranscript();
       }
     },
-    [completedSentences]
+    [completedSentences, resetTranscript]
   );
 
   const clickableSentence = useMemo(() => {
@@ -216,22 +362,23 @@ function LessonContent() {
     };
     synth.onvoiceschanged = updateVoices;
     updateVoices();
-    // Cleanup function để hủy đăng ký event listener
     return () => {
       synth.onvoiceschanged = null;
     };
-  }, []); // Chỉ chạy 1 lần
+  }, []);
 
   useEffect(() => {
     if (voices.length > 0) {
       const randomVoice = voices[Math.floor(Math.random() * voices.length)];
       setVoiceForSentence(randomVoice);
     }
-  }, [voices]); // Chạy lại khi voices thay đổi
+  }, [voices]);
 
   useEffect(() => {
     setIsClient(true);
-    setBrowserSupports(SpeechRecognition.browserSupportsSpeechRecognition());
+    setBrowserSupports(
+      !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+    );
     setWindowSize({ width: window.innerWidth, height: window.innerHeight });
     const handleResize = () => {
       setWindowSize({ width: window.innerWidth, height: window.innerHeight });
@@ -241,31 +388,37 @@ function LessonContent() {
       getLessons(Number(levelId), Number(topicId));
     }
     return () => window.removeEventListener("resize", handleResize);
-  }, []); // Chỉ chạy 1 lần
+  }, []);
 
   useEffect(() => {
     if (lessons.length > 0 && currentLessonIndex < lessons.length) {
-      // Thêm kiểm tra currentLessonIndex
       setCurrentSentence(lessons[currentLessonIndex].content);
-      resetTranscript();
-      setResult(null);
       setSentenceComplete(false);
-      wasListeningRef.current = false; // Reset ref khi chuyển câu
+      setIsTransitioning(false); // Mở khóa cho bài mới
     }
-  }, [lessons, currentLessonIndex, resetTranscript]);
+  }, [lessons, currentLessonIndex]);
 
   useEffect(() => {
-    if (listening) {
-      wasListeningRef.current = true;
-    }
-    if (!listening && wasListeningRef.current && !showCelebration) {
-      wasListeningRef.current = false;
+    if (
+      transcript &&
+      !isRecording &&
+      !isProcessing &&
+      !showCelebration &&
+      !isTransitioning
+    ) {
       const correct = buildResultAndCheck();
+
       if (correct) {
+        setIsTransitioning(true); // KHÓA NGAY LẬP TỨC để không check lại
         setSentenceComplete(true);
         setCompletedSentences((prev) => prev + 1);
         setCompletedLessons((prev) => new Set(prev).add(currentLessonIndex));
+
         setTimeout(async () => {
+          // Xóa transcript TRƯỚC khi chuyển bài để bài sau không nhận nhầm
+          setTranscript("");
+          setResult(null);
+
           if (currentLessonIndex < lessons.length - 1) {
             setCurrentLessonIndex((idx) => idx + 1);
           } else {
@@ -294,8 +447,12 @@ function LessonContent() {
                 );
               });
 
-              // update roadmapz
-              await updateLessonCompletedCount(user.id, String(levelId), String(topicId), "Speaking");
+              await updateLessonCompletedCount(
+                user.id,
+                String(levelId),
+                String(topicId),
+                "Speaking"
+              );
             }
           }
         }, 1500);
@@ -308,15 +465,17 @@ function LessonContent() {
       }
     }
   }, [
-    listening,
+    transcript,
+    isRecording,
+    isProcessing,
     showCelebration,
     currentLessonIndex,
     lessons,
     user,
     t,
+    isTransitioning,
     buildResultAndCheck,
     checkPronunciation,
-    resetTranscript,
   ]);
 
   const getLessons = async (levelId: number, topicId: number) => {
@@ -334,19 +493,7 @@ function LessonContent() {
   if (!isClient) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-        <div className="max-w-2xl w-full mx-auto p-6">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-200 rounded mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded mb-6"></div>
-            <div className="flex gap-3 mb-6 justify-center">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-10 w-20 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-            <div className="h-40 bg-gray-200 rounded mb-4"></div>
-            <div className="h-32 bg-gray-200 rounded"></div>
-          </div>
-        </div>
+        <Loader2 className="w-10 h-10 animate-spin text-purple-500" />
       </div>
     );
   }
@@ -360,7 +507,7 @@ function LessonContent() {
           className="bg-red-50 border-2 border-red-200 rounded-2xl p-8 text-center max-w-md shadow-xl"
         >
           <p className="text-red-600 font-semibold text-lg">
-            {t("learning.browserNotSupported")}
+            {t("learning.browserNotSupported")} (Microphone API)
           </p>
         </motion.div>
       </div>
@@ -380,13 +527,11 @@ function LessonContent() {
         />
       )}
 
+      {/* BACKGROUND */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
           className="absolute -top-20 -right-20 w-96 h-96 bg-gradient-to-br from-orange-300/30 to-pink-300/30 rounded-full blur-3xl"
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 90, 0],
-          }}
+          animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
           transition={{
             duration: 20,
             repeat: Number.POSITIVE_INFINITY,
@@ -395,10 +540,7 @@ function LessonContent() {
         />
         <motion.div
           className="absolute -bottom-20 -left-20 w-96 h-96 bg-gradient-to-br from-pink-300/30 to-purple-300/30 rounded-full blur-3xl"
-          animate={{
-            scale: [1.2, 1, 1.2],
-            rotate: [90, 0, 90],
-          }}
+          animate={{ scale: [1.2, 1, 1.2], rotate: [90, 0, 90] }}
           transition={{
             duration: 20,
             repeat: Number.POSITIVE_INFINITY,
@@ -527,24 +669,23 @@ function LessonContent() {
             >
               <div className="flex flex-wrap gap-3 justify-center">
                 <motion.button
-                  onClick={() => {
-                    SpeechRecognition.startListening({
-                      continuous: false,
-                      language: "en-US",
-                    });
-                  }}
-                  disabled={listening}
+                  onClick={isRecording ? stopRecordingAndSend : startRecording}
+                  disabled={isProcessing}
                   className={`flex items-center gap-2 px-8 py-3.5 rounded-xl text-white transition-all font-bold shadow-lg cursor-pointer hover:shadow-xl ${
-                    listening
+                    isProcessing
                       ? "bg-gray-400 cursor-not-allowed"
+                      : isRecording
+                      ? "bg-red-500 hover:bg-red-600 animate-pulse"
                       : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
                   }`}
                 >
-                  {listening ? (
+                  {isProcessing ? (
                     <>
-                      <Mic className="w-5 h-5 animate-ping" />
-                      {t("learning.listening")}
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      {t("learning.processing") || "Đang xử lý..."}
                     </>
+                  ) : isRecording ? (
+                    <>{t("learning.stop")}</>
                   ) : (
                     <>
                       <Mic className="w-5 h-5" />
@@ -562,7 +703,11 @@ function LessonContent() {
                   </h3>
                   <div className="p-5 border-2 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-white min-h-[70px] shadow-inner">
                     <p className="text-gray-700 text-base leading-relaxed">
-                      {transcript || t("learning.noData")}
+                      {isRecording
+                        ? "Đang lắng nghe..."
+                        : isProcessing
+                        ? "Đang phân tích..."
+                        : transcript || t("learning.noData")}
                     </p>
                   </div>
                 </div>
@@ -585,6 +730,7 @@ function LessonContent() {
           </div>
         </div>
 
+        {/* LIST BÊN PHẢI*/}
         <motion.div
           initial={{ x: 100, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
@@ -848,7 +994,7 @@ export default function LessonPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen">
-          Loading...
+          <Loader2 className="w-10 h-10 animate-spin text-purple-500" />
         </div>
       }
     >

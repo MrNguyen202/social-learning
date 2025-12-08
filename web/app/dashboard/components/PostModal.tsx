@@ -188,15 +188,13 @@ export function PostModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="xl:max-w-6xl xl:h-[80vh] lg:max-w-5xl lg:h-[70vh] md:max-w-3xl md:h-[60vh] sm:max-w-xl sm:h-[60vh] max-w-sm h-[60vh] p-0 overflow-hidden">
+        <DialogContent className="xl:max-w-6xl xl:h-[80vh] lg:max-w-5xl lg:h-[70vh] md:max-w-3xl md:h-[60vh] sm:max-w-xl sm:h-[60vh] max-w-sm h-[63vh] p-0 overflow-hidden">
           <DialogHeader className="hidden">
-            <DialogTitle className="hidden">
-              {t("dashboard.detail")}
-            </DialogTitle>
+            <DialogTitle>{t("dashboard.detail")}</DialogTitle>
           </DialogHeader>
           <div className="flex h-full">
             {/* Post content */}
-            <div className="flex-1 flex justify-center items-center bg-gray-50">
+            <div className="flex-1 flex justify-center items-center bg-gray-50 max-sm:hidden">
               {post?.file &&
                 (() => {
                   const fileUrl = getSupabaseFileUrl(post.file);
@@ -251,29 +249,19 @@ export function PostModal({
             {/* Comments */}
             <div className="lg:w-[450px] md:w-[400px] xl:h-[725px] lg:h-[630px] md:h-[540px] h-[530px] border-l flex flex-col">
               {/* Header */}
-              <DialogHeader className="p-4 border-b">
+              <DialogHeader className="p-6 border-b max-sm:p-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={getUserImageSrc(post?.user?.avatar)} />
-                    </Avatar>
-                    <span className="font-semibold text-sm">
-                      {post?.user?.nick_name}
-                    </span>
-                  </div>
                   {post?.user?.id === userId && (
-                    <div className="px-10">
-                      <Button
-                        onClick={() => {
-                          setEditingPost(post); // state cha giữ post đang sửa
-                          setIsEdit(true);
-                          setIsOpenModal(true); // mở modal
-                        }}
-                        className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white hover:text-white rounded-full p-4 text-[14px] cursor-pointer"
-                      >
-                        {t("dashboard.edit")}
-                      </Button>
-                    </div>
+                    <Button
+                      onClick={() => {
+                        setEditingPost(post); // state cha giữ post đang sửa
+                        setIsEdit(true);
+                        setIsOpenModal(true); // mở modal
+                      }}
+                      className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white hover:text-white rounded-full p-4 text-[14px] cursor-pointer"
+                    >
+                      {t("dashboard.edit")}
+                    </Button>
                   )}
                 </div>
               </DialogHeader>
@@ -286,9 +274,7 @@ export function PostModal({
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold">
-                        {post?.user?.nick_name}
-                      </span>
+                      <span className="font-semibold">{post?.user?.name}</span>
                       <p className="text-xs text-gray-500 mt-1">
                         {convertToDate(post?.created_at)}{" "}
                         {formatTime(post?.created_at)}
@@ -343,7 +329,7 @@ export function PostModal({
                               );
                           }}
                         >
-                          {comment?.user?.nick_name}
+                          {comment?.user?.name}
                         </span>{" "}
                         <span className="text-xs text-gray-500 ml-2">
                           {convertToDate(comment?.created_at)}{" "}

@@ -151,7 +151,7 @@ export function PostCard({ post, onDelete }: PostCardProps) {
                     router.push(`/dashboard/profile/${post?.user?.nick_name}`);
                 }}
               >
-                {post?.user?.nick_name}
+                {post?.user?.name}
               </p>
               <p className="text-xs text-gray-500">
                 {convertToDate(post?.created_at)} {formatTime(post?.created_at)}
@@ -243,7 +243,7 @@ export function PostCard({ post, onDelete }: PostCardProps) {
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
                 <p className="text-[16px] text-gray-900 break-words whitespace-pre-line">
-                  <span className="font-semibold">{post?.user?.nick_name}</span>{" "}
+                  <span className="font-semibold">{post?.user?.name}</span>{" "}
                   {post?.content}
                 </p>
               </motion.div>

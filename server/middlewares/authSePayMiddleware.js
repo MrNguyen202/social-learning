@@ -31,7 +31,7 @@ const authSePayMiddleware = (req, res, next) => {
 
         // 4. So sánh token nhận được với key của mình
         if (token !== mySepayApiKey) {
-            console.warn(`[SePay Auth] Sai API Key. Nhận được: ${token}`);
+            console.warn(`[SePay Auth] Sai API Key`);
             return res.status(403).json({
                 success: false,
                 error: 'Forbidden: Invalid API Token'

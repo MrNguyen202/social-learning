@@ -18,7 +18,7 @@ export default function MessageAttachments({ images, file }: MessageAttachmentsP
   // Logic render file (Video/Document) giữ nguyên
   const renderFile = () => {
     if (!file) return null;
-    // ... (Giữ nguyên code render Video/File cũ của bạn ở đây) ...
+    // Xử lý Video
     if (file.mimeType?.startsWith("video/")) {
         return (
           <div className="rounded-lg overflow-hidden max-w-xs bg-black">

@@ -29,16 +29,18 @@ type Lesson = {
     type: string;
     level: string;
     topic: string;
-    description: string;
+    description_vi: string;
     quantity: number;
     completedCount: number;
     typeParagraph?: string;
     isCompleted?: boolean;
+    level_vi?: string;
+    topic_vi?: string;
 };
 
 type Week = {
     week: number;
-    focus: string;
+    focus_vi: string;
     lessons: Lesson[];
 };
 
@@ -240,7 +242,7 @@ const RoadmapDetailScreen = () => {
 
                                     <View style={styles.weekInfo}>
                                         <Text style={styles.weekTitle}>Tuần {week.week}</Text>
-                                        <Text style={styles.weekFocus}>{week.focus}</Text>
+                                        <Text style={styles.weekFocus}>{week.focus_vi}</Text>
                                     </View>
 
                                     <View style={styles.expandIcon}>
@@ -261,7 +263,7 @@ const RoadmapDetailScreen = () => {
                                             const iconColor = iconColorMap[lesson.type];
 
                                             return (
-                                                <View key={idx} style={styles.lessonCard}>
+                                                <View key={idx} className='bg-slate-100' style={[styles.lessonCard]}>
                                                     {/* Lesson Header */}
                                                     <View style={styles.lessonHeader}>
                                                         <View style={styles.lessonTitleRow}>
@@ -272,7 +274,7 @@ const RoadmapDetailScreen = () => {
                                                                 <Text style={styles.lessonType}>
                                                                     {lesson.type}{' '}
                                                                     <Text style={styles.lessonLevel}>
-                                                                        ({lesson.level})
+                                                                        ({lesson.level_vi})
                                                                     </Text>
                                                                 </Text>
                                                                 <Text style={styles.lessonTopic}>
@@ -290,7 +292,7 @@ const RoadmapDetailScreen = () => {
 
                                                     {/* Description */}
                                                     <Text style={styles.lessonDescription}>
-                                                        {lesson.description}
+                                                        {lesson.description_vi}
                                                     </Text>
 
                                                     {/* Progress */}
@@ -316,28 +318,44 @@ const RoadmapDetailScreen = () => {
                                                     </View>
 
                                                     {/* Action Buttons */}
-                                                    <View style={styles.actionButtons}>
-                                                        <TouchableOpacity
-                                                            style={[styles.actionButton, styles.aiButton]}
-                                                            onPress={() => handleGenerateAI(lesson)}
-                                                            activeOpacity={0.8}
+                                                    <View className='flex flex-row justify-between items-center'>
+                                                        <LinearGradient
+                                                            colors={['#f97316', '#ec4899']}
+                                                            start={{ x: 0, y: 0 }}
+                                                            end={{ x: 1, y: 0 }}
+                                                            style={{borderRadius: 24, width: '48%'}}
+                                                            className='items-center'
                                                         >
-                                                            <Sparkles size={16} color="#fff" />
-                                                            <Text style={styles.actionButtonText}>
-                                                                Generate AI
-                                                            </Text>
-                                                        </TouchableOpacity>
+                                                            <TouchableOpacity
+                                                                onPress={() => handleGenerateAI(lesson)}
+                                                                activeOpacity={0.8}
+                                                                className='flex-row items-center px-4 py-2 gap-2'
+                                                            >
+                                                                {/* <Sparkles size={16} color="#fff" /> */}
+                                                                <Text className='text-white'>
+                                                                    Tạo bài tập AI
+                                                                </Text>
+                                                            </TouchableOpacity>
+                                                        </LinearGradient>
 
-                                                        <TouchableOpacity
-                                                            style={[styles.actionButton, styles.systemButton]}
-                                                            onPress={() => handleSystemExercise(lesson)}
-                                                            activeOpacity={0.8}
+                                                        <LinearGradient
+                                                            colors={['#3b82f6', '#60a5fa']}
+                                                            start={{ x: 0, y: 0 }}
+                                                            end={{ x: 1, y: 0 }}
+                                                            style={{borderRadius: 24 , width: '48%'}}
+                                                            className='items-center'
                                                         >
-                                                            <BookOpenIcon size={16} color="#fff" />
-                                                            <Text style={styles.actionButtonText}>
-                                                                Bài tập hệ thống
-                                                            </Text>
-                                                        </TouchableOpacity>
+                                                            <TouchableOpacity
+                                                                className='flex-row items-center px-4 py-2 gap-2'
+                                                                onPress={() => handleSystemExercise(lesson)}
+                                                                activeOpacity={0.8}
+                                                            >
+                                                                {/* <BookOpenIcon size={16} color="#fff" /> */}
+                                                                <Text className='text-white text-center'>
+                                                                    Bài tập hệ thống
+                                                                </Text>
+                                                            </TouchableOpacity>
+                                                        </LinearGradient>
                                                     </View>
                                                 </View>
                                             );
@@ -504,7 +522,6 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     lessonCard: {
-        backgroundColor: '#fff',
         padding: 16,
         borderRadius: 12,
         borderWidth: 1,
@@ -595,7 +612,7 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     aiButton: {
-        backgroundColor: '#10b981',
+        backgroundColor: '#f97316',
     },
     systemButton: {
         backgroundColor: '#3b82f6',

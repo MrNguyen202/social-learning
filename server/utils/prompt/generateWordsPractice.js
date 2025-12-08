@@ -12,7 +12,7 @@ Yêu cầu:
     - "speaking": Nói lại câu hoặc từ (kèm ví dụ).
     - "fill_in_blank": Chọn từ đúng để điền vào chỗ trống trong câu.
     - "word_build": Ghép các ký tự (từ ngân hàng chữ cái) thành từ đúng.
-2. Tổng cộng khoảng 10 câu hỏi, được chia đều hoặc gần đều cho 6 loại trên (mỗi loại khoảng 1–2 câu).
+2. Tổng cộng khoảng 10-20 câu hỏi tùy vào số lượng từ vựng trong danh sách từ vựng, được chia đều hoặc gần đều cho 6 loại trên (mỗi loại khoảng 1-4 câu tùy vào số lượng từ vựng có trong danh sách).
 3. Mỗi phần tử phải có:
     - "id": số thứ tự (số nguyên, bắt đầu từ 1 và tăng dần).
     - "type": loại bài ("multiple_choice" | "sentence_order" | "synonym_match" | "speaking" | "fill_in_blank" | "word_build")
@@ -104,7 +104,7 @@ Yêu cầu:
 8. Mỗi câu hỏi phải liên quan trực tiếp đến ít nhất một từ trong danh sách từ vựng ở trên.
 9. Không sử dụng ký tự đặc biệt trong câu hỏi hoặc câu trả lời (ngoại trừ '___' cho 'fill_in_blank').
 10. Không được lặp lại cùng một từ hoặc cấu trúc câu hỏi quá 2 lần.
-11. Ở loại "synonym_match", hãy tạo 5 cặp từ và không được trùng nhau về từ và các cặp từ phải là Việt-Anh không được Việt-Việt hoặc Anh-Anh.
+11. Ở loại "synonym_match", hãy tạo 5 cặp từ và không được trùng nhau về từ và các cặp từ phải là Việt-Anh không được Việt-Việt hoặc Anh-Anh và trong Việt hoặc Anh không được trùng nhau từ nào.
 12. Ở loại "fill_in_blank", "sentence_template" phải có một chỗ trống biểu thị bằng \`___\`. "options" gồm 3-4 từ, trong đó "correct_answer" là một từ trong danh sách từ vựng.
 13. Ở loại "sentence_order", các câu trong "answer_en" và "answer_vi" **không được chứa dấu câu ở cuối** (như ., !, ?) và lưu ý: phải bao gồm tất cả các từ có trong answer_en", *kể cả các từ lặp lại* (ví dụ: he put the paper in the box) có 2 chữ 'the'.
 14. Ở loại "multiple_choice", hãy cố gắng tạo cả câu hỏi Anh-Việt (ví dụ: 'develop' nghĩa là gì?) và Việt-Anh (ví dụ: 'Phát triển' là gì?).

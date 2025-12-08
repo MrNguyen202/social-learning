@@ -97,6 +97,7 @@
   "checkAnswers": "Nhấn \"Kiểm tra đáp án\" để xem bạn đã điền đúng hay sai.",
   "hint": "Các ô trống sẽ đổi màu xanh nếu đúng và đỏ nếu sai.",
   "retry": "Bạn có thể thử lại bằng cách chỉnh sửa các ô trống và nhấn \"Kiểm tra đáp án\" lần nữa.",
+  "retrySpeaking": "Thử lại",
   "completed": "Bạn đã hoàn thành bài nghe!",
   "submitted": "Bạn đã nộp bài. Hãy xem kết quả dưới đây để cải thiện thêm nhé!",
   "tryMore": "Cố gắng hơn nữa!",
@@ -354,5 +355,7 @@
   "aiIsSpeaking": "AI đang nói...",
   "audioTrack": "Bản âm thanh",
 
-  "byPremiumToUse":"Mua premium để sử dụng"
+  "byPremiumToUse":"Mua premium để sử dụng",
+  "grammarScore":"Điểm ngữ pháp",
+  "vocabularyScore":"Điểm từ vựng"
 }

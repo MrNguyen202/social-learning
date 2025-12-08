@@ -45,6 +45,7 @@ import { useLanguage } from "@/components/contexts/LanguageContext";
 import { fetchTotalUnreadMessages } from "@/app/apiClient/chat/conversation/conversation";
 import { getSocket } from "@/socket/socketClient";
 import PricingModal from "./PricingModal";
+import Image from "next/image";
 
 export function LeftSideBarHiddenLabel() {
   const { user } = useAuth();
@@ -131,7 +132,7 @@ export function LeftSideBarHiddenLabel() {
   const learningNavItems = [
     {
       icon: PenTool,
-      path: "/dashboard/writing",
+      path: "/dashboard/writing/writing-paragraph",
       label: "Luyện viết tiếng Anh",
     },
     {
@@ -417,10 +418,15 @@ export function LeftSideBarHiddenLabel() {
                 {t("dashboard.profile")}
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer"
+                className="cursor-pointer hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50 transition-all duration-200 flex items-center justify-between"
                 onClick={() => toggleLanguage()}
               >
-                {language === "vi" ? "Tiếng Anh" : "Vietnamese"}
+                {language === "vi" ? "Tiếng Việt" : "English"}
+                {language === "vi" ? (
+                  <Image src="/vietnamese.png" alt="Vietnamese" width={20} height={20} />
+                ) : (
+                  <Image src="/english.png" alt="English" width={20} height={20} />
+                )}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

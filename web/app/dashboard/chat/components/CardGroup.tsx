@@ -154,13 +154,13 @@ export default function CardGroup({ conversation, onClick }: CardGroupProps) {
         className="w-full flex justify-start items-center px-4 gap-3 py-2 border-b border-gray-200 hover:cursor-pointer hover:bg-gray-200"
       >
         <div className="min-w-[60px] flex justify-center items-center">
-          {conversation.avatar ? (
+          {conversation?.avatar ? (
             <Avatar className="w-12 h-12">
               <AvatarImage src={conversation?.avatar} />
               <AvatarFallback>{conversation?.name?.[0]}</AvatarFallback>
             </Avatar>
           ) : (
-            <AvatarGroup members={conversation.members} />
+            <AvatarGroup members={conversation?.members} />
           )}
         </div>
         <div className="flex flex-col items-start gap-2 w-full">

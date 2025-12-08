@@ -87,7 +87,7 @@ const authController = {
       const { data, error } = await authService.login(email, password);
 
       if (error) {
-        return res.status(400).json({ success: false, message: error.message });
+        return res.status(403).json({ success: false, message: error.message });
       }
 
       return res

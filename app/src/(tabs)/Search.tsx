@@ -10,7 +10,7 @@ import {
   StyleSheet,
   SafeAreaView,
 } from 'react-native';
-import { Search, Users, Sparkles } from 'lucide-react-native';
+import { Search, Users } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { searchUsers } from '../api/user/route';
 import { getSupabaseFileUrl } from '../api/image/route';
@@ -128,7 +128,6 @@ const SearchTab = () => {
             onPress={() => navigation.navigate('RecommendFriend')}
             activeOpacity={0.8}
           >
-            <Sparkles size={18} color="#667eea" />
             <Text style={styles.suggestButtonText}>Gợi ý</Text>
           </TouchableOpacity>
         </View>

@@ -84,8 +84,13 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ visible, onClose, feedbac
         return (
             <View>
                 <Text style={styles.feedbackScoreText}>
-                    Điểm: <Text style={styles.feedbackScore}>{feedback.score}</Text> |
+                    Điểm tổng: <Text style={styles.feedbackScore}>{feedback.final_score}</Text> |
                     Chính xác: <Text style={styles.feedbackAccuracy}>{feedback.accuracy}%</Text>
+                </Text>
+
+                <Text style={styles.feedbackScoreText}>
+                    Điểm ngữ pháp: <Text className="font-bold text-purple-600">{feedback.grammar}</Text> | 
+                    Điểm từ vựng: <Text className="font-bold text-yellow-600">{feedback.vocabulary}</Text>
                 </Text>
 
                 {/* Phần lỗi đã được cập nhật */}

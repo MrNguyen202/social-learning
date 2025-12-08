@@ -16,12 +16,18 @@ const writingController = {
   // Get list writing-paragraphs by type_exercise, level and type_paragraph
   getListWritingParagraphsByTypeLevelTypeParagraphs: async (req, res) => {
     const { type_exercise_slug, level_slug, type_paragraph_slug } = req.params;
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+
     try {
       const data =
         await writingService.getListWritingParagraphsByTypeLevelTypeParagraph(
           type_exercise_slug,
           level_slug,
-          type_paragraph_slug
+          type_paragraph_slug,
+          page,
+          limit
         );
       res.json(data);
     } catch (error) {
@@ -71,7 +77,7 @@ const writingController = {
     );
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
       const result = await model.generateContent(prompt);
       const text = result.response.text();
 
@@ -87,8 +93,10 @@ const writingController = {
 
       // Lưu feedback vào Supabase
       const data = {
-        score: json.score,
+        final_score: json.final_score,
         accuracy: json.accuracy,
+        grammar: json.grammar,
+        vocabulary: json.vocabulary,
         strengths: json.strengths,
         errors: json.errors,
         comment: json.comment,

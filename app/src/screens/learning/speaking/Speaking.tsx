@@ -144,7 +144,6 @@ export default function Speaking() {
                 onPress={handleGenerateAI}
                 activeOpacity={0.8}
               >
-                <Sparkles size={18} color="#fff" />
                 <Text style={styles.aiButtonText}>Tạo bài AI</Text>
               </TouchableOpacity>
 
@@ -153,8 +152,7 @@ export default function Speaking() {
                 onPress={handleStart}
                 activeOpacity={0.8}
               >
-                <Text style={styles.nextButtonText}>Tiếp tục</Text>
-                <ArrowRight size={18} color="#fff" />
+                <Text style={styles.nextButtonText}>Bắt đầu</Text>
               </TouchableOpacity>
             </View>
           </View>

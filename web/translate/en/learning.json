@@ -82,7 +82,6 @@
   "sentenceListening": "Sentence Listening Practice",
   "graduatedTitle": "Congratulations on mastering this vocabulary!",
   "graduatedDesc": "You have fully mastered this vocabulary. It will be moved to the review list!",
-
   "score": "Score",
   "accuracy": "Accuracy",
   "suggest": "Suggestions",
@@ -98,6 +97,7 @@
   "checkAnswers": "Press \"Check Answers\" to see if you filled in correctly.",
   "hint": "The blanks will turn green if correct and red if incorrect.",
   "retry": "You can try again by editing the blanks and pressing \"Check Answers\" again.",
+  "retrySpeaking": "Try Again",
   "completed": "Completed!",
   "submitted": "Submitted!",
   "tryMore": "Try more!",
@@ -140,7 +140,7 @@
   "wellMastered": "Well Mastered",
   "vocabulary": "vocabulary",
   "practice": "Practice",
-  "practiceNow":"Practice Now",
+  "practiceNow": "Practice Now",
   "noWordsInRange": "No words in this range.",
   "noWordsInTopic": "No words in this topic.",
   "tapToViewDetails": "Tap to view details",
@@ -183,7 +183,6 @@
   "selectAll": "Select All",
   "deselectAll": "Deselect All",
   "clearSelection": "Clear Selection",
-
   "creatingExercise": "Creating exercise...",
   "creatingTopics": "Creating topics...",
   "submittingExercise": "Submitting exercise...",
@@ -352,6 +351,7 @@
   "pressMicToSpeak": "Press microphone to speak",
   "aiIsSpeaking": "AI is speaking...",
   "audioTrack": "Audio Track",
-
-  "byPremiumToUse":"Buy premium to use"
+  "byPremiumToUse": "Buy premium to use",
+  "grammarScore": "Grammar Score",
+  "vocabularyScore": "Vocabulary Score"
 }

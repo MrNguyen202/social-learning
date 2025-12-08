@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import { BookOpen } from 'lucide-react-native';
+import { BookOpen, Eye, EyeOff } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { login } from '../../api/auth/route';
 import { supabase } from '../../../lib/supabase';
@@ -38,6 +38,17 @@ const Login = () => {
       });
 
       if (!res.success || !res?.data?.session) {
+        const msg = res.message || '';
+        if (msg.includes('khóa đăng nhập') || msg.includes('15 phút')) {
+          Toast.show({
+            type: 'error',
+            text1: 'Tài khoản đang bị khóa',
+            text2: 'Vui lòng thử lại sau 15 phút.',
+            visibilityTime: 3000,
+          });
+          return;
+        }
+
         Toast.show({
           type: 'error',
           text1: 'Đăng nhập thất bại',
@@ -72,12 +83,25 @@ const Login = () => {
         visibilityTime: 2000,
       });
       navigation.navigate('BottomTabs');
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Đăng nhập thất bại.',
-        visibilityTime: 2000,
-      });
+    } catch (error: any) {
+      const errorMsg =
+        error?.message ||
+        error?.response?.data?.message ||
+        JSON.stringify(error);
+      if (errorMsg.includes('khóa đăng nhập') || errorMsg.includes('15 phút')) {
+        Toast.show({
+          type: 'error',
+          text1: 'Tài khoản đang bị khóa',
+          text2: 'Vui lòng thử lại sau 15 phút.',
+          visibilityTime: 3000,
+        });
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Đăng nhập thất bại.',
+          visibilityTime: 2000,
+        });
+      }
     }
   };
 
@@ -128,14 +152,26 @@ const Login = () => {
           </View>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Mật khẩu</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Nhập mật khẩu của bạn"
-              placeholderTextColor="#A1A1AA"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Nhập mật khẩu của bạn"
+                placeholderTextColor="#A1A1AA"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIcon}
+              >
+                {showPassword ? (
+                  <EyeOff size={moderateScale(20)} color="#9CA3AF" />
+                ) : (
+                  <Eye size={moderateScale(20)} color="#9CA3AF" />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
           <View style={styles.forgotPassword}>
             <Text
@@ -237,6 +273,26 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     marginBottom: verticalScale(12),
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: moderateScale(8),
+    backgroundColor: '#fff',
+  },
+  // [THÊM MỚI] Input password bên trong (không viền vì viền nằm ở container cha)
+  passwordInput: {
+    flex: 1,
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: scale(10),
+    fontSize: moderateScale(14),
+    color: '#111827',
+  },
+  // [THÊM MỚI] Nút icon mắt
+  eyeIcon: {
+    padding: scale(10),
   },
   label: {
     fontSize: moderateScale(14),

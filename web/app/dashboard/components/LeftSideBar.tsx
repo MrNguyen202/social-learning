@@ -48,6 +48,7 @@ import { CreateOrUpdatePostModal } from "./CreateOrUpdatePost";
 import { getSocket } from "@/socket/socketClient";
 import { fetchTotalUnreadMessages } from "@/app/apiClient/chat/conversation/conversation";
 import PricingModal from "./PricingModal";
+import Image from "next/image";
 
 export function LeftSidebar() {
   const { user } = useAuth();
@@ -144,7 +145,7 @@ export function LeftSidebar() {
   const learningNavItems = [
     {
       icon: PenTool,
-      path: "/dashboard/writing",
+      path: "/dashboard/writing/writing-paragraph",
       label: t("dashboard.writing"),
     },
     {
@@ -464,10 +465,15 @@ export function LeftSidebar() {
               {t("dashboard.profile")}
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="cursor-pointer hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50 transition-all duration-200"
+              className="cursor-pointer hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50 transition-all duration-200 flex items-center justify-between"
               onClick={() => toggleLanguage()}
             >
-              {language === "vi" ? "Tiếng Anh" : "Vietnamese"}
+              {language === "vi" ? "Tiếng việt" : "English"}
+              {language === "vi" ? (
+                <Image src="/vietnamese.png" alt="Vietnamese" width={20} height={20} />
+              ) : (
+                <Image src="/english.png" alt="English" width={20} height={20} />
+              )}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

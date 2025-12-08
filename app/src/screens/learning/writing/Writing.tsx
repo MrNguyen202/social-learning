@@ -10,12 +10,7 @@ import {
   SafeAreaView,
   FlatList,
 } from 'react-native';
-import {
-  ArrowLeft,
-  Sparkles,
-  ArrowRight,
-  Zap,
-} from 'lucide-react-native';
+import { ArrowLeft, Zap } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Level } from '../../../components/Level';
 import { TypeParagraph } from '../../../components/TypeParagraph';
@@ -43,7 +38,7 @@ export default function Writing() {
   const handleGenerateAI = async () => {
     setLoading(true);
     if (isReady) {
-      // Simulate API 
+      // Simulate API
       setLoading(true);
       const res = await generateWritingParagraphByAI(
         selectedLevel.slug,
@@ -131,7 +126,9 @@ export default function Writing() {
               </Text>
               <Text style={styles.summaryText}>
                 <Text style={styles.summaryLabel}>Loại văn bản: </Text>
-                <Text style={styles.summaryValue}>{selectedTypeParagraph?.name}</Text>
+                <Text style={styles.summaryValue}>
+                  {selectedTypeParagraph?.name}
+                </Text>
               </Text>
             </View>
 
@@ -141,7 +138,7 @@ export default function Writing() {
                 onPress={handleGenerateAI}
                 activeOpacity={0.8}
               >
-                <Sparkles size={18} color="#fff" />
+                {/* <Sparkles size={18} color="#fff" /> */}
                 <Text style={styles.aiButtonText}>Tạo bài AI</Text>
               </TouchableOpacity>
 
@@ -151,7 +148,6 @@ export default function Writing() {
                 activeOpacity={0.8}
               >
                 <Text style={styles.nextButtonText}>Tiếp tục</Text>
-                <ArrowRight size={18} color="#fff" />
               </TouchableOpacity>
             </View>
           </View>
@@ -315,7 +311,6 @@ const styles = StyleSheet.create({
   aiButtonText: {
     color: '#ffffff',
     fontWeight: 'bold',
-    marginLeft: 8,
   },
   nextButton: {
     flex: 1,

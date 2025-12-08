@@ -28,6 +28,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Loader2 } from "lucide-react";
 
 interface WritingExercise {
   id: string;
@@ -64,6 +66,13 @@ export default function Page() {
   const [topicFilters, setTopicFilters] = useState<Topic[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const ITEMS_PER_PAGE = 6;
+
   // Lấy danh sách bài viết theo type, level và topic
   useEffect(() => {
     const fetchWritingExercises = async () => {
@@ -73,12 +82,23 @@ export default function Page() {
         typeof topic === "string"
       ) {
         try {
-          const data = await getListWritingParagraphsByTypeLevelTypeParagraph(
+          const response = await getListWritingParagraphsByTypeLevelTypeParagraph(
             type,
             level,
-            topic
+            topic,
+            currentPage,
+            ITEMS_PER_PAGE
           );
-          setWritingExercises(data);
+
+          const resData: any = response;
+
+          if (resData.data) {
+            setWritingExercises(resData.data);
+            setTotalPages(resData.totalPages || 1);
+          } else {
+            // Fallback nếu API chưa update kịp
+            setWritingExercises(resData as unknown as WritingExercise[]);
+          }
 
           const typeName = await getTypeExercisesBySlug(type);
           setTypeExerciseName(typeName ? typeName[`title_${language}`] : "");
@@ -111,7 +131,7 @@ export default function Page() {
 
     fetchTopics();
     fetchWritingExercises();
-  }, [type, level, topic, language]);
+  }, [type, level, topic, language, currentPage]);
 
   // Handle start writing exercise
   const handleStartWritingExercise = (exerciseId: string) => {
@@ -121,6 +141,14 @@ export default function Page() {
       router.push(`/dashboard/writing/detail/sentence/${exerciseId}`);
     }
   };
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
 
   return (
     <>
@@ -230,19 +258,75 @@ export default function Page() {
             </Select>
           </div>
         </div>
-        <div className="w-full py-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {writingExercises.map((exercise) => (
-            <CardWritingExercise
-              t={t}
-              key={exercise.id}
-              title={exercise.title}
-              content_vi={exercise.content_vi}
-              label={exercise.label}
-              progress={70}
-              handleStart={() => handleStartWritingExercise(exercise.id)}
-            />
-          ))}
-        </div>
+        {isLoading ? (
+             <div className="flex justify-center items-center h-60 w-full">
+                 <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+             </div>
+        ) : (
+            <div className="w-full py-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {writingExercises.length > 0 ? (
+                writingExercises.map((exercise) => (
+                <CardWritingExercise
+                    t={t}
+                    key={exercise.id}
+                    title={exercise.title}
+                    content_vi={exercise.content_vi}
+                    label={exercise.label}
+                    progress={70} // Fix logic progress
+                    handleStart={() => handleStartWritingExercise(exercise.id)}
+                />
+                ))
+            ) : (
+                <div className="col-span-3 text-center py-10 text-gray-500">
+                    {t("learning.noExercisesFound")}
+                </div>
+            )}
+            </div>
+        )}
+
+        {/* Pagination Controls */}
+        {!isLoading && totalPages > 1 && (
+          <div className="mt-6 flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+
+                {/* Logic render số trang tối giản */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                  if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          isActive={page === currentPage}
+                          onClick={() => handlePageChange(page)}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )
+                  }
+                  if (page === currentPage - 2 || page === currentPage + 2) {
+                    return <PaginationItem key={page}><PaginationEllipsis /></PaginationItem>
+                  }
+                  return null;
+                })}
+
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </div>
     </>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -32,16 +32,18 @@ function SpeakingListInner() {
   const mode = searchParams.get("mode") || "realtime";
   const [topics, setTopics] = useState<TopicSpeaking[]>([]);
   const [loading, setLoading] = useState(true);
+  const hasFetched = useRef(false);
 
   useEffect(() => {
-    if (!topic) return;
+    if (!topic || hasFetched.current) return;
+
     const fetchTopics = async () => {
       try {
         setLoading(true);
-        if (topic) {
-          const res = await generateTopicSpeaking(topic);
-          setTopics(res.data);
-        }
+        hasFetched.current = true;
+
+        const res = await generateTopicSpeaking(topic);
+        setTopics(res.data);
       } catch (error) {
         console.error("Error fetching exercises:", error);
       } finally {
@@ -50,7 +52,7 @@ function SpeakingListInner() {
     };
 
     fetchTopics();
-  }, []); // chỉ chạy một lần khi component được mount
+  }, [topic]);
 
   return (
     <div className="mx-auto xl:pl-18 xl:pr-10 w-full max-w-md pt-4 sm:max-w-2xl lg:max-w-3xl xl:max-w-full pr-5 sm:pl-10">
@@ -142,7 +144,12 @@ function SpeakingListInner() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
-              <CardTopic topic={t} level={level} mode={mode} topicParent={topic} />
+              <CardTopic
+                topic={t}
+                level={level}
+                mode={mode}
+                topicParent={topic}
+              />
             </motion.div>
           ))}
         </div>

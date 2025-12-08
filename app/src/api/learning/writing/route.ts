@@ -4,11 +4,13 @@ import api from '../../../../lib/api';
 export const getListWritingParagraphsByTypeLevelTypeParagraph = async (
     type_exercise_slug: string,
     level_slug: string,
-    type_paragraph_slug: string
+    type_paragraph_slug: string,
+    page: number = 1,
+    limit: number = 6
 ) => {
     try {
         const response = await api.get(
-            `/api/learning/writing/writing-paragraphs/${type_exercise_slug}/${level_slug}/${type_paragraph_slug}`
+            `/api/learning/writing/writing-paragraphs/${type_exercise_slug}/${level_slug}/${type_paragraph_slug}?page=${page}&limit=${limit}`
         );
         return response.data;
     } catch (error) {

@@ -747,13 +747,13 @@ export default function PricingModal({ isOpen, onClose }: PricingModalProps) {
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mt-4">
                         <AlertDialogCancel className="rounded-xl border-gray-200 hover:bg-gray-50 hover:text-gray-900">
-                            {t('common.stay') || "Ở lại"}
+                            {t('plan.common.stay') || "Ở lại"}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleConfirmExit}
                             className="rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-md border-0"
                         >
-                            {t('common.exit') || "Hủy giao dịch"}
+                            {t('plan.common.exit') || "Hủy giao dịch"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

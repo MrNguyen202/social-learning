@@ -17,7 +17,7 @@ interface GeminiResponse {
   }>;
 }
 
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GOOGLE_API_KEY}`;
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key=${GOOGLE_API_KEY}`;
 
 const formatMessagesForGemini = (messages: Message[]) => {
   // System prompt với hướng dẫn sử dụng markdown

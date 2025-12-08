@@ -15,12 +15,14 @@ import { getSupabaseFileUrl } from '../../../api/image/route';
 import Video from 'react-native-video';
 import { Camera, Heart, MessageCircle } from 'lucide-react-native';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const ITEM_SIZE = Math.floor((width - 4) / 3);
 
 export default function PhotoGrid() {
   const { user, loading } = useAuth();
+  const navigation = useNavigation<any>();
   const [posts, setPosts] = useState<any[]>([]);
   const [loadingPost, setLoadingPost] = useState(false);
 
@@ -63,6 +65,13 @@ export default function PhotoGrid() {
     );
   }
 
+  const openPostDetails = (item: any) => {
+    navigation.navigate('PostDetail', {
+      postId: item?.id,
+      commentCount: item?.comments?.[0]?.count || 0,
+    });
+  };
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -70,6 +79,7 @@ export default function PhotoGrid() {
         keyExtractor={item => String(item.id)}
         numColumns={3}
         showsVerticalScrollIndicator={false}
+        scrollEnabled={false}
         renderItem={({ item }) => {
           const fileUrl = item.file ? getSupabaseFileUrl(item.file) : null;
           const ext = item.file?.split('.').pop()?.toLowerCase();
@@ -77,7 +87,7 @@ export default function PhotoGrid() {
           return (
             <TouchableOpacity
               style={styles.gridItem}
-              onPress={() => console.log('Open post', item.id)}
+              onPress={() => openPostDetails(item)}
               activeOpacity={0.9}
             >
               <View style={styles.imageContainer}>

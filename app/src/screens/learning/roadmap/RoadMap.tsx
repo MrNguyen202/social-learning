@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { ArrowLeft, PlusCircle, Target, BookOpen, Lightbulb } from 'lucide-react-native';
+import { ArrowLeft, PlusCircle, Target, BookOpen, Lightbulb, SquarePlus } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getRoadmapByUserId } from '../../../api/learning/roadmap/route';
 import CreatePathModal from './components/CreatePathModal';
@@ -30,7 +30,7 @@ const RoadMap = () => {
       setLoading(true);
       try {
         const res = await getRoadmapByUserId(user.id);
-        setPaths(res ? [res] : []);
+        setPaths(res || []);
       } catch (error) {
         console.error('Error fetching learning paths:', error);
         Alert.alert(
@@ -62,7 +62,7 @@ const RoadMap = () => {
     setLoading(true);
     try {
       const res = await getRoadmapByUserId(user.id);
-      setPaths(res ? [res] : []);
+      setPaths(res || []);
     } catch (error) {
       console.error('Error fetching learning paths:', error);
     } finally {
@@ -70,11 +70,13 @@ const RoadMap = () => {
     }
   };
 
+
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <LinearGradient
-        colors={['#10b981', '#059669']}
+        colors={['#10b981', '#059669', '#047857']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
@@ -95,7 +97,13 @@ const RoadMap = () => {
             </Text>
           </View>
 
-          <View style={styles.headerRight} />
+          <TouchableOpacity
+            onPress={() => setOpenModal(true)}
+            style={styles.backButton}
+            activeOpacity={0.8}
+          >
+            <SquarePlus size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -150,7 +158,7 @@ const RoadMap = () => {
                     style={styles.pathTitleGradient}
                   >
                     <Text style={styles.pathTitle}>
-                      {path?.pathName || 'Chưa có tên'}
+                      {path?.pathName_vi}
                     </Text>
                   </LinearGradient>
 
@@ -164,7 +172,7 @@ const RoadMap = () => {
                       </View>
                       <View style={[styles.infoCircle, styles.goalCircle]}>
                         <Text style={styles.infoText} numberOfLines={3}>
-                          {path?.goal || '—'}
+                          {path?.goal_vi || '—'}
                         </Text>
                       </View>
                     </View>
@@ -177,7 +185,7 @@ const RoadMap = () => {
                       </View>
                       <View style={[styles.infoCircle, styles.fieldCircle]}>
                         <Text style={styles.infoText} numberOfLines={2}>
-                          {path?.field || '—'}
+                          {path?.field_vi || '—'}
                         </Text>
                       </View>
                     </View>
@@ -264,30 +272,6 @@ const RoadMap = () => {
                         if (leadingDots > 0) {
                           dots.push(<Text key="lead" style={styles.moreWeeks}>+{leadingDots}</Text>);
                         }
-
-                        // Vẽ 8 chấm trong cửa sổ
-                        for (let i = 0; i < maxDots; i++) {
-                          const week = startWeek + i;
-                          const isCompleted = week < currentWeek;
-                          const isCurrent = week === currentWeek;
-                          dots.push(
-                            <View
-                              key={week}
-                              style={[
-                                styles.weekDot,
-                                isCompleted && styles.weekDotCompleted,
-                                isCurrent && styles.weekDotCurrent,
-                              ]}
-                            />
-                          );
-                        }
-
-                        // Hiển thị số tuần bị "che" ở sau
-                        const trailingDots = totalWeeks - endWeek;
-                        if (trailingDots > 0) {
-                          dots.push(<Text key="trail" style={styles.moreWeeks}>+{trailingDots}</Text>);
-                        }
-
                         return dots;
                       })()}
                     </View>
@@ -464,7 +448,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconLabel: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     gap: 4,
     marginBottom: 8,

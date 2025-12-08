@@ -8,16 +8,9 @@ import {
   Modal,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
   FlatList,
 } from 'react-native';
-import {
-  ArrowLeft,
-  AudioLines,
-  Sparkles,
-  ArrowRight,
-  Headphones,
-} from 'lucide-react-native';
+import { ArrowLeft, Headphones } from 'lucide-react-native';
 import { listeningService } from '../../../api/learning/listening/route';
 import LinearGradient from 'react-native-linear-gradient';
 import { Level } from '../../../components/Level';
@@ -33,7 +26,7 @@ export default function Listening() {
 
   const handleStart = () => {
     if (isReady) {
-      navigation.navigate("ListExercise", {
+      navigation.navigate('ListExercise', {
         level: selectedLevel.slug,
         topic: selectedTopic.slug,
       });
@@ -143,7 +136,7 @@ export default function Listening() {
                 onPress={handleGenerateAI}
                 activeOpacity={0.8}
               >
-                <Sparkles size={18} color="#fff" />
+                {/* <Sparkles size={18} color="#fff" /> */}
                 <Text style={styles.aiButtonText}>Tạo bài AI</Text>
               </TouchableOpacity>
 
@@ -153,7 +146,6 @@ export default function Listening() {
                 activeOpacity={0.8}
               >
                 <Text style={styles.nextButtonText}>Tiếp tục</Text>
-                <ArrowRight size={18} color="#fff" />
               </TouchableOpacity>
             </View>
           </View>
@@ -317,7 +309,6 @@ const styles = StyleSheet.create({
   aiButtonText: {
     color: '#ffffff',
     fontWeight: 'bold',
-    marginLeft: 8,
   },
   nextButton: {
     flex: 1,

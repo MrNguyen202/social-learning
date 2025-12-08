@@ -2,7 +2,7 @@ import axios from "axios";
 import { supabase } from "./supabase";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: "https://api.socialonlinelearning.tech",
   headers: {
     "Content-Type": "application/json",
   },

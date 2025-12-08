@@ -24,6 +24,13 @@ export default function Page() {
     []
   );
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const ITEMS_PER_PAGE = 6;
+
   // Lấy danh sách bài viết theo type, level và type paragraph
   useEffect(() => {
     const fetchWritingExercises = async () => {
@@ -33,12 +40,22 @@ export default function Page() {
         typeof type_para === "string"
       ) {
         try {
-          const data = await getListWritingParagraphsByTypeLevelTypeParagraph(
+          const response = await getListWritingParagraphsByTypeLevelTypeParagraph(
             type,
             level,
-            type_para
+            type_para,
+            currentPage,
+            ITEMS_PER_PAGE
           );
-          setWritingExercises(data);
+          const resData: any = response;
+
+          if (resData.data) {
+            setWritingExercises(resData.data);
+            setTotalPages(resData.totalPages || 1);
+          } else {
+            // Fallback nếu API chưa update kịp
+            setWritingExercises(resData as unknown as WritingExercise[]);
+          }
         } catch (error) {
           console.error("Error fetching writing exercises:", error);
         }

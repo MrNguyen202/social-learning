@@ -518,7 +518,7 @@ export default function ChatDetail() {
               <>
                 <Avatar className="w-10 h-10">
                   <AvatarImage
-                    src={getUserImageSrc(selectedConversation?.avatar)}
+                    src={getUserImageSrc(selectedConversation?.avatar) || undefined}
                     alt={selectedConversation?.name}
                     className="rounded-full"
                   />
@@ -614,7 +614,7 @@ export default function ChatDetail() {
                   </Avatar>
                 ) : selectedConversation?.avatar ? (
                   <Avatar className="w-24 h-24 border-4 border-white shadow-md">
-                    <AvatarImage src={getUserImageSrc(selectedConversation?.avatar)} />
+                    <AvatarImage src={getUserImageSrc(selectedConversation?.avatar) || undefined} />
                     <AvatarFallback className="text-3xl">{selectedConversation.name?.[0]}</AvatarFallback>
                   </Avatar>
                 ) : (

@@ -1,14 +1,23 @@
 import api from "@/lib/api";
 
+interface WritingResponse {
+    data: any[];
+    total: number;
+    currentPage: number;
+    totalPages: number;
+}
+
 // Get list writing-paragraphs by type_exercise, level and type paragraph
 export const getListWritingParagraphsByTypeLevelTypeParagraph = async (
     type_exercise_slug: string,
     level_slug: string,
-    type_paragraph_slug: string
-) => {
+    type_paragraph_slug: string,
+    page: number = 1,
+    limit: number = 6
+) : Promise<WritingResponse> => {
     try {
         const response = await api.get(
-            `/api/learning/writing/writing-paragraphs/${type_exercise_slug}/${level_slug}/${type_paragraph_slug}`
+            `/api/learning/writing/writing-paragraphs/${type_exercise_slug}/${level_slug}/${type_paragraph_slug}?page=${page}&limit=${limit}`
         );
         return response.data;
     } catch (error) {

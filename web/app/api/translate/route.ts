@@ -1,4 +1,3 @@
-// app/api/translate/route.ts
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText } from "ai";
 
@@ -13,7 +12,7 @@ export async function POST(request: Request) {
     const { text } = await request.json();
 
     const { text: translation } = await generateText({
-      model: google("gemini-2.0-flash"),
+      model: google("gemma-3-27b-it"),
       prompt: `Hãy dịch chính xác câu sau sang tiếng Việt: "${text}"`,
       temperature: 0.1,
     });

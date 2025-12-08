@@ -2,7 +2,13 @@ const supabase = require("../../lib/supabase").supabase;
 
 const writingService = {
     //Get list writingParagraphs by typeExercises, level and type paragraph
-    async getListWritingParagraphsByTypeLevelTypeParagraph(type_exercise_slug, level_slug, type_paragraph_slug) {
+    async getListWritingParagraphsByTypeLevelTypeParagraph(
+        type_exercise_slug,
+        level_slug,
+        type_paragraph_slug,
+        page = 1,
+        limit = 10
+    ) {
         // Bước 1: tìm id từ slug
         // Tìm type_exercise_id
         const { data: typeData, error: errType } = await supabase
@@ -15,7 +21,7 @@ const writingService = {
             console.error("Error fetching typeExercises:", errType);
             throw errType;
         }
-        if (!typeData) return [];
+       if (!typeData) return { data: [], total: 0, currentPage: page, totalPages: 0 };
 
         const type_exercise_id = typeData.id;
 
@@ -30,7 +36,7 @@ const writingService = {
             console.error("Error fetching levels:", errLevel);
             throw errLevel;
         }
-        if (!levelData) return [];
+       if (!levelData) return { data: [], total: 0, currentPage: page, totalPages: 0 };
 
         const level_id = levelData.id;
 
@@ -45,24 +51,33 @@ const writingService = {
             console.error("Error fetching typeParagraphs:", errTypeParagraph);
             throw errTypeParagraph;
         }
-        if (!typeParagraphData) return [];
+        if (!typeParagraphData) return { data: [], total: 0, currentPage: page, totalPages: 0 };
 
         const type_paragraph_id = typeParagraphData.id;
 
+        const from = (page - 1) * limit;
+        const to = from + limit - 1;
+
         // Bước 2: lấy writing_paragraph theo type, level và type_paragraph
-        const { data: writingParagraphs, error: err1 } = await supabase
+        const { data: writingParagraphs, count, error: err1 } = await supabase
             .from("writingParagraphs")
-            .select("*")
+            .select("*", { count: "exact" })
             .eq("type_exercise_id", type_exercise_id)
             .eq("level_id", level_id)
-            .eq("type_paragraph_id", type_paragraph_id);
+            .eq("type_paragraph_id", type_paragraph_id)
+            .range(from, to);
 
         if (err1) {
             console.error("Error fetching writing_paragraphs:", err1);
             throw err1;
         }
 
-        return writingParagraphs;
+        return {
+            data: writingParagraphs,
+            total: count,
+            currentPage: page,
+            totalPages: Math.ceil(count / limit)
+        };
     },
 
     //Get writingParagraph by id
@@ -156,8 +171,10 @@ const writingService = {
             feedback:feedbackParagraphAI (
                 id,
                 comment,
-                score,
+                final_score,
                 accuracy,
+                grammar,
+                vocabulary,
                 strengths,
                 errors: errorFeedback (
                     id,

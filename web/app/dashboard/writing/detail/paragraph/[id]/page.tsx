@@ -396,7 +396,7 @@ export default function PageExerciseDetail() {
                 <span className="font-bold float-right">
                   {history && history.length > 0
                     ? Math.max(
-                        ...history.map((item) => item.feedback?.score ?? 0)
+                        ...history.map((item) => item.feedback?.final_score ?? 0)
                       )
                     : 0}
                 </span>
@@ -467,11 +467,19 @@ export default function PageExerciseDetail() {
                   <p className="text-sm text-gray-700">
                     {t("learning.score")}:{" "}
                     <span className="font-bold text-green-600">
-                      {feedback.score}
+                      {feedback.final_score}
                     </span>{" "}
                     | {t("learning.accuracy")}:{" "}
                     <span className="font-bold text-blue-600">
                       {feedback.accuracy}%
+                    </span>
+                     | {t("learning.grammarScore")}:{" "}
+                    <span className="font-bold text-purple-600">
+                      {feedback.grammar}%
+                    </span>{" "}
+                    | {t("learning.vocabularyScore")}:{" "}
+                    <span className="font-bold text-yellow-600">
+                      {feedback.vocabulary}%
                     </span>
                   </p>
                 </div>

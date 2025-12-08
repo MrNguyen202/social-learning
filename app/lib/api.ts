@@ -2,10 +2,8 @@ import axios from 'axios';
 import { supabase } from './supabase';
 import { BASE_URL_API } from '@env';
 
-const temp = "http://192.168.1.5:5000";
-
 const api = axios.create({
-  baseURL: temp,
+  baseURL: BASE_URL_API,
   headers: {
     'Content-Type': 'application/json',
   },
