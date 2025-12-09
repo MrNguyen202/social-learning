@@ -79,7 +79,7 @@ Dự án được xây dựng trên kiến trúc **Client-Server** với các c�
 ### 1. Sơ đồ Use Case
 Tổng quan các chức năng của Người dùng và Admin.
 <div align="center">
-  <img src="path/to/hinh_3.1.png" alt="Sơ đồ Use Case Tổng Quát" width="800"/>
+  <img src="/image/usecase.jpg" alt="Sơ đồ Use Case Tổng Quát" width="800"/>
   <br>
   <i>(Hình 3.1 - Mô hình Use-case tổng quát)</i>
 </div>
@@ -100,7 +100,7 @@ Tổng quan các chức năng của Người dùng và Admin.
 ### 3. Kiến trúc Phần mềm
 Mô hình kết nối giữa Client, Server, Database và các dịch vụ bên thứ 3 (AI, Payment, Storage).
 <div align="center">
-  <img src="path/to/hinh_4.6.png" alt="Kiến trúc phần mềm" width="800"/>
+  <img src="/image/system.jpg" alt="Kiến trúc phần mềm" width="800"/>
 </div>
 
 ---
@@ -109,12 +109,12 @@ Mô hình kết nối giữa Client, Server, Database và các dịch vụ bên 
 
 | Trang chủ & Newsfeed | Giao diện Nhắn tin |
 |:---:|:---:|
-| <img src="path/to/hinh_4.10.png" width="300"/> | <img src="path/to/hinh_4.12.png" width="300"/> |
+| <img src="/image/Banner.png" width="300"/>| <img src="/image/Banner.png" width="300"/> |
 | *Giao diện người dùng chính* | *Chat & Gọi Video* |
 
 | Luyện Viết với AI | Luyện Nói (Roleplay) |
 |:---:|:---:|
-| <img src="path/to/hinh_4.19.png" width="300"/> | <img src="path/to/hinh_4.24.png" width="300"/> |
+| <img src="/image/Banner.png" width="300"/> | <img src="/image/Banner.png" width="300"/> |
 | *AI chấm điểm và gợi ý* | *Hội thoại trực tiếp với AI* |
 
 ---
