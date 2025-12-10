@@ -136,7 +136,7 @@ Dự án được thực hiện bởi nhóm sinh viên trường Đại học C�
 
 | **Họ và Tên** | **Vai Trò Chính** | **Trách Nhiệm Cụ Thể** |
 | :--- | :--- | :--- |
-| **Nguyễn Thanh Thuận** <br> *(21080071)* | Fullstack | Quản lý dự án, thiết kế hệ thống, phát triển Frontend - Backend, tích hợp Gemini AI & Deploy. |
+| **Nguyễn Thanh Thuận** <br> *(21080071)* | fullstack | Quản lý dự án, thiết kế hệ thống, phát triển Frontend - Backend, tích hợp Gemini AI & Deploy. |
 | **Trương Quốc Bảo** <br> *(21017351)* | Fullstack | Quản lý dự án, thiết kế hệ thống, phát triển Frontend - Backend, tích hợp Gemini AI, xử lý UI/UX. |
 
 ### 👩‍🏫 Giảng Viên Hướng Dẫn
