@@ -5,7 +5,7 @@ let socket: any = null;
 
 export const getSocket = () => {
   if (!socket) {
-    socket = io(BASE_URL_API, {
+    socket = io("http://192.168.1.15:5000", {
       transports: ['websocket'],
       reconnection: true,
       reconnectionAttempts: 5,

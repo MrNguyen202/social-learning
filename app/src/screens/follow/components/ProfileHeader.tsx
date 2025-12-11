@@ -103,7 +103,7 @@ export default function ProfileHeader({ userSearch }: { userSearch: any }) {
 
         <View style={styles.info}>
           <Text style={styles.nick}>{userSearch?.nick_name}</Text>
-          <Text style={styles.name}>{userSearch?.name}</Text>
+          {/* <Text style={styles.name}>{userSearch?.name}</Text> */}
 
           <View style={styles.statsRow}>
             <View style={styles.stat}>

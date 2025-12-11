@@ -79,7 +79,7 @@ Dự án được xây dựng trên kiến trúc **Client-Server** với các c�
 ### 1. Sơ đồ Use Case
 Tổng quan các chức năng của Người dùng và Admin.
 <div align="center">
-  <img src="/image/usecase.jpg" alt="Sơ đồ Use Case Tổng Quát" width="800"/>
+  <img src="/image/usecase.png" alt="Sơ đồ Use Case Tổng Quát" width="800"/>
   <br>
   <i>(Hình 3.1 - Mô hình Use-case tổng quát)</i>
 </div>

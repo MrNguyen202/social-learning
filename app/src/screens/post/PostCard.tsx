@@ -308,7 +308,7 @@ const PostCard = ({
               paused={true}
             />
           </View>
-        ) : (
+        ) : fileUrl && ['pdf', 'docx', 'xlsx'].includes(ext) ? (
           // file dạng pdf, docx, excel,...
           <TouchableOpacity
             style={styles.fileContainer}
@@ -338,7 +338,7 @@ const PostCard = ({
               )}
             </View>
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
 
       {/* Footer */}
