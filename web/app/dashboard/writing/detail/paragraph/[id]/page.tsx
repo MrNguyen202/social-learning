@@ -28,7 +28,8 @@ interface ExerciseDetail {
   type_exercise_id: number;
   level_id: number;
   topic_id: number;
-  title: string;
+  title_vi: string;
+  title_en: string;
   content_vi: string;
   content_en: string;
   number_sentence: number;
@@ -306,7 +307,7 @@ export default function PageExerciseDetail() {
         <div className="flex items-center">
           <Image src="/title-writing.gif" alt="Writing Title" className="inline align-middle mr-3" width={40} height={40} />
           <h1 className="text-2xl font-bold text-gray-800">
-            {exerciseDetail?.title}
+            {exerciseDetail ? exerciseDetail[`title_${language}`] : ""}
           </h1>
         </div>
 

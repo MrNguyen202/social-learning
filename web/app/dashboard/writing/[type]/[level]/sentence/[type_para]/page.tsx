@@ -10,7 +10,8 @@ import { useLanguage } from "@/components/contexts/LanguageContext";
 
 interface WritingExercise {
   id: string;
-  title: string;
+  title_vi: string;
+  title_en: string;
   content_vi: string;
   label: string;
   submit_times: number;
@@ -19,7 +20,7 @@ interface WritingExercise {
 }
 
 export default function Page() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { type, level, type_para } = useParams();
   const router = useRouter();
   const [writingExercises, setWritingExercises] = useState<WritingExercise[]>(
@@ -132,7 +133,7 @@ export default function Page() {
             <CardWritingExercise
               t={t}
               key={exercise.id}
-              title={exercise.title}
+              title={exercise[`title_${language}`]}
               content_vi={exercise.content_vi}
               label={exercise.label}
               submit_times={exercise.submit_times}

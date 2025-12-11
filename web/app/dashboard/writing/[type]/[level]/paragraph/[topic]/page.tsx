@@ -35,7 +35,8 @@ import { Button } from "@/components/ui/button";
 
 interface WritingExercise {
   id: string;
-  title: string;
+  title_vi: string;
+  title_en: string;
   content_vi: string;
   label: string;
   submit_times: number;
@@ -80,9 +81,6 @@ export default function Page() {
 
   const [filteredExercises, setFilteredExercises] = useState<WritingExercise[]>([]);
 
-  console.log("Selected Topic:", selectedTopic);
-
-
   const ITEMS_PER_PAGE = 18;
 
   // Lấy danh sách bài viết theo type, level và topic
@@ -94,6 +92,7 @@ export default function Page() {
         typeof topic === "string"
       ) {
         try {
+          setIsLoading(true);
           const response = await getListWritingParagraphsByTypeLevelTypeParagraph(
             type,
             level,
@@ -122,6 +121,8 @@ export default function Page() {
           setTypeParagraphExerciseName(
             topicName ? topicName[`name_${language}`] : ""
           );
+
+          setIsLoading(false);
         } catch (error) {
           console.error("Error fetching writing exercises:", error);
         }
@@ -284,7 +285,7 @@ export default function Page() {
       </div>
       <div className="flex flex-col mt-2 w-full">
         {/* Breadcrumb */}
-        <div className="py-4">
+        <div className="pt-4 pb-2 border-b border-gray-200 mb-4">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -372,18 +373,21 @@ export default function Page() {
             </Select>
           </div>
         </div>
-        {isLoading ? (
-          <div className="flex justify-center items-center h-60 w-full">
+        {isLoading && (
+          <div className="flex justify-center items-center h-60 w-full my-auto">
             <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
           </div>
-        ) : (
+        )}
+
+        {/* Khi fetch xong */}
+        {!isLoading && (
           <div className={`w-full py-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 ${filteredExercises.length === 0 ? "my-auto" : ""}`}>
             {filteredExercises.length > 0 ? (
               filteredExercises.map((exercise) => (
                 <CardWritingExercise
                   t={t}
                   key={exercise.id}
-                  title={exercise.title}
+                  title={exercise[`title_${language}`]}
                   content_vi={exercise.content_vi}
                   label={exercise.label}
                   submit_times={exercise.submit_times}
