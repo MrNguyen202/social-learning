@@ -37,7 +37,7 @@ export default function NewPassword() {
         throw new Error('Dữ liệu session không hợp lệ.');
       }
 
-      const res = await forgotPassword({ session, password });
+      const res = await forgotPassword({ session, newPassword: password });
       if (!res.success) throw new Error(res.message);
 
       Toast.show({ type: 'success', text1: 'Đổi mật khẩu thành công!' });

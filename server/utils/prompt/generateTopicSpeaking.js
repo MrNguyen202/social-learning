@@ -1,5 +1,5 @@
 module.exports = (topic) => `
-Bạn là một chuyên gia tạo dữ liệu học tiếng Anh. Hãy giúp tôi tạo ra danh sách gồm 5 đến 10 chủ đề con dựa trên chủ đề lớn: "${topic}".
+Bạn là một chuyên gia tạo dữ liệu học tiếng Anh. Hãy giúp tôi tạo ra danh sách gồm 2 đến 5 chủ đề con dựa trên chủ đề lớn: "${topic}".
 
 Bạn phải tự xác định và tạo ra đúng hai đối tượng giao tiếp dựa trên nội dung của chủ đề.  
 Hai đối tượng phải là tên riêng hoặc vai trò cụ thể, ví dụ như Anna và Lily, Customer và Waiter, Patient và Doctor, Student và Teacher.

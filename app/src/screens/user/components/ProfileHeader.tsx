@@ -7,7 +7,7 @@ import { getUserImageSrc } from '../../../api/image/route';
 import Avatar from '../../../components/Avatar';
 import { hp } from '../../../../helpers/common';
 import { theme } from '../../../../constants/theme';
-import { Edit3, Archive } from 'lucide-react-native';
+import { Edit3, Archive, Crown } from 'lucide-react-native';
 import { Image } from 'react-native';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 
@@ -32,6 +32,23 @@ export default function ProfileHeader() {
       if (resF?.success) setFollowers(resF.data || []);
       if (resG?.success) setFollowing(resG.data || []);
     } catch (e) {}
+  };
+
+  const getLevelBadgeColor = (level: number) => {
+    if (level >= 8) return 'bg-purple-100 text-purple-800';
+    if (level >= 6) return 'bg-blue-100 text-blue-800';
+    if (level >= 4) return 'bg-green-100 text-green-800';
+    if (level >= 2) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-gray-100 text-gray-800';
+  };
+
+  const getLevelName = (level: number) => {
+    if (level >= 10) return 'Master';
+    if (level >= 8) return 'Expert';
+    if (level >= 6) return 'Advanced';
+    if (level >= 4) return 'Intermediate';
+    if (level >= 2) return 'Beginner';
+    return 'Newbie';
   };
 
   return (
@@ -60,7 +77,25 @@ export default function ProfileHeader() {
         </View>
 
         <View style={styles.infoSection}>
-          <Text style={styles.nickname}>{user?.nick_name}</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Text style={styles.nickname}>{user?.nick_name}</Text>
+            {/* <Text style={[styles.level, { marginRight: scale(8) }]}>
+              Level {user?.level || 1} {getLevelName(user?.level || 1)}
+            </Text> */}
+            {user.isPremium && (
+              <Crown
+                size={moderateScale(40)}
+                color="#fbbf24"
+                style={styles.nickname}
+              />
+            )}
+          </View>
 
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
@@ -129,7 +164,7 @@ export default function ProfileHeader() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: scale(20),
+    padding: scale(12),
     backgroundColor: '#ffffff',
   },
   profileSection: {
@@ -147,6 +182,11 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(24),
     fontWeight: 'bold',
     color: '#1f2937',
+    marginBottom: verticalScale(16),
+  },
+  level: {
+    fontSize: moderateScale(14),
+    color: '#6b7280',
     marginBottom: verticalScale(16),
   },
   statsContainer: {
