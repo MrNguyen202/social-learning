@@ -13,7 +13,9 @@ interface WritingExercise {
   title: string;
   content_vi: string;
   label: string;
-  progress: number;
+  submit_times: number;
+  genAI?: any;
+  isCorrect?: boolean | null;
 }
 
 export default function Page() {
@@ -133,7 +135,9 @@ export default function Page() {
               title={exercise.title}
               content_vi={exercise.content_vi}
               label={exercise.label}
-              progress={70}
+              submit_times={exercise.submit_times}
+              genAI={exercise.genAI}
+              isCorrect={exercise.isCorrect}
               handleStart={() => handleStartWritingExercise(exercise.id)}
             />
           ))}

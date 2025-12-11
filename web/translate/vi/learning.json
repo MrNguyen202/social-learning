@@ -357,5 +357,12 @@
 
   "byPremiumToUse":"Mua premium để sử dụng",
   "grammarScore":"Điểm ngữ pháp",
-  "vocabularyScore":"Điểm từ vựng"
+  "vocabularyScore":"Điểm từ vựng",
+  "writingExercise": "Dịch đoạn văn tiếng Việt sang tiếng Anh tại ô nhập liệu.",
+  "writingSubmit": "Nhấn \"Nộp bài\" để lưu đáp án của bạn.",
+  "writingSuggestion": "Nhấn \"Gợi ý\" để nhận đề xuất cải thiện bài viết của bạn.",
+  "writingHistory": "Nhấn \"Lịch sử\" để xem các lần nộp bài trước đó.",
+  "exercisesSystem": "Bài tập hệ thống",
+  "exercisesUserGenAI": "Bài tập của bạn tạo với AI",
+  "noExercisesFound": "Chưa tìm thấy bài tập nào."
 }

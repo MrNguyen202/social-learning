@@ -16,6 +16,7 @@ const writingController = {
   // Get list writing-paragraphs by type_exercise, level and type_paragraph
   getListWritingParagraphsByTypeLevelTypeParagraphs: async (req, res) => {
     const { type_exercise_slug, level_slug, type_paragraph_slug } = req.params;
+    const userId = req.user.id;
 
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 6;
@@ -26,6 +27,7 @@ const writingController = {
           type_exercise_slug,
           level_slug,
           type_paragraph_slug,
+          userId,
           page,
           limit
         );

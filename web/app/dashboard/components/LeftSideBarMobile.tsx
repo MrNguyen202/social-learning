@@ -509,7 +509,7 @@ export function LeftSidebarMobile() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="p-0 w-[280px]">
-        <SheetTitle className="mt-[-6px]"></SheetTitle>
+        <SheetTitle className="-mt-1.5"></SheetTitle>
         {sidebarContent}
       </SheetContent>
     </Sheet>

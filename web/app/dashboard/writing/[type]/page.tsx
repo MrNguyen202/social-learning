@@ -87,6 +87,7 @@ export default function Page() {
   const handleClearSelection = () => {
     setSelectedLevel(null);
     setSelectedTopic(null);
+    setSelectedTypeParagraph(null);
   };
 
   if (loading)

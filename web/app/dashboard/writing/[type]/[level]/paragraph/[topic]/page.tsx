@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import CardWritingExercise from "@/app/dashboard/writing/components/CardExercise";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -11,7 +11,7 @@ import {
   getTypeParagraphBySlug,
 } from "@/app/apiClient/learning/learning";
 import { useRouter } from "next/navigation";
-import { getListWritingParagraphsByTypeLevelTypeParagraph } from "@/app/apiClient/learning/writing/writing";
+import { generateWritingParagraphByAI, getListWritingParagraphsByTypeLevelTypeParagraph } from "@/app/apiClient/learning/writing/writing";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import {
   Select,
@@ -30,13 +30,18 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Loader2 } from "lucide-react";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 interface WritingExercise {
   id: string;
   title: string;
   content_vi: string;
   label: string;
-  progress: number;
+  submit_times: number;
+  genAI?: any;
+  isCorrect?: boolean | null;
+  topic_id: number;
 }
 
 type Topic = {
@@ -65,13 +70,20 @@ export default function Page() {
     useState<string>("");
   const [topicFilters, setTopicFilters] = useState<Topic[]>([]);
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
+  const [loading, setLoading] = useState(false);
+
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
-  const ITEMS_PER_PAGE = 6;
+  const [filteredExercises, setFilteredExercises] = useState<WritingExercise[]>([]);
+
+  console.log("Selected Topic:", selectedTopic);
+
+
+  const ITEMS_PER_PAGE = 18;
 
   // Lấy danh sách bài viết theo type, level và topic
   useEffect(() => {
@@ -133,6 +145,18 @@ export default function Page() {
     fetchWritingExercises();
   }, [type, level, topic, language, currentPage]);
 
+  // Filter exercises by selected topic
+  useEffect(() => {
+    if (selectedTopic === "" || selectedTopic === "all") {
+      setFilteredExercises(writingExercises);
+    } else {
+      const filtered = writingExercises.filter(
+        (ex) => ex.topic_id.toString() === selectedTopic
+      );
+      setFilteredExercises(filtered);
+    }
+  }, [selectedTopic, writingExercises]);
+
   // Handle start writing exercise
   const handleStartWritingExercise = (exerciseId: string) => {
     if (type === "writing-paragraph") {
@@ -149,6 +173,74 @@ export default function Page() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
+
+  const handleGenerateAI_Click = async () => {
+
+    console.log("Type:", topic, "Level:", level);
+    if (level && topic) {
+      try {
+        setLoading(true); // bật loading
+        const reponse = await generateWritingParagraphByAI(
+          level.toString(),
+          topic.toString()
+        );
+        if (reponse && reponse.data && reponse.data.id) {
+          const writingParagraphId = reponse.data.id;
+          router.push(
+            `/dashboard/writing/detail/paragraph/${writingParagraphId}`
+          );
+        } else {
+          console.error("Invalid response from AI generation:", reponse);
+        }
+      } catch (err) {
+        console.error("Error generating AI paragraph:", err);
+      } finally {
+        setLoading(false); // tắt loading
+      }
+    }
+  };
+
+  if (loading)
+    return (
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div
+              className="flex flex-col items-center gap-4 bg-white p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-2xl max-w-sm w-full"
+              initial={{ scale: 0.8, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 1,
+                  repeat: Number.POSITIVE_INFINITY,
+                  ease: "linear",
+                }}
+              >
+                <Loader2 className="w-10 h-10 md:w-12 md:h-12 text-orange-600" />
+              </motion.div>
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-gray-800 font-semibold text-base md:text-lg text-center">
+                  {t("learning.creatingExercise")}
+                </span>
+                <span className="text-gray-500 text-xs md:text-sm text-center">
+                  {t("learning.pleaseWait")}
+                </span>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
 
   return (
     <>
@@ -235,6 +327,28 @@ export default function Page() {
           <h2 className="text-2xl font-bold">{t("learning.exerciseList")}</h2>
           {/* Bộ lọc */}
           <div className="flex items-center gap-3">
+            {/* Select option */}
+            <div className="flex items-center gap-4 mr-10">
+              {/* User */}
+              <div className="flex items-center gap-2">
+                <div className="bg-amber-100 text-amber-700 px-2 py-1 rounded-lg text-xs font-bold flex items-center">
+                  <Image src="/user.png" alt="User" width={18} height={18} />
+                </div>
+                <span className="text-sm font-bold text-gray-700 mr-2">
+                  {t("learning.exercisesUserGenAI")}
+                </span>
+              </div>
+
+              {/* System */}
+              <div className="flex items-center gap-2">
+                <div className="bg-amber-100 text-amber-700 px-2 py-1 rounded-lg text-xs font-bold flex items-center">
+                  <Image src="/system.png" alt="System" width={20} height={20} />
+                </div>
+                <span className="text-sm font-bold text-gray-700 mr-2">
+                  {t("learning.exercisesSystem")}
+                </span>
+              </div>
+            </div>
             <span className="text-sm font-medium text-gray-700">
               {t("learning.filterByTopic")}:
             </span>
@@ -250,7 +364,7 @@ export default function Page() {
               <SelectContent>
                 <SelectItem value="all">{t("learning.optionAll")}</SelectItem>
                 {topicFilters.map((topic) => (
-                  <SelectItem key={topic.id} value={topic.slug}>
+                  <SelectItem key={topic.id} value={topic.id.toString()}>
                     {topic[`name_${language}`]}
                   </SelectItem>
                 ))}
@@ -259,29 +373,37 @@ export default function Page() {
           </div>
         </div>
         {isLoading ? (
-             <div className="flex justify-center items-center h-60 w-full">
-                 <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
-             </div>
+          <div className="flex justify-center items-center h-60 w-full">
+            <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+          </div>
         ) : (
-            <div className="w-full py-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {writingExercises.length > 0 ? (
-                writingExercises.map((exercise) => (
+          <div className={`w-full py-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 ${filteredExercises.length === 0 ? "my-auto" : ""}`}>
+            {filteredExercises.length > 0 ? (
+              filteredExercises.map((exercise) => (
                 <CardWritingExercise
-                    t={t}
-                    key={exercise.id}
-                    title={exercise.title}
-                    content_vi={exercise.content_vi}
-                    label={exercise.label}
-                    progress={70} // Fix logic progress
-                    handleStart={() => handleStartWritingExercise(exercise.id)}
+                  t={t}
+                  key={exercise.id}
+                  title={exercise.title}
+                  content_vi={exercise.content_vi}
+                  label={exercise.label}
+                  submit_times={exercise.submit_times}
+                  genAI={exercise.genAI}
+                  isCorrect={exercise.isCorrect}
+                  handleStart={() => handleStartWritingExercise(exercise.id)}
                 />
-                ))
+              ))
             ) : (
-                <div className="col-span-3 text-center py-10 text-gray-500">
-                    {t("learning.noExercisesFound")}
-                </div>
+              <div className="col-span-3 text-center py-10 text-gray-500 m-auto gap-4 flex flex-col items-center">
+                <p>{t("learning.noExercisesFound")}</p>
+                <Button
+                  onClick={handleGenerateAI_Click}
+                  className="flex-1 bg-linear-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white cursor-pointer"
+                >
+                  Generate AI
+                </Button>
+              </div>
             )}
-            </div>
+          </div>
         )}
 
         {/* Pagination Controls */}

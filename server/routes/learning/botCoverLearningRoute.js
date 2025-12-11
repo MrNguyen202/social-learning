@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const botCoverLearningController = require('../../controllers/learning/botCoverLearningController');
+const authMiddleware = require('../../middlewares/authMiddleware');
 
 // Route to create a generated paragraph exercise
-router.post('/generate-paragraph-exercise', botCoverLearningController.createGenerateParagraphExercise);
+router.post('/generate-paragraph-exercise', authMiddleware, botCoverLearningController.createGenerateParagraphExercise);
 
 // Route to create a generated listening exercise
 router.post('/generate-listening-exercise', botCoverLearningController.createGenerateListeningExercise);

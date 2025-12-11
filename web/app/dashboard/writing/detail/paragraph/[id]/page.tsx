@@ -21,6 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Image from "next/image";
 
 interface ExerciseDetail {
   id: number;
@@ -258,7 +259,7 @@ export default function PageExerciseDetail() {
     );
 
   return (
-    <div className="w-full grid grid-cols-1 gap-6 mt-6">
+    <div className="w-full flex flex-col gap-4 mt-6">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
           className="absolute -top-20 -right-20 w-96 h-96 bg-linear-to-br from-orange-300/30 to-pink-300/30 rounded-full blur-3xl"
@@ -302,9 +303,12 @@ export default function PageExerciseDetail() {
         className="flex items-center justify-between h-18 border p-4 
             rounded-2xl shadow-sm hover:shadow-md transition-all bg-white"
       >
-        <h1 className="text-2xl font-bold text-gray-800">
-          {exerciseDetail?.title}
-        </h1>
+        <div className="flex items-center">
+          <Image src="/title-writing.gif" alt="Writing Title" className="inline align-middle mr-3" width={40} height={40} />
+          <h1 className="text-2xl font-bold text-gray-800">
+            {exerciseDetail?.title}
+          </h1>
+        </div>
 
         <div className="flex items-center gap-6 text-sm font-medium text-gray-700">
           {/* Snowflake */}
@@ -337,7 +341,7 @@ export default function PageExerciseDetail() {
         <div className="flex flex-col gap-6 w-[60%]">
           {/* Content in Vietnamese */}
           <div className="bg-white p-4 rounded-xl shadow-sm border">
-            <p className="text-lg text-gray-700 leading-relaxed">
+            <p className="text-lg text-blue-800 leading-relaxed">
               {exerciseDetail?.content_vi}
             </p>
 
@@ -365,7 +369,7 @@ export default function PageExerciseDetail() {
                 className="bg-yellow-400 text-white rounded-lg px-5 py-2 hover:bg-yellow-500 hover:cursor-pointer"
                 onClick={handleSuggest}
               >
-                {t("learning.buttonSuggestion")} (-2)
+                {t("learning.buttonSuggestion")} (-2 ❄)
               </Button>
               <Button
                 className="bg-blue-500 text-white rounded-lg px-5 py-2 hover:bg-blue-600 hover:cursor-pointer"
@@ -396,8 +400,8 @@ export default function PageExerciseDetail() {
                 <span className="font-bold float-right">
                   {history && history.length > 0
                     ? Math.max(
-                        ...history.map((item) => item.feedback?.final_score ?? 0)
-                      )
+                      ...history.map((item) => item.feedback?.final_score ?? 0)
+                    )
                     : 0}
                 </span>
               </div>
@@ -406,8 +410,8 @@ export default function PageExerciseDetail() {
                 <span className="font-bold float-right">
                   {history && history.length > 0
                     ? Math.max(
-                        ...history.map((item) => item.feedback?.accuracy ?? 0)
-                      )
+                      ...history.map((item) => item.feedback?.accuracy ?? 0)
+                    )
                     : 0}
                   %
                 </span>
@@ -473,7 +477,7 @@ export default function PageExerciseDetail() {
                     <span className="font-bold text-blue-600">
                       {feedback.accuracy}%
                     </span>
-                     | {t("learning.grammarScore")}:{" "}
+                    | {t("learning.grammarScore")}:{" "}
                     <span className="font-bold text-purple-600">
                       {feedback.grammar}%
                     </span>{" "}
@@ -590,6 +594,18 @@ export default function PageExerciseDetail() {
                   {t("learning.feedbackAITitle")}
                 </h3>
                 <p className="text-sm">{t("learning.feedbackAIDescription")}</p>
+                <Image src="/botFeedback.gif" alt="Feedback AI" className="align-middle mx-auto" width={200} height={200} />
+                {/* Hướng dẫn làm bài */}
+                <div className="flex flex-col items-start text-left">
+                  <h3 className="text-xl font-semibold mt-10 mb-4">
+                    {t("learning.guideline")}:
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 text-gray-700">
+                    <li>{t("learning.writingExercise")}</li>
+                    <li>{t("learning.writingSubmit")}</li>
+                    <li>{t("learning.writingSuggestion")}</li>
+                  </ul>
+                </div>
               </div>
             )}
           </div>

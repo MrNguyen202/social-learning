@@ -426,7 +426,7 @@ export function CreateOrUpdatePostModal({
                         1 {t("dashboard.attachedFile")}
                       </p>
                       <div className="text-xs text-gray-500 flex items-center space-x-1">
-                        <div className="w-4 h-4 flex-shrink-0 mr-6">
+                        <div className="w-4 h-4 shrink-0 mr-6">
                           {getFileIcon(selectedFile)}
                         </div>
                         <span className="truncate">{selectedFile.name}</span>

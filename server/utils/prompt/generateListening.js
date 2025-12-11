@@ -1,5 +1,5 @@
 module.exports = (level, topic) => `
-Bạn là một chuyên gia ngôn ngữ Anh. Hãy giúp tôi tạo một bài tập nghe (một đoạn văn hoặc một đoạn hội thoại) bằng tiếng Anh.
+Bạn là một chuyên gia ngôn ngữ Anh. Hãy giúp tôi tạo một bài tập nghe (một đoạn văn nói như part 4 của bài thi TOEIC) bằng tiếng Anh.
 
 Yêu cầu:
 1. Bài tập nghe phải phù hợp với trình độ ${level}.
@@ -26,7 +26,7 @@ VÍ DỤ HOÀN HẢO:
 {
   "title_en": "Planning a Weekend Trip",
   "title_vi": "Lên kế hoạch cho chuyến đi cuối tuần",
-  "description": "Một đoạn hội thoại giữa hai người bạn đang lên kế hoạch cho một chuyến đi ngắn vào cuối tuần.",
+  "description": "Một đoạn văn nói về việc lên kế hoạch cho một chuyến đi cuối tuần.",
   "text_content": "Hey Mark, I was thinking we should plan a trip for next weekend. I feel like we really need a break from work. That sounds like a wonderful idea, Sarah! Where do you have in mind? I was considering either the mountains or the beach. Both options seem very appealing to me. The weather forecast says it will be sunny, which is perfect for either destination. I think I prefer the beach because we can relax on the sand and swim in the ocean.",
   "word_hiddens": ["plan", "next", "weekend", "break", "work", "wonderful", "idea", "have", "mind", "considering", "mountains", "beach", "options", "appealing", "forecast", "sunny", "perfect", "destination", "prefer", "relax", "sand", "swim", "ocean"]
 }

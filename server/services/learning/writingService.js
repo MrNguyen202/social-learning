@@ -6,6 +6,7 @@ const writingService = {
         type_exercise_slug,
         level_slug,
         type_paragraph_slug,
+        currentUserId,
         page = 1,
         limit = 10
     ) {
@@ -21,7 +22,7 @@ const writingService = {
             console.error("Error fetching typeExercises:", errType);
             throw errType;
         }
-       if (!typeData) return { data: [], total: 0, currentPage: page, totalPages: 0 };
+        if (!typeData) return { data: [], total: 0, currentPage: page, totalPages: 0 };
 
         const type_exercise_id = typeData.id;
 
@@ -36,7 +37,7 @@ const writingService = {
             console.error("Error fetching levels:", errLevel);
             throw errLevel;
         }
-       if (!levelData) return { data: [], total: 0, currentPage: page, totalPages: 0 };
+        if (!levelData) return { data: [], total: 0, currentPage: page, totalPages: 0 };
 
         const level_id = levelData.id;
 
@@ -72,8 +73,58 @@ const writingService = {
             throw err1;
         }
 
+        const filtered = writingParagraphs.filter((item) => {
+            // Nếu không có genAI → cho phép hiển thị
+            if (!item.genAI) return true;
+
+            // Nếu genAI của item không có userId → cho phép hiển thị
+            if (!item.genAI.userId) return true;
+
+            // Nếu userId match user hiện tại → cho phép
+            if (item.genAI.userId === currentUserId) return true;
+
+            // Nếu genAI có isPublic = true → cho phép hiển thị
+            if (item.genAI.isPublic) return true;
+
+            // Ngược lại → không hiển thị
+            return false;
+        });
+
+        // Lấy danh sách ID để query progress
+        const paragraphIds = filtered.map((p) => p.id);
+
+        const { data: progresses } = await supabase
+            .from("progressWritingParagraph")
+            .select("writingParagraph_id, submit_times, isCorrect")
+            .eq("user_id", currentUserId)
+            .in("writingParagraph_id", paragraphIds);
+
+        // Map progress vào từng paragraph
+        const progressMap = {};
+        progresses?.forEach((p) => {
+            progressMap[p.writingParagraph_id] = {
+                submit_times: p.submit_times,
+                isCorrect: p.isCorrect,
+            };
+        });
+
+        const result = filtered.map((item) => ({
+            ...item,
+            submit_times: progressMap[item.id]?.submit_times ?? 0,
+            isCorrect: progressMap[item.id]?.isCorrect ?? null,
+        }));
+
+        function getRank(i) {
+            if (i.isCorrect === false) return 1; // Sai
+            if (i.submit_times === 0) return 2;  // Chưa nộp
+            if (i.isCorrect === true) return 4;  // Đúng
+            return 3;                            // Đã nộp nhưng chưa đúng
+        }   
+
+        result.sort((a, b) => getRank(a) - getRank(b));
+
         return {
-            data: writingParagraphs,
+            data: result,
             total: count,
             currentPage: page,
             totalPages: Math.ceil(count / limit)

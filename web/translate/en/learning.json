@@ -353,5 +353,13 @@
   "audioTrack": "Audio Track",
   "byPremiumToUse": "Buy premium to use",
   "grammarScore": "Grammar Score",
-  "vocabularyScore": "Vocabulary Score"
+  "vocabularyScore": "Vocabulary Score",
+
+  "writingExercise": "Translate the Vietnamese paragraph into English in the input box.",
+  "writingSubmit": "Press \"Submit\" to save your answer.",
+  "writingSuggestion": "Press \"Suggestion\" to get suggestions to improve your writing.",
+  "writingHistory": "Press \"History\" to view previous submissions.",
+  "exercisesSystem": "System Exercises",
+  "exercisesUserGenAI": "Your Exercises Generated with AI",
+  "noExercisesFound": "No exercises found."
 }

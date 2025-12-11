@@ -58,6 +58,7 @@ Lưu ý:
 - Luôn highlight lỗi bằng cú pháp: (sai) → [đúng].
 - Luôn có ít nhất một điểm mạnh (strength).
 - Luôn viết suggestion rõ ràng, dễ hiểu, có giải thích và mẹo.
+- Ở phần highlight luôn để từ/cụm từ sai trong ngoặc đơn và từ/cụm từ đúng trong ngoặc vuông.
 - Nếu học viên bỏ sót ý/câu quan trọng từ đoạn tiếng Việt gốc, hãy thêm một lỗi với:
     "error_type": "missing_sentence",
     "original": "ý/câu bị thiếu trong bản dịch",
