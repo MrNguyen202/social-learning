@@ -88,7 +88,7 @@ Tổng quan các chức năng của Người dùng và Admin.
 
 #### SQL (Supabase) - Quản lý Social & Learning
 <div align="center">
-  <img src="/image/sqlSocial.jpg" alt="Database SQL Social" width="35%"/>
+  <img src="/image/sqlSocial.jpg" alt="Database SQL Social" width="38%"/>
   <img src="/image/sql.jpg" alt="Database SQL Learning" width="45%"/>
 </div>
 
@@ -121,10 +121,9 @@ Mô hình kết nối giữa Client, Server, Database và các dịch vụ bên 
 
 ## 🔗 LIÊN KẾT
 
-- **Demo Video:** [Youtube Link](...)
 - **Website:** [https://www.socialonlinelearning.tech/][1]
-- **API Documentation:** [Swagger/Postman Link](...)
 - **Mobile App:** [Download APK](...)
+- **Demo Video:** [Youtube Link](...)
 
 [1]: <https://www.socialonlinelearning.tech/>
 
