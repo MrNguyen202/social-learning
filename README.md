@@ -31,7 +31,7 @@
 
 ---
 
-## 🚀 TÍNH NĂNG NỔI BẬT
+## ✨ TÍNH NĂNG NỔI BẬT
 
 ### 🎓 Học tập thông minh (AI Integration)
 - **Luyện Viết (Writing):** AI (Gemini) tự động tạo đề bài, chấm điểm ngữ pháp, từ vựng và gợi ý sửa lỗi chi tiết.
@@ -81,20 +81,20 @@ Tổng quan các chức năng của Người dùng và Admin.
 <div align="center">
   <img src="/image/usecase.png" alt="Sơ đồ Use Case Tổng Quát" width="800"/>
   <br>
-  <i>(Hình 3.1 - Mô hình Use-case tổng quát)</i>
+  <i>(Mô hình Use-case tổng quát)</i>
 </div>
 
 ### 2. Sơ đồ Database (ERD)
 
 #### SQL (Supabase) - Quản lý Social & Learning
 <div align="center">
-  <img src="path/to/hinh_4.3.png" alt="Database SQL Social" width="45%"/>
-  <img src="path/to/hinh_4.4.png" alt="Database SQL Learning" width="45%"/>
+  <img src="/image/sqlSocial.jpg" alt="Database SQL Social" width="35%"/>
+  <img src="/image/sql.jpg" alt="Database SQL Learning" width="45%"/>
 </div>
 
 #### NoSQL (MongoDB) - Quản lý Chat & Realtime
 <div align="center">
-  <img src="path/to/hinh_4.5.png" alt="Database NoSQL" width="600"/>
+  <img src="/image/nosql.jpg" alt="Database NoSQL" width="600"/>
 </div>
 
 ### 3. Kiến trúc Phần mềm
@@ -122,9 +122,11 @@ Mô hình kết nối giữa Client, Server, Database và các dịch vụ bên 
 ## 🔗 LIÊN KẾT
 
 - **Demo Video:** [Youtube Link](...)
-- **Website:** [https://www.socialonlinelearning.tech/](...)
+- **Website:** [https://www.socialonlinelearning.tech/][1]
 - **API Documentation:** [Swagger/Postman Link](...)
 - **Mobile App:** [Download APK](...)
+
+[1]: <https://www.socialonlinelearning.tech/>
 
 ---
 
@@ -136,8 +138,8 @@ Dự án được thực hiện bởi nhóm sinh viên trường Đại học C�
 
 | **Họ và Tên** | **Vai Trò Chính** | **Trách Nhiệm Cụ Thể** |
 | :--- | :--- | :--- |
-| **Nguyễn Thanh Thuận** <br> *(21080071)* | fullstack | Quản lý dự án, thiết kế hệ thống, phát triển Frontend - Backend, tích hợp Gemini AI & Deploy. |
-| **Trương Quốc Bảo** <br> *(21017351)* | Fullstack | Quản lý dự án, thiết kế hệ thống, phát triển Frontend - Backend, tích hợp Gemini AI, xử lý UI/UX. |
+| **Nguyễn Thanh Thuận** <br> *(21080071)* | Fullstack | Quản lý dự án, thiết kế hệ thống, phát triển Frontend - Backend, tích hợp Gemini AI & Deploy. |
+| **Trương Quốc Bảo** <br> *(21017351)* | Fullstack | Quản lý dự án, thiết kế hệ thống, phát triển Frontend - Backend, tích hợp Gemini AI, thiết kế UI/UX. |
 
 ### 👩‍🏫 Giảng Viên Hướng Dẫn
 
