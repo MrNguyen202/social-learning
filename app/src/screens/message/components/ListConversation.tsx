@@ -36,21 +36,34 @@ export default function ListConversation() {
       }
     };
 
-    // Lắng nghe sự kiện 'newMessage' từ server để cập nhật danh sách cuộc trò chuyện
-    socket.on('notificationNewMessage', () => {
-      fetchData();
-    });
+    const handleNewMessage = () => fetchData();
+    const handleMessagesRead = () => fetchData();
 
-    socket.on('notificationMessagesRead', () => {
-      fetchData();
-    });
+    const handleGroupUpdate = (updatedConversation: any) => {
+      console.log("Mobile Group Update:", updatedConversation);
+      setConversations(prevConversations =>
+        prevConversations.map(conv =>
+          // Nếu id trùng khớp thì merge dữ liệu mới vào
+          conv.id === updatedConversation.id
+            ? { ...conv, ...updatedConversation }
+            : conv
+        )
+      );
+    };
+
+    // Lắng nghe sự kiện
+    socket.on('notificationNewMessage', handleNewMessage);
+    socket.on('notificationMessagesRead', handleMessagesRead);
+
+    socket.on('groupUpdated', handleGroupUpdate);
 
     fetchData();
 
     // Đóng socket khi unmount
     return () => {
-      socket.off('notificationNewMessage');
-      socket.off('notificationMessagesRead');
+      socket.off('notificationNewMessage', handleNewMessage);
+      socket.off('notificationMessagesRead', handleMessagesRead);
+      socket.off('groupUpdated', handleGroupUpdate);
     };
   }, [user?.id, loading]);
 
@@ -81,9 +94,9 @@ export default function ListConversation() {
     </View>
   );
 
-  if (loadingConversations) {
-    return renderLoadingState();
-  }
+  // if (loadingConversations) {
+  //   return renderLoadingState();
+  // }
 
   return (
     <View style={styles.container}>

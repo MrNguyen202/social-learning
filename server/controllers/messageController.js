@@ -48,9 +48,18 @@ const messageController = {
 
             const conversationMembers = await conversationService.getConversationMembers(conversationId);
             for (const member of conversationMembers) {
-                const userSocket = io.userSockets.get(member.userId);
+                // Bỏ qua người gửi
+                // LƯU Ý: Phải toString() cả 2 vế để so sánh chính xác
+                if (member.userId.toString() === senderId.toString()) continue;
+
+                // QUAN TRỌNG NHẤT: Ép kiểu ObjectId sang String để tìm trong Map
+                const receiverIdStr = member.userId.toString();
+
+                // Tìm socket
+                const userSocket = io.userSockets.get(receiverIdStr);
+
                 if (userSocket) {
-                    // Gửi thông báo tin nhắn mới
+                    // Gửi sự kiện để Client reload lại List và số đỏ trên Sidebar
                     io.to(userSocket.id).emit("notificationNewMessage");
                 }
             }
@@ -193,7 +202,7 @@ const messageController = {
         try {
             const { messageId } = req.params;
             // Lấy userId từ middleware auth
-            const userId = req.user.id; 
+            const userId = req.user.id;
 
             // 1. Gọi Service để xử lý Logic DB
             const updatedMessage = await messageService.toggleLikeMessage(messageId, userId);

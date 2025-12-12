@@ -361,7 +361,7 @@ export default function ChatDetail() {
   const handleSendMessage = async () => {
     if (text.trim() === "" && files.length === 0) return;
 
-    sendMessage(text, files, replyingTo);
+    await sendMessage(text, files, replyingTo);
 
     setText("");
     setFiles([]);

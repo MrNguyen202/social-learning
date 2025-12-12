@@ -14,7 +14,12 @@ const conversationService = {
     async getUserConversations(userId) {
         const conversations = await Conversation.aggregate([
             // 1. Lọc conversation mà user tham gia
-            { $match: { "members.userId": userId } },
+            {
+                $match: {
+                    "members.userId": userId,
+                    isDeleted: { $ne: true }
+                }
+            },
 
             // 2. Join với bảng messages để lấy thông tin lastMessage
             {

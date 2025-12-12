@@ -96,7 +96,18 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     const socket = getSocket();
 
     if (user?.id) {
-      socket.emit("user-online", { userId: user.id });
+      const registerUser = () => {
+        // Đảm bảo gửi đúng format mà socket.js bên server đang đợi
+        // Nếu server đợi: socket.on("user-online", ({ userId }) => ...)
+        console.log("Registering user to socket:", user.id);
+        socket.emit("user-online", { userId: user.id });
+      };
+
+      // 2. Gọi ngay lần đầu
+      registerUser();
+
+      // 3. --- QUAN TRỌNG: Lắng nghe sự kiện connect để báo danh lại khi rớt mạng/server reset ---
+      socket.on("connect", registerUser);
 
       // chấp nhận cuộc gọi
       const handleAcceptCall = (conversationId: string) => {
@@ -164,6 +175,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       // dọn dẹp
       return () => {
         socket.off("incomingCall", onIncomingCall);
+        socket.off("connect", registerUser);
       };
     }
   }, [user, router]);

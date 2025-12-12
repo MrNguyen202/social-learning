@@ -124,7 +124,8 @@ const botCoverLearningController = {
       const data = {
         content_vi: json.content_vi,
         content_en: json.content_en,
-        title: json.title,
+        title_vi: json.title_vi,
+        title_en: json.title_en,
         level_id: level.id,
         type_exercise_id: typeExerciseData.id,
         topic_id:

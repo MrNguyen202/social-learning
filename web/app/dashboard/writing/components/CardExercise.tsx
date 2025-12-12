@@ -33,13 +33,13 @@ export default function CardWritingExercise({
       className="group relative bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer overflow-hidden flex flex-col h-full"
     >
       <div className="absolute top-4 right-4 flex items-center gap-2">
-        <button onClick={(e) => {
+        {/* <button onClick={(e) => {
           e.stopPropagation();
           handleShare?.();
         }}
         >
           <Share2 size={20} className="hover:cursor-pointer z" />
-        </button>
+        </button> */}
         <div className="bg-amber-100 text-amber-700 px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
           {genAI ? (
             <Image src="/user.png" alt="clock" width={20} height={20} />
@@ -71,9 +71,12 @@ export default function CardWritingExercise({
         {
           submit_times > 0 ? (
             isCorrect ? (
-              <p className="text-md text-green-600">Đã hoàn thành</p>
+              <div className="flex items-center gap-2">
+                <Image src="/graduation-cap.gif" alt="completed" width={30} height={30} />
+                <p className="text-md text-green-600 font-bold">{t("learning.writingComplete")}</p>
+              </div>
             ) : (
-              <p className="text-md text-slate-500">Số lần nộp: {submit_times}</p>
+              <p className="text-md text-slate-500">{t("learning.submitTimes")}: {submit_times}</p>
             )
           ) : null
         }

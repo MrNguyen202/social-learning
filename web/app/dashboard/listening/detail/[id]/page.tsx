@@ -184,7 +184,7 @@ export default function ListeningDetailPage() {
 
     const randomPos =
       unansweredPositions[
-        Math.floor(Math.random() * unansweredPositions.length)
+      Math.floor(Math.random() * unansweredPositions.length)
       ];
     const correctWord = hiddenMap[parseInt(randomPos)];
 
@@ -212,9 +212,10 @@ export default function ListeningDetailPage() {
 
   // Hàm nộp bài
   const handleSubmit = async () => {
-    // Tạo mảng wordAnswers từ object answers
     setLoadingSubmit(true);
-    const wordAnswers = exercise.wordHidden.map((wh: any) => ({
+
+    // Tạo mảng đầy đủ để kiểm tra UI (hiển thị đúng/sai cho người dùng thấy)
+    const allAnswersProcessed = exercise.wordHidden.map((wh: any) => ({
       word_hidden_id: wh.id,
       position: wh.position,
       answer: wh.answer,
@@ -224,25 +225,32 @@ export default function ListeningDetailPage() {
         wh.answer.trim().toLowerCase(),
     }));
 
-    wordAnswers;
+    // Chỉ lấy những đáp án người dùng thực sự điền để gửi xuống Server
+    const filledAnswersPayload = allAnswersProcessed.filter(
+      (item: any) => item.answer_input.trim() !== ""
+    );
 
     try {
+      // Gửi mảng đã lọc (filledAnswersPayload) thay vì toàn bộ
       const res = await listeningService.submitListeningResults(
         user?.id,
         exercise?.id,
-        wordAnswers
+        filledAnswersPayload
       );
+
       setSubmitResult(res);
       setShowCelebration(true);
       setLoadingSubmit(false);
 
+      // Cập nhật UI: Vẫn dùng mảng đầy đủ (allAnswersProcessed) để hiển thị đỏ/xanh cho tất cả các ô
       const newCheckResult: Record<number, boolean> = {};
-      wordAnswers.forEach((ans: { position: number; is_correct: boolean }) => {
+      allAnswersProcessed.forEach((ans: { position: number; is_correct: boolean }) => {
         newCheckResult[ans.position] = ans.is_correct;
       });
       setCheckResult(newCheckResult);
     } catch (error) {
       console.error("Error submitting results:", error);
+      setLoadingSubmit(false); // Nhớ tắt loading nếu lỗi
     }
   };
 
@@ -253,13 +261,13 @@ export default function ListeningDetailPage() {
       return;
     }
 
-    // 1. Tạo một Map để tra cứu nhanh: { word_hidden_id => position }
+    //Tạo một Map để tra cứu nhanh: { word_hidden_id => position }
     // `exercise.wordHidden` là mảng chứa thông tin các từ bị ẩn, bao gồm cả id và position
     const wordIdToPositionMap = new Map(
       exercise.wordHidden.map((wh: any) => [wh.id, wh.position])
     );
 
-    // 2. Tạo các object state mới từ dữ liệu lịch sử
+    //Tạo các object state mới từ dữ liệu lịch sử
     const historicalAnswers: Record<number, string> = {};
     const historicalCheckResult: Record<number, boolean> = {};
 
@@ -271,7 +279,7 @@ export default function ListeningDetailPage() {
       }
     }
 
-    // 3. Cập nhật lại state của component để UI thay đổi theo
+    //Cập nhật lại state của component để UI thay đổi theo
     setAnswers(historicalAnswers);
     setCheckResult(historicalCheckResult);
   };
@@ -445,16 +453,14 @@ export default function ListeningDetailPage() {
                     width: `${length}rem`,
                   }}
                   className={`border-b-2 text-center bg-white px-1 py-0.5 rounded-sm tracking-widest
-                                    ${
-                                      isCorrect === true
-                                        ? "border-green-500"
-                                        : ""
-                                    }
-                                    ${
-                                      isCorrect === false
-                                        ? "border-red-500"
-                                        : "border-gray-400"
-                                    }`}
+                                    ${isCorrect === true
+                      ? "border-green-500"
+                      : ""
+                    }
+                                    ${isCorrect === false
+                      ? "border-red-500"
+                      : "border-gray-400"
+                    }`}
                   value={answers[position] || ""}
                   onChange={(e) =>
                     setAnswers({ ...answers, [position]: e.target.value })

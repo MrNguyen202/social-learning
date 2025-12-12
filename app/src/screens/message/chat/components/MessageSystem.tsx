@@ -2,19 +2,46 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Icon } from '../../../../../components/icons/Icon';
 
-interface SystemMessageProps {
-  message: {
-    system: {
-      action: string;
-      actor: { name: string };
-      target?: { name: string }[];
-      newName?: string;
-    }
-  };
+interface SystemContent {
+    _id: string;
+        conversationId: string;
+        senderId: string;
+        content: {
+            type: string;
+            text: string;
+            images: { url: string; filename: string }[];
+            file: any;
+            system?: {
+                action: "user_joined" | "user_left" | "conversation_renamed" | "member_added" | "member_removed" | "admin_transferred" | "conversation_avatar_updated";
+                actor: {
+                    id: string;
+                    name: string;
+                };
+                target: [
+                    {
+                        id: string;
+                        name: string;
+                    },
+                ];
+                newName?: string;
+            };
+        };
+        sender: {
+            id: string;
+            name: string;
+            avatar: string;
+        };
+        createdAt: string;
+        seens: any[];
+
 }
 
-const MessageSystem = ({ message }: SystemMessageProps) => {
-  const { action, actor, target, newName } = message.system || {};
+interface MessageSystemProps {
+    message: SystemContent;
+}
+
+const MessageSystem = ({ message }: MessageSystemProps) => {
+  const { action, actor, target, newName } = message.content.system || {};
   const actorName = actor?.name || 'User';
   // Xử lý targetName nếu có nhiều người
   const targetName = target?.map((t: any) => t.name).join(', ') || '';

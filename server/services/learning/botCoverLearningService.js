@@ -9,7 +9,8 @@ const botCoverLearningService = {
                 {
                     content_vi: data.content_vi,
                     content_en: data.content_en,
-                    title: data.title,
+                    title_vi: data.title_vi,
+                    title_en: data.title_en,
                     level_id: data.level_id,
                     type_exercise_id: data.type_exercise_id,
                     topic_id: data.topic_id,

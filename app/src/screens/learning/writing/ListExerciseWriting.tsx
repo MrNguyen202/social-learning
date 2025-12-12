@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     View,
     Text,
@@ -6,47 +6,67 @@ import {
     FlatList,
     TouchableOpacity,
     ActivityIndicator,
-    // 2. Xóa Modal, X
+    RefreshControl
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { ArrowLeft, BookText, Filter } from 'lucide-react-native';
 
-// Import API client
+// --- API Client ---
 import { getAllTopics, getLevelBySlug, getTypeParagraphBySlug } from '../../../api/learning/route';
 import { getListWritingParagraphsByTypeLevelTypeParagraph } from '../../../api/learning/writing/route';
 
-// Import Card
-import CardWritingExercise from './components/CardExercise';
-
+// --- Components ---
+import CardWritingExercise from './components/CardExercise'; // Card bạn vừa cung cấp
 import TopicFilterModal from './components/TopicFilterModal';
 
+// --- Types ---
 type PageParams = { type: string; level: string; typeParagraph: string; };
 type PageRouteProp = RouteProp<{ params: PageParams }, 'params'>;
-interface WritingExercise { id: string; title: string; content_vi: string; label: string; progress: number; topic_id: number; };
-type Topic = { id: number; icon: { name: string; color: string; }; name_vi: string; name_en: string; slug: string; description_vi: string; description_en: string; };
 
-const ITEMS_PER_PAGE = 6;
+// Interface khớp với dữ liệu trả về từ API (giống bên Web page.tsx)
+interface WritingExercise {
+    id: string;
+    title_vi: string;
+    title_en: string;
+    content_vi: string;
+    label: string;
+    submit_times: number;
+    isCorrect?: boolean | null;
+    topic_id: number;
+    genAI?: any;
+}
+
+type Topic = {
+    id: number;
+    name_vi: string;
+    slug: string;
+};
+
+const ITEMS_PER_PAGE = 10; // Load 10 bài mỗi lần cuộn
 
 export default function ListExerciseWriting() {
     const navigation = useNavigation<any>();
     const route = useRoute<PageRouteProp>();
     const { type, level, typeParagraph } = route.params;
 
+    // --- State ---
     const [writingExercises, setWritingExercises] = useState<WritingExercise[]>([]);
     const [levelExerciseName, setLevelExerciseName] = useState<string>("");
-    const [typeParagraphsName, setTypeParagraphsName] = useState<string>("");
+
+    // Filter State
     const [topicFilters, setTopicFilters] = useState<Topic[]>([]);
     const [selectedTopic, setSelectedTopic] = useState<{ id: number; slug: string; name_vi: string }>({ id: 0, slug: 'all', name_vi: 'Tất cả chủ đề' });
-    const [selectedTypeParagraph, setSelectedTypeParagraph] = useState<string>(typeParagraph as string || "all");
-    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
 
     // Pagination State
-    const [page, setPage] = useState(1);
-    const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
-    const [hasMore, setHasMore] = useState(true);
-    // --- 1. Fetch Metadata (Level name, Topics list) - Chạy 1 lần ---
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [isLoading, setIsLoading] = useState<boolean>(true);      // Loading lần đầu / Reset
+    const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false); // Loading khi cuộn thêm
+    const [isRefreshing, setIsRefreshing] = useState(false);        // Kéo xuống để refresh
+
+    // --- 1. Fetch Metadata (Chạy 1 lần để lấy tên Level và List Topic) ---
     useEffect(() => {
         const fetchMetadata = async () => {
             try {
@@ -58,7 +78,7 @@ export default function ListExerciseWriting() {
 
                 if (levelNameData) setLevelExerciseName(levelNameData.name_vi);
 
-                // Cập nhật tên Topic hiển thị ban đầu nếu có
+                // Nếu user vào từ 1 topic cụ thể
                 if (typeParagraphData && typeParagraph !== 'all') {
                     setSelectedTopic({
                         id: typeParagraphData.id,
@@ -77,60 +97,68 @@ export default function ListExerciseWriting() {
         fetchMetadata();
     }, [level, typeParagraph]);
 
-
-    // --- 2. Main Fetch Function (Gọi API lấy bài tập) ---
-    const fetchExercises = async (pageToLoad: number, isReset: boolean = false) => {
+    // --- 2. Main Fetch Function (Logic Phân Trang) ---
+    const fetchExercises = useCallback(async (page: number, topicSlug: string, isReset: boolean = false) => {
         try {
-            // Xác định topic slug để gửi lên API
-            // Nếu API yêu cầu slug cụ thể cho 'all', hãy sửa ở đây (ví dụ để string rỗng "")
-            const topicSlug = selectedTopic.slug;
+            if (isReset) setIsLoading(true);
+            else setIsLoadingMore(true);
 
             const response = await getListWritingParagraphsByTypeLevelTypeParagraph(
                 type,
                 level,
                 topicSlug,
-                pageToLoad,
+                page,
                 ITEMS_PER_PAGE
             );
 
-            // Xử lý dữ liệu trả về từ API (dạng { data, totalPages, ... })
-            const newData = response.data || [];
-            const totalPages = response.totalPages || 1;
+            const resData: any = response;
+            const newData = resData.data || [];
+            const total = resData.totalPages || 1;
+
+            setTotalPages(total);
 
             if (isReset) {
                 setWritingExercises(newData);
             } else {
+                // Nối dữ liệu mới vào dữ liệu cũ
                 setWritingExercises(prev => [...prev, ...newData]);
             }
-
-            // Cập nhật trạng thái hasMore
-            setHasMore(pageToLoad < totalPages);
 
         } catch (error) {
             console.error("Error fetching exercises:", error);
         } finally {
             setIsLoading(false);
             setIsLoadingMore(false);
+            setIsRefreshing(false);
+        }
+    }, [type, level]);
+
+    // --- 3. Effect: Trigger Fetch khi Filter thay đổi ---
+    useEffect(() => {
+        // Reset về trang 1 mỗi khi đổi Topic
+        setCurrentPage(1);
+        fetchExercises(1, selectedTopic.slug, true);
+    }, [selectedTopic.slug, fetchExercises]);
+
+    // --- 4. Handlers ---
+
+    // Xử lý Infinite Scroll (Load More)
+    const handleLoadMore = () => {
+        if (!isLoading && !isLoadingMore && currentPage < totalPages) {
+            const nextPage = currentPage + 1;
+            setCurrentPage(nextPage);
+            fetchExercises(nextPage, selectedTopic.slug, false);
         }
     };
 
-    // --- 3. Effect khi thay đổi Filter (Topic) ---
-    useEffect(() => {
-        // Reset state
-        setPage(1);
-        setHasMore(true);
-        setIsLoading(true);
-
-        // Gọi API trang 1 với chế độ reset
-        fetchExercises(1, true);
-    }, [selectedTopic.slug]); // Chỉ chạy lại khi slug thay đổi
-
-
-    // --- 4. Handlers ---
-    const handleStartWritingExercise = (exerciseId: string) => {
-        navigation.navigate('WritingDetail', { id: exerciseId });
+    // Xử lý Pull-to-Refresh
+    const handleRefresh = () => {
+        setIsRefreshing(true);
+        setCurrentPage(1);
+        fetchExercises(1, selectedTopic.slug, true);
     };
 
+    // Chọn Topic từ Modal
     const handleSelectTopic = (arg: { id: number; slug: string; name_vi: string } | 'all') => {
         if (arg === 'all') {
             setSelectedTopic({ id: 0, slug: 'all', name_vi: 'Tất cả chủ đề' });
@@ -138,49 +166,52 @@ export default function ListExerciseWriting() {
             setSelectedTopic({ id: arg.id, slug: arg.slug, name_vi: arg.name_vi });
         }
         setIsFilterModalVisible(false);
-        // useEffect ở mục 3 sẽ tự động bắt sự thay đổi của selectedTopic và gọi API
     };
 
-    const handleLoadMore = () => {
-        if (!isLoading && !isLoadingMore && hasMore) {
-            setIsLoadingMore(true);
-            const nextPage = page + 1;
-            setPage(nextPage);
-            fetchExercises(nextPage, false); // false = append mode
-        }
+    const handleStartWritingExercise = (exerciseId: string) => {
+        navigation.navigate('WritingDetail', { id: exerciseId });
     };
 
     // --- 5. Renders ---
-    const renderExerciseItem = ({ item }: { item: WritingExercise }) => (
-        <CardWritingExercise
-            title={item.title}
-            content_vi={item.content_vi}
-            label={item.label}
-            // progress={item.progress || 0} // Nên dùng progress thật từ API
-            progress={70}
-            handleStart={() => handleStartWritingExercise(item.id)}
-        />
-    );
 
-    const renderEmptyList = () => {
-        if (isLoading) return null; // Không hiện empty khi đang loading lần đầu
+    const renderExerciseItem = ({ item }: { item: WritingExercise }) => {
+        // Check nếu có object genAI thì là bài tập cá nhân, ngược lại là hệ thống
+        const isUserGen = !!item.genAI;
+
         return (
-            <View className="flex-1 items-center justify-center mt-20">
-                <BookText size={64} color="#ccc" />
-                <Text className="mt-4 text-gray-500 text-lg">Không tìm thấy bài tập nào</Text>
-            </View>
+            <CardWritingExercise
+                title={item.title_vi || item.title_en}
+                content_vi={item.content_vi}
+                label={require('../../../../assets/images/title-writing.gif')}
+                submitTimes={item.submit_times} // Truyền số lần nộp
+                isUserGenerated={isUserGen}     // Truyền cờ xác định User/System
+                isCorrect={item.isCorrect}
+                handleStart={() => handleStartWritingExercise(item.id)}
+            />
         );
     };
 
     const renderFooter = () => {
-        if (!isLoadingMore) return <View className="h-6" />; // Spacer
+        if (!isLoadingMore) return <View className="h-6" />;
         return (
-            <View className="py-4">
+            <View className="py-4 items-center justify-center">
                 <ActivityIndicator size="small" color="#FF6B6B" />
+                <Text className="text-gray-400 text-xs mt-2">Đang tải thêm...</Text>
             </View>
         );
     };
 
+    const renderEmpty = () => {
+        if (isLoading) return null;
+        return (
+            <View className="flex-1 items-center justify-center mt-20 px-10">
+                <BookText size={64} color="#e5e7eb" />
+                <Text className="mt-4 text-gray-500 text-lg text-center font-medium">
+                    Không tìm thấy bài tập nào
+                </Text>
+            </View>
+        );
+    };
 
     return (
         <SafeAreaView className="flex-1 bg-[#f9fafb]">
@@ -189,33 +220,32 @@ export default function ListExerciseWriting() {
                 colors={['#FF6B6B', '#FF8E8E']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                className="p-5"
+                className="p-5 pb-6 rounded-b-[24px] shadow-sm"
             >
-                <View className="flex flex-row items-center justify-center relative">
+                <View className="flex flex-row items-center justify-between mt-2">
                     <TouchableOpacity
                         onPress={() => navigation.goBack()}
-                        className="absolute left-0 w-10 h-10 rounded-full bg-[rgba(255,255,255,0.2)] flex items-center justify-center"
-                        activeOpacity={0.8}
+                        className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"
                     >
                         <ArrowLeft size={24} color="#fff" />
                     </TouchableOpacity>
 
-                    <View className="flex items-center justify-center flex-1">
-                        <Text className="text-white text-[20px] font-semibold">
-                            {levelExerciseName || "Danh sách bài tập"}
+                    <View className="items-center flex-1 mx-2">
+                        <Text className="text-white text-lg font-bold text-center" numberOfLines={1}>
+                            {levelExerciseName || "Bài tập viết"}
                         </Text>
-                        <Text className="text-white text-[14px] opacity-90">
-                            {/* Hiển thị tên topic đang lọc */}
-                            {selectedTopic.slug === 'all' ? 'Tất cả chủ đề' : selectedTopic.name_vi}
-                        </Text>
+                        <View className="bg-black/10 px-3 py-0.5 rounded-full mt-1">
+                            <Text className="text-white text-xs opacity-90">
+                                {selectedTopic.slug === 'all' ? 'Tất cả chủ đề' : selectedTopic.name_vi}
+                            </Text>
+                        </View>
                     </View>
 
                     <TouchableOpacity
                         onPress={() => setIsFilterModalVisible(true)}
-                        className="absolute right-0 w-10 h-10 rounded-full bg-[rgba(255,255,255,0.2)] flex items-center justify-center"
-                        activeOpacity={0.8}
+                        className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"
                     >
-                        <Filter size={24} color="#fff" />
+                        <Filter size={20} color="#fff" />
                     </TouchableOpacity>
                 </View>
             </LinearGradient>
@@ -227,34 +257,30 @@ export default function ListExerciseWriting() {
                     <Text className="mt-4 text-gray-500">Đang tải dữ liệu...</Text>
                 </View>
             ) : (
-                <>
-                    <View className="mt-2 mb-1 px-4">
-                        <Text className='font-semibold text-xl text-gray-800'>
-                            {selectedTopic.name_vi}
-                        </Text>
-                    </View>
+                <FlatList
+                    data={writingExercises}
+                    renderItem={renderExerciseItem}
+                    keyExtractor={(item) => item.id.toString()}
 
-                    <FlatList
-                        data={writingExercises} // Dữ liệu trực tiếp từ API
-                        renderItem={renderExerciseItem}
-                        keyExtractor={(item) => item.id.toString()} // Đảm bảo key là string
+                    // Logic Pagination
+                    onEndReached={handleLoadMore}
+                    onEndReachedThreshold={0.5} // Load khi còn cách đáy 50%
 
-                        // Xử lý Empty & Footer
-                        ListEmptyComponent={renderEmptyList}
-                        ListFooterComponent={renderFooter}
+                    ListFooterComponent={renderFooter}
+                    ListEmptyComponent={renderEmpty}
 
-                        // Styling
-                        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12, paddingBottom: 40 }}
-                        showsVerticalScrollIndicator={false}
+                    // Pull to Refresh
+                    refreshControl={
+                        <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} colors={['#FF6B6B']} />
+                    }
 
-                        // Infinite Scroll Props
-                        onEndReached={handleLoadMore}
-                        onEndReachedThreshold={0.5} // Load khi còn cách đáy 50% màn hình
-                    />
-                </>
+                    // Styling
+                    contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+                    showsVerticalScrollIndicator={false}
+                />
             )}
 
-            {/* Modal lọc chủ đề */}
+            {/* Topic Filter Modal */}
             <TopicFilterModal
                 visible={isFilterModalVisible}
                 onClose={() => setIsFilterModalVisible(false)}

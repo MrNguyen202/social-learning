@@ -11,7 +11,8 @@ Trả lời bằng định dạng JSON với cấu trúc sau:
   "content_vi": "Đoạn văn bản đã tạo bằng tiếng Việt",
   "content_en": "Đoạn văn bản đã tạo bằng tiếng Anh tương ứng với đoạn văn tiếng Việt"
   "number_of_sentences": Số câu trong đoạn văn bản,
-  "title": "Tiêu đề ngắn gọn cho đoạn văn bản bằng tiếng Việt",
+  "title_vi": "Tiêu đề ngắn gọn cho đoạn văn bản bằng tiếng Việt",
+  "title_en": "Tiêu đề ngắn gọn cho đoạn văn bản bằng tiếng Anh",
   "topic": "Chủ đề mà bạn đã chọn cho đoạn văn bản(ghi lại đúng tên chủ đề mà tôi đã cung cấp ở trên)"
 }
 `;

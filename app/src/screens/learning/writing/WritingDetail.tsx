@@ -53,6 +53,8 @@ export default function ExerciseDetailScreen() {
     const [progress, setProgress] = useState<any>(null);
     const [pageLoading, setPageLoading] = useState(true);
 
+    console.log("Progress:", progress);
+
     // Feedback/Submit states
     const [feedback, setFeedback] = useState<any | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -301,7 +303,7 @@ export default function ExerciseDetailScreen() {
                                     <View className="flex-col items-center mb-4 gap-2 border-b border-gray-100 pb-3">
                                         <FileText size={24} color="#8A2BE2" />
                                         <Text className="text-xl font-bold text-gray-900 text-center">
-                                            {exercise?.title ?? "Loading..."}
+                                            {exercise?.title_vi ?? "Loading..."}
                                         </Text>
                                     </View>
                                     <Text className="text-gray-700 text-base leading-7">

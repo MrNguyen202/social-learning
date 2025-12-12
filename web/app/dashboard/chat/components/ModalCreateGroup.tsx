@@ -81,11 +81,11 @@ export default function ModalCreateGroup({ open, setOpen }: ModalCreateGroupProp
     const handleCreateGroup = async () => {
         // Validation: Tên nhóm + Tối thiểu 2 người được chọn
         if (!groupName.trim()) {
-            toast.warning("Vui lòng nhập tên nhóm");
+            toast.warning("Vui lòng nhập tên nhóm", { autoClose: 3000 });
             return;
         }
         if (selectedUsers.length < 2) {
-            toast.warning("Nhóm cần tối thiểu 3 thành viên (Bạn và 2 người khác).");
+            toast.warning("Nhóm cần tối thiểu 3 thành viên (Bạn và 2 người khác).", { autoClose: 3000 });
             return;
         }
         if (!user) return;
@@ -118,10 +118,10 @@ export default function ModalCreateGroup({ open, setOpen }: ModalCreateGroupProp
             setSelectedConversation(newGroup);
             setOpen(false);
             router.push(`/dashboard/chat/${newGroup.id}`);
-            toast.success("Tạo nhóm thành công!");
+            toast.success("Tạo nhóm thành công!", { autoClose: 2000 });
         } catch (error) {
             console.error("Error creating group:", error);
-            toast.error("Lỗi khi tạo nhóm");
+            toast.error("Lỗi khi tạo nhóm", { autoClose: 2000 });
         } finally {
             setCreating(false);
         }

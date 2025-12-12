@@ -17,8 +17,8 @@ export const listeningService = {
     },
 
     // Get all listening exercises by level_slug and topic_slug
-    getListeningExercises: async (level_slug: string, topic_slug: string) => {
-        const response = await api.get(`/api/learning/listening/listening-exercises/level/${level_slug}/topic/${topic_slug}`);
+    getListeningExercises: async (level_slug: string, topic_slug: string, page: number, limit: number) => {
+        const response = await api.get(`/api/learning/listening/listening-exercises/level/${level_slug}/topic/${topic_slug}?page=${page}&limit=${limit}`);
         return response.data;
     },
 

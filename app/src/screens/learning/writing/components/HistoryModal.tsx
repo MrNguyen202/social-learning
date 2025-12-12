@@ -44,7 +44,7 @@ const WritingHistoryModal: React.FC<HistoryModalProps> = ({ visible, onClose, hi
                                     </Text>
                                     <View>
                                         <Text style={styles.historyScore}>
-                                            Điểm: {getScore(item)}
+                                            Điểm: {item.feedback?.final_score ?? 'N/A'}
                                         </Text>
                                         <Text style={styles.historyAccuracy}>
                                             Chính xác: {item.feedback?.accuracy ?? 'N/A'}%

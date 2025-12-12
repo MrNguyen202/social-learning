@@ -87,11 +87,11 @@ export default function ModalAddMember({ isOpen, onClose, conversationId, curren
         try {
             // Gọi API thêm thành viên
             await addMembersToGroup(conversationId, selectedUsers);
-            toast.success(`Đã thêm ${selectedUsers.length} thành viên vào nhóm`);
+            toast.success(`Đã thêm ${selectedUsers.length} thành viên vào nhóm`, { autoClose: 2000 });
             onClose();
         } catch (error) {
             console.error("Error adding members:", error);
-            toast.error("Lỗi khi thêm thành viên");
+            toast.error("Lỗi khi thêm thành viên", { autoClose: 2000 });
         } finally {
             setAdding(false);
         }

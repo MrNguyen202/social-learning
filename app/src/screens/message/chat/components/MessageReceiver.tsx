@@ -5,13 +5,13 @@ import MessageAttachments from "./MessageAttachments";
 import { getUserImageSrc } from "../../../../api/image/route";
 import { formatTime } from "../../../../../helpers/formatTime";
 
-export default function MessageReceiver({ message, showTimestamp, showAvatar, onReply, onDelete, onLike }: any) {
+export default function MessageReceiver({ message, showTimestamp, showAvatar, onLongPress }: any) {
     const { revoked, likes = [] } = message;
     const senderName = message.sender?.name || "Người dùng";
     const isAdmin = message.sender?.role === "admin";
 
     return (
-        <View className="flex-row gap-2 w-full mb-1">
+        <TouchableOpacity activeOpacity={0.9} onLongPress={onLongPress} className="flex-row gap-2 w-full mb-1">
             {/* Avatar */}
             <View className="w-8 h-8 justify-end"> 
                {showAvatar ? (
@@ -75,6 +75,6 @@ export default function MessageReceiver({ message, showTimestamp, showAvatar, on
                     <Text className="text-[10px] text-gray-400 ml-1">{formatTime(message.createdAt)}</Text>
                 )}
             </View>
-        </View>
+        </TouchableOpacity>
     );
 }

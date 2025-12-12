@@ -144,11 +144,11 @@ export default function ModalSearchNewChat({ open, setOpen }: ModalSearchNewChat
       setOpen(false);
       setSelectedConversation(newConv);
       router.push(`/dashboard/chat/${newConv.id}`);
-      toast.success("Đã bắt đầu cuộc trò chuyện!");
+      toast.success("Đã bắt đầu cuộc trò chuyện!", { autoClose: 2000 });
 
     } catch (error) {
       console.error("Failed to start chat:", error);
-      toast.error("Có lỗi xảy ra, vui lòng thử lại.");
+      toast.error("Có lỗi xảy ra, vui lòng thử lại.", { autoClose: 2000 });
     } finally {
       setProcessing(false);
     }

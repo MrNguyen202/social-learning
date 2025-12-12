@@ -5,6 +5,30 @@ const { getIO } = require("../socket/socket");
 const fs = require("fs");
 const cloudinary = require("../config/cloudinaryConfig");
 
+const notifyGroupUpdate = (io, conversation) => {
+    if (!conversation) return;
+
+    // Gửi cho ListConversation (User Map)
+    if (conversation.members && conversation.members.length > 0) {
+        conversation.members.forEach(member => {
+            if (io.userSockets) {
+                const rawId = member.userId || member.id;
+                const memberIdStr = rawId ? rawId.toString() : null;
+
+                if (memberIdStr) {
+                    const userSocket = io.userSockets.get(memberIdStr);
+                    if (userSocket) {
+                        // --- ĐỔI Ở ĐÂY ---
+                        // Thay vì emit "groupUpdated", ta emit "notificationNewMessage"
+                        // Frontend nghe thấy sự kiện này sẽ tự reload lại list
+                        io.to(userSocket.id).emit("notificationNewMessage");
+                    }
+                }
+            }
+        });
+    }
+};
+
 const conversationController = {
     // Tạo cuộc trò chuyện mới (riêng tư hoặc nhóm)
     createConversation: async (req, res) => {
@@ -247,6 +271,9 @@ const conversationController = {
             // 2. Gửi socket tin nhắn hệ thống
             io.to(conversationId).emit("newMessage", message);
 
+            // 3. Gửi socket update nhóm cho những người MỚI được thêm vào
+            notifyGroupUpdate(io, formattedConversation);
+
             res.status(200).json(formattedConversation);
         } catch (error) {
             console.error(error);
@@ -269,6 +296,9 @@ const conversationController = {
             // Thông báo tin nhắn hệ thống
             io.to(conversationId).emit("newMessage", message);
 
+            // Update cho người bị remove
+            notifyGroupUpdate(io, conversation);
+
             res.status(200).json(conversation);
         } catch (error) {
             res.status(500).json({ error: error.message });
@@ -286,6 +316,7 @@ const conversationController = {
             const io = getIO();
             io.to(conversationId).emit("groupUpdated", conversation);
             io.to(conversationId).emit("newMessage", message);
+            notifyGroupUpdate(io, conversation);
 
             res.status(200).json(conversation);
         } catch (error) {
@@ -304,6 +335,7 @@ const conversationController = {
             const io = getIO();
             io.to(conversationId).emit("groupUpdated", conversation);
             io.to(conversationId).emit("newMessage", message);
+            notifyGroupUpdate(io, conversation);
 
             res.status(200).json({ message: "Left group successfully" });
         } catch (error) {
@@ -385,6 +417,8 @@ const conversationController = {
             io.to(conversationId).emit("groupUpdated", conversation);
             // Emit tin nhắn hệ thống ("A đã đổi ảnh nhóm")
             io.to(conversationId).emit("newMessage", message);
+            // Cập nhật cho tất cả thành viên
+            notifyGroupUpdate(io, conversation);
 
             res.status(200).json(conversation);
         } catch (error) {
@@ -403,6 +437,7 @@ const conversationController = {
             const io = getIO();
             io.to(conversationId).emit("groupUpdated", conversation);
             io.to(conversationId).emit("newMessage", message);
+            notifyGroupUpdate(io, conversation);
             res.status(200).json(conversation);
         } catch (error) {
             res.status(500).json({ error: error.message });

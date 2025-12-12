@@ -364,5 +364,7 @@
   "writingHistory": "Nhấn \"Lịch sử\" để xem các lần nộp bài trước đó.",
   "exercisesSystem": "Bài tập hệ thống",
   "exercisesUserGenAI": "Bài tập của bạn tạo với AI",
-  "noExercisesFound": "Chưa tìm thấy bài tập nào."
+  "noExercisesFound": "Chưa tìm thấy bài tập nào.",
+  "writingComplete": "Đã hoàn thành!",
+  "submitTimes": "Số lần nộp"
 }

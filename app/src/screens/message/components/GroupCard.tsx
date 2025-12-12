@@ -4,7 +4,7 @@ import { fetchUnreadCount } from '../../../api/chat/conversation/route';
 import AvatarGroup from '../../../components/AvatarGroup';
 import Badge from '../../../components/Badge';
 import { convertToTime } from '../../../../helpers/formatTime';
-import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { Text, TouchableOpacity, View, StyleSheet, Image } from 'react-native';
 import { hp } from '../../../../helpers/common';
 import { MessageCircle, Clock, Users } from 'lucide-react-native';
 
@@ -22,15 +22,28 @@ interface Conversation {
   lastMessage: LastMessage | null;
 }
 
+interface SystemContent {
+  action: "user_joined" | "user_left" | "conversation_renamed" | "member_added" | "member_removed" | "admin_transferred" | "conversation_avatar_updated";
+  actor: {
+    id: string;
+    name: string;
+  };
+  target?: {
+    id: string;
+    name: string;
+  }[];
+  newName?: string;
+}
+
 type MessageContent = {
-  system?: boolean;
-  type: 'text' | 'image' | 'file';
+  type: 'text' | 'image' | 'file' | 'system';
   text?: string;
   images?: string[];
   file?: {
     name: string;
     url: string;
   } | null;
+  system?: SystemContent;
 };
 
 type LastMessage = {
@@ -67,16 +80,89 @@ export default function GroupCard({ conversation, onClick }: CardGroupProps) {
   const groupName = conversation.name
     ? conversation.name
     : `Bạn, ${conversation.members
-        .filter(m => m.id !== user?.id)
-        .map(m => m.name)
-        .join(', ')}`;
+      .filter(m => m.id !== user?.id)
+      .map(m => m.name)
+      .join(', ')}`;
 
   const senderName =
     conversation.lastMessage?.senderId === user?.id
       ? 'Bạn'
       : conversation.members.find(
-          m => m.id === conversation.lastMessage?.senderId,
-        )?.name;
+        m => m.id === conversation.lastMessage?.senderId,
+      )?.name;
+
+  const renderLastMessage = () => {
+    const lastMsg = conversation.lastMessage;
+    if (!lastMsg) return null;
+
+    const { type, content, senderId } = {
+      type: lastMsg.content.type,
+      content: lastMsg.content,
+      senderId: lastMsg.senderId
+    };
+
+    // 1. Tin nhắn hệ thống
+    if (type === "system" && content.system) {
+      const sys = content.system;
+      const actorName = sys.actor.id === user?.id ? 'Bạn' : sys.actor.name;
+      const targetName = sys.target && sys.target.length > 0
+        ? (sys.target[0].id === user?.id ? 'Bạn' : sys.target[0].name)
+        : "";
+
+      let systemText = "Thông báo hệ thống";
+      switch (sys.action) {
+        case "user_left":
+          systemText = `${actorName} đã rời nhóm`;
+          break;
+        case "member_added":
+          systemText = `${actorName} đã thêm ${targetName} vào nhóm`;
+          break;
+        case "member_removed":
+          systemText = `${actorName} đã mời ${targetName} ra khỏi nhóm`;
+          break;
+        case "admin_transferred":
+          systemText = `${actorName} đã chuyển quyền admin cho ${targetName}`;
+          break;
+        case "conversation_renamed":
+          systemText = `${actorName} đã đổi tên nhóm thành "${sys.newName}"`;
+          break;
+        case "conversation_avatar_updated":
+          systemText = `${actorName} đã đổi ảnh nhóm`;
+          break;
+        case "user_joined":
+          systemText = `${actorName} đã tham gia nhóm`;
+          break;
+      }
+      return (
+        <Text style={[styles.messageText, isUnread && styles.unreadMessageText]} numberOfLines={1}>
+          {systemText}
+        </Text>
+      );
+    }
+
+    // 2. Tin nhắn thường
+    let senderName = "";
+    if (senderId === user?.id) {
+      senderName = "Bạn: ";
+    } else {
+      const member = conversation.members.find((m) => m.id === senderId);
+      senderName = member ? `${member.name}: ` : "";
+    }
+
+    let messageText = "";
+    if (type === "image") messageText = `[Hình ảnh]`;
+    else if (type === "file") messageText = `[Tập tin]`;
+    else messageText = content.text || "";
+
+    return (
+      <Text style={[styles.messageText, isUnread && styles.unreadMessageText]} numberOfLines={1}>
+        <Text style={{ fontWeight: senderId === user?.id ? '400' : '600', color: isUnread ? '#374151' : '#4b5563' }}>
+          {senderName}
+        </Text>
+        {messageText}
+      </Text>
+    );
+  };
 
   return (
     <TouchableOpacity
@@ -85,7 +171,18 @@ export default function GroupCard({ conversation, onClick }: CardGroupProps) {
       activeOpacity={0.8}
     >
       <View style={styles.avatarContainer}>
-        <AvatarGroup size={hp(6)} members={conversation.members} />
+        {
+          conversation.avatar ? (
+            <Image
+              source={{ uri: conversation.avatar }}
+              width={hp(6)}
+              height={hp(6)}
+              className="rounded-full bg-gray-200"
+            />
+          ) : (
+            <AvatarGroup size={hp(6)} members={conversation.members} />
+          )
+        }
         {isUnread && <View style={styles.unreadDot} />}
         <View style={styles.groupIndicator}>
           <Users size={12} color="#fff" />
@@ -122,16 +219,11 @@ export default function GroupCard({ conversation, onClick }: CardGroupProps) {
         <View style={styles.messageRow}>
           <View style={styles.messageContainer}>
             <MessageCircle size={14} color="#9ca3af" />
-            <Text
-              style={[styles.messageText, isUnread && styles.unreadMessageText]}
-              numberOfLines={1}
-            >
-              {senderName}:{' '}
-              {typeof conversation.lastMessage?.content === 'string'
-                ? conversation.lastMessage?.content
-                : conversation.lastMessage?.content?.text ||
-                  '[Nội dung không hỗ trợ]'}
-            </Text>
+            {renderLastMessage() || (
+              <Text style={[styles.messageText, isUnread && styles.unreadMessageText]}>
+                Chưa có tin nhắn
+              </Text>
+            )}
           </View>
         </View>
 

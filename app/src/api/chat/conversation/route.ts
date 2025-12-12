@@ -23,11 +23,11 @@ export async function fetchUnreadCount(conversationId: string) {
 }
 
 // Hàm để tìm cuộc trò chuyện giữa hai người dùng
-export async function findConversationBetweenUsers(userId2:any) {
+export async function findConversationBetweenUsers(userId2: any) {
     try {
         const response = await api.get(`/api/conversations/between/${userId2}`);
         return response.data;
-    } catch (error:any) {
+    } catch (error: any) {
         if (error.response && error.response.status === 404) {
             return error.response;
         }
@@ -37,7 +37,7 @@ export async function findConversationBetweenUsers(userId2:any) {
 }
 
 // Hàm để tạo cuộc trò chuyện mới
-export async function createConversation(consversationData:any) {
+export async function createConversation(consversationData: any) {
     try {
         const response = await api.post(`/api/conversations/create`, consversationData);
         return response.data;
@@ -57,3 +57,81 @@ export async function fetchTotalUnreadMessages() {
         return 0;
     }
 }
+
+// Hàm để thêm thành viên vào cuộc trò chuyện nhóm
+export const addMembersToGroup = async (conversationId: string, memberIds: string[]) => {
+    try {
+        const response = await api.post(`/api/conversations/${conversationId}/members`, { memberIds });
+        return response.data;
+    } catch (error) {
+        console.error("Error adding members to group:", error);
+        throw error;
+    }
+};
+
+// Hàm để xoá thành viên khỏi cuộc trò chuyện nhóm
+export async function removeMemberFromGroup(conversationId: any, memberId: any) {
+    try {
+        const response = await api.delete(`/api/conversations/${conversationId}/members/${memberId}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error removing member from group:", error);
+        throw error;
+    }
+}
+
+// Hàm để cấp quyền quản trị viên cho thành viên trong cuộc trò chuyện nhóm
+export async function grantAdminInGroup(conversationId: any, memberId: any) {
+    try {
+        const response = await api.put(`/api/conversations/${conversationId}/admins`, { memberId });
+        return response.data;
+    } catch (error) {
+        console.error("Error granting admin in group:", error);
+        throw error;
+    }
+}
+
+// Hàm để rời khỏi cuộc trò chuyện nhóm
+export async function leaveGroupConversation(conversationId: any) {
+    const response = await api.post(`/api/conversations/${conversationId}/leave`);
+    return response.data;
+}
+
+// Hàm để giải tán cuộc trò chuyện nhóm
+export async function dissolveGroupConversation(conversationId: any) {
+    try {
+        const response = await api.delete(`/api/conversations/${conversationId}/dissolve`);
+        return response.data;
+    } catch (error) {
+        console.error("Error dissolving group conversation:", error);
+        throw error;
+    }
+}
+
+// Hàm để xoá lịch sử cuộc trò chuyện
+export async function deleteConversationHistory(conversationId: any) {
+    try {
+        const response = await api.delete(`/api/conversations/${conversationId}/history`);
+        return response.data;
+    } catch (error) {
+        console.error("Error deleting conversation history:", error);
+        throw error;
+    }
+}
+
+// Đổi tên nhóm
+export const renameGroup = async (conversationId: string, newName: string) => {
+    return api.put(`/api/conversations/${conversationId}/rename`, { newName });
+};
+
+// Đổi avatar nhóm
+export const updateGroupAvatar = async (conversationId: string, file: File) => {
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    return api.put(`/api/conversations/${conversationId}/avatar`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+};

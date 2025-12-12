@@ -104,7 +104,7 @@ export default function ConversationInfo({
     const executeLeaveGroup = async () => {
         try {
             await leaveGroupConversation(conversation.id);
-            toast.success("Đã rời nhóm thành công");
+            toast.success("Đã rời nhóm thành công", { autoClose: 2000 });
             router.push("/dashboard/chat");
         } catch (error: any) {
             const errorCode = error.response?.data?.error || error.error;
@@ -112,7 +112,7 @@ export default function ConversationInfo({
                 // Nếu server báo lỗi cần chuyển quyền -> Đóng modal xác nhận -> Bật chế độ chuyển quyền
                 closeConfirmModal();
                 setTimeout(() => {
-                    toast.info("Bạn là Admin duy nhất. Vui lòng chọn người kế nhiệm.");
+                    toast.info("Bạn là Admin duy nhất. Vui lòng chọn người kế nhiệm.", { autoClose: 3000 });
                     setIsTransferMode(true);
                 }, 300); // Delay nhỏ để tránh xung đột UI
             } else {
@@ -125,7 +125,7 @@ export default function ConversationInfo({
     const executeRemoveMember = async (memberId: string) => {
         try {
             await removeMemberFromGroup(conversation.id, memberId);
-            toast.success("Đã xóa thành viên");
+            toast.success("Đã xóa thành viên", { autoClose: 2000 });
             onUpdate();
         } catch (error) {
             toast.error("Lỗi xóa thành viên");
@@ -136,7 +136,7 @@ export default function ConversationInfo({
     const executePromote = async (memberId: string) => {
         try {
             await grantAdminInGroup(conversation.id, memberId);
-            toast.success("Đã thăng cấp");
+            toast.success("Đã thăng cấp", { autoClose: 2000 });
             onUpdate();
         } catch (error) {
             toast.error("Lỗi thăng cấp");
@@ -148,7 +148,7 @@ export default function ConversationInfo({
         try {
             await deleteConversationHistory(conversation.id);
             localStorage.removeItem("selectedConversation");
-            toast.success("Đã xóa lịch sử");
+            toast.success("Đã xóa lịch sử", { autoClose: 2000 });
             router.push("/dashboard/chat");
         } catch (error) {
             toast.error("Lỗi xóa lịch sử");
@@ -159,7 +159,8 @@ export default function ConversationInfo({
     const executeDissolve = async () => {
         try {
             await dissolveGroupConversation(conversation.id);
-            toast.success("Nhóm đã giải tán");
+            toast.success("Nhóm đã giải tán", { autoClose: 2000 });
+            localStorage.removeItem("selectedConversation");
             router.push("/dashboard/chat");
         } catch (error) {
             toast.error("Lỗi giải tán nhóm");
@@ -171,7 +172,7 @@ export default function ConversationInfo({
         // Cái này có thể confirm nhẹ hoặc làm luôn vì user đang ở mode "Chọn Admin"
         try {
             await grantAdminInGroup(conversation.id, newAdminId);
-            toast.success("Đã chuyển quyền Admin.");
+            toast.success("Đã chuyển quyền Admin.", { autoClose: 2000 });
             await leaveGroupConversation(conversation.id);
             toast.success("Đã rời nhóm.");
             router.push("/dashboard/chat");
@@ -186,7 +187,7 @@ export default function ConversationInfo({
         const file = e.target.files?.[0];
         if (!file) return;
         if (file.size > 5 * 1024 * 1024) {
-            toast.error("File quá lớn. Vui lòng chọn ảnh dưới 5MB");
+            toast.error("File quá lớn. Vui lòng chọn ảnh dưới 5MB", { autoClose: 3000 });
             return;
         }
         try {

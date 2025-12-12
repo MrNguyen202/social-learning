@@ -45,3 +45,43 @@ export async function markMessagesAsRead(conversationId: string, userId: string)
         throw error;
     }
 }
+
+// Hàm để thu hồi tin nhắn
+export async function revokeMessage(messageId: any, userId: any) {
+  try {
+    const response = await api.post(
+      `/api/messages/revoke/${messageId}`,
+      { userId }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error revoking message:", error);
+    throw error;
+  }
+}
+
+// Hàm để xóa tin nhắn đối với người dùng
+export async function deleteMessageForUser(messageId: any) {
+  try {
+    const response = await api.post(
+      `/api/messages/remove/${messageId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting message for user:", error);
+    throw error;
+  }
+}
+
+// Hàm để thích / bỏ thích tin nhắn
+export async function toggleLikeMessage(messageId: any) {
+  try {
+    const response = await api.post(
+      `/api/messages/like/${messageId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error toggling like on message:", error);
+    throw error;
+  }
+}

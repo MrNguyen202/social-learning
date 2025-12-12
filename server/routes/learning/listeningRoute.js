@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const listeningController = require('../../controllers/learning/listeningController');
+const authMiddleware = require('../../middlewares/authMiddleware');
 
 // Get listening exercise by id
 router.get('/listening-exercises/:id', listeningController.getListeningExerciseById);
 
 // Get all listening exercises by level_slug and topic_slug
-router.get('/listening-exercises/level/:level_slug/topic/:topic_slug', listeningController.getListeningExercises);
+router.get('/listening-exercises/level/:level_slug/topic/:topic_slug', authMiddleware, listeningController.getListeningExercises);
 
 // Submit listening exercise results
 router.post('/listening-exercises/submit', listeningController.submitListeningResults);

@@ -1,72 +1,163 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
+import { User, BookOpen, History, ChevronRight, CheckCircle } from 'lucide-react-native';
 
 type CardProps = {
     title: string;
     content_vi: string;
-    label: string;
-    progress: number;
+    label: ImageSourcePropType;
+    submitTimes: number;
+    isUserGenerated: boolean;
+    isCorrect?: boolean | null; // <--- Sửa ở đây: Dùng trực tiếp isCorrect
     handleStart: () => void;
 };
 
-// ProgressBar (giữ nguyên)
-const ProgressBar = ({ progress }: { progress: number }) => (
-    <View style={styles.progressBg}>
-        <View style={[styles.progressFg, { width: `${progress}%` }]} />
-    </View>
-);
+export default function CardWritingExercise({
+    title,
+    content_vi,
+    label,
+    submitTimes,
+    isUserGenerated,
+    isCorrect, // <--- Nhận prop isCorrect
+    handleStart
+}: CardProps) {
 
-export default function CardWritingExercise({ title, content_vi, label, progress, handleStart }: CardProps) {
+    // Kiểm tra trạng thái hoàn thành
+    const isFinished = isCorrect === true;
+
+    const typeConfig = isUserGenerated
+        ? {
+            text: 'Bài tập cá nhân',
+            bgColor: '#FFFBEB',
+            textColor: '#B45309',
+            icon: <User size={14} color="#B45309" />,
+            borderColor: '#FCD34D'
+        }
+        : {
+            text: 'Bài tập hệ thống',
+            bgColor: '#EFF6FF',
+            textColor: '#1D4ED8',
+            icon: <BookOpen size={14} color="#1D4ED8" />,
+            borderColor: '#93C5FD'
+        };
+
+    // Cấu hình nút bấm dựa trên isFinished (từ isCorrect)
+    const actionConfig = isFinished
+        ? {
+            text: 'Hoàn thành',
+            color: '#10B981', // Green-500
+            icon: <CheckCircle size={16} color="#10B981" />
+        }
+        : {
+            text: 'Làm bài',
+            color: '#3B82F6', // Blue-500
+            icon: <ChevronRight size={16} color="#3B82F6" />
+        };
+
     return (
-        <TouchableOpacity style={styles.card} onPress={handleStart}>
-            <View>
-                <Text style={styles.label}>{label}</Text>
-                <Text style={styles.title} numberOfLines={2}>{title}</Text>
-                <Text style={styles.content} numberOfLines={3}>{content_vi}</Text>
+        <TouchableOpacity
+            style={[styles.card, isFinished && styles.cardCompleted]}
+            onPress={handleStart}
+            activeOpacity={0.7}
+        >
+            {/* Header */}
+            <View style={styles.header}>
+                <Image source={label} style={{ width: 26, height: 26, borderRadius: 12 }} />
+                <View style={[styles.badge, { backgroundColor: typeConfig.bgColor, borderColor: typeConfig.borderColor }]}>
+                    {typeConfig.icon}
+                    <Text style={[styles.badgeText, { color: typeConfig.textColor }]}>
+                        {typeConfig.text}
+                    </Text>
+                </View>
             </View>
 
+            {/* Body */}
+            <View style={styles.body}>
+                <Text style={styles.title} numberOfLines={2}>
+                    {title}
+                </Text>
+                <Text style={styles.content} numberOfLines={3}>
+                    {content_vi}
+                </Text>
+            </View>
+
+            {/* Footer */}
             <View style={styles.footer}>
-                <View style={styles.progressContainer}>
-                    <Text style={styles.progressText}>{'Tiến độ'}</Text>
-                    <ProgressBar progress={progress} />
+                <View style={styles.submitInfo}>
+                    <History size={16} color="#6B7280" />
+                    <Text style={styles.submitText}>
+                        Đã nộp: <Text style={styles.submitCount}>{submitTimes}</Text> lần
+                    </Text>
+                </View>
+
+                <View style={styles.actionBtn}>
+                    <Text style={[styles.actionText, { color: actionConfig.color }]}>
+                        {actionConfig.text}
+                    </Text>
+                    {actionConfig.icon}
                 </View>
             </View>
         </TouchableOpacity>
     );
 }
 
-// (StylesSheet giữ nguyên)
 const styles = StyleSheet.create({
     card: {
         backgroundColor: '#FFFFFF',
-        borderRadius: 12,
+        borderRadius: 16,
         padding: 16,
         marginBottom: 16,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
         elevation: 3,
+        borderWidth: 1,
+        borderColor: '#F3F4F6',
+    },
+    cardCompleted: {
+        borderColor: '#D1FAE5', // Viền xanh lá nhạt khi hoàn thành
+        backgroundColor: '#F0FDF4', // Nền xanh lá cực nhạt
+    },
+    header: {
+        flexDirection: 'row',
         justifyContent: 'space-between',
-        minHeight: 180,
+        alignItems: 'center',
+        marginBottom: 12,
     },
     label: {
-        fontSize: 12,
-        fontWeight: 'bold',
-        color: '#3B82F6',
-        marginBottom: 4,
+        fontSize: 11,
+        fontWeight: '800',
+        color: '#9CA3AF',
         textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    badge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 20,
+        borderWidth: 1,
+        gap: 4,
+    },
+    badgeText: {
+        fontSize: 10,
+        fontWeight: '700',
+    },
+    body: {
+        marginBottom: 16,
     },
     title: {
-        fontSize: 18,
+        fontSize: 17,
         fontWeight: 'bold',
-        color: '#1F2937',
-        marginBottom: 8,
+        color: '#111827',
+        marginBottom: 6,
+        lineHeight: 24,
     },
     content: {
         fontSize: 14,
         color: '#4B5563',
-        marginBottom: 12,
         lineHeight: 20,
     },
     footer: {
@@ -74,32 +165,29 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
+        borderTopColor: '#E5E7EB',
         paddingTop: 12,
-        marginTop: 'auto',
     },
-    progressContainer: {
-        flex: 1,
-        marginRight: 12,
+    submitInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
     },
-    progressText: {
-        fontSize: 12,
+    submitText: {
+        fontSize: 13,
         color: '#6B7280',
-        marginBottom: 4,
     },
-    progressBg: {
-        height: 6,
-        backgroundColor: '#E5E7EB',
-        borderRadius: 3,
+    submitCount: {
+        fontWeight: '700',
+        color: '#374151',
     },
-    progressFg: {
-        height: 6,
-        backgroundColor: '#3B82F6',
-        borderRadius: 3,
+    actionBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
     },
-    startButton: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: '#3B82F6',
+    actionText: {
+        fontSize: 13,
+        fontWeight: '700',
     },
 });

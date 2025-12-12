@@ -20,17 +20,17 @@ export default function ModalRenameGroup({ isOpen, onClose, conversationId, curr
 
     const handleSubmit = async () => {
         if (!name.trim()) {
-            toast.warning("Tên nhóm không được để trống");
+            toast.warning("Tên nhóm không được để trống", { autoClose: 3000 });
             return;
         }
 
         setIsLoading(true);
         try {
             await renameGroup(conversationId, name);
-            toast.success("Đổi tên nhóm thành công");
+            toast.success("Đổi tên nhóm thành công", { autoClose: 2000 });
             onClose();
         } catch (error) {
-            toast.error("Lỗi khi đổi tên nhóm");
+            toast.error("Lỗi khi đổi tên nhóm", { autoClose: 2000 });
         } finally {
             setIsLoading(false);
         }

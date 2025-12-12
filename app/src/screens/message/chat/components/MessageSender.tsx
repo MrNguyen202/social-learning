@@ -9,20 +9,15 @@ const MobileAudioPlayer = ({ src }: { src: string }) => (
     <View className="bg-blue-200 p-2 rounded-md"><Text>Audio Player Here</Text></View>
 );
 
-export default function MessageSender({ message, onRetry, showTimestamp, isLastInSequence, onReply, onRevoke, onDelete, onLike }: any) {
+export default function MessageSender({ message, onRetry, showTimestamp, onLongPress }: any) {
     const { status, createdAt, revoked, likes = [] } = message;
     const isSent = !status || status === "sent";
     
-    // Logic Long Press để mở menu option
-    const handleLongPress = () => {
-        // Trên mobile nên dùng BottomSheet hoặc Modal để hiển thị Option Menu
-        console.log("Open Options Menu");
-    };
 
     return (
         <TouchableOpacity 
             activeOpacity={0.9} 
-            onLongPress={handleLongPress}
+            onLongPress={onLongPress}
             className={`flex-row gap-2 justify-end items-end w-full mb-1`}
         >
             <View className="items-end gap-1 max-w-[75%]">

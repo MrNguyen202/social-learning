@@ -79,9 +79,9 @@ export default function Page() {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [filteredExercises, setFilteredExercises] = useState<WritingExercise[]>([]);
-
   const ITEMS_PER_PAGE = 18;
+
+  const [filteredExercises, setFilteredExercises] = useState<WritingExercise[]>([]);
 
   // Lấy danh sách bài viết theo type, level và topic
   useEffect(() => {
@@ -328,7 +328,6 @@ export default function Page() {
           <h2 className="text-2xl font-bold">{t("learning.exerciseList")}</h2>
           {/* Bộ lọc */}
           <div className="flex items-center gap-3">
-            {/* Select option */}
             <div className="flex items-center gap-4 mr-10">
               {/* User */}
               <div className="flex items-center gap-2">

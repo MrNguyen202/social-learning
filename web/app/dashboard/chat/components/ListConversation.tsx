@@ -57,6 +57,7 @@ export default function ListConversation() {
             fetchData();
         };
 
+
         // Lắng nghe sự kiện từ socket
         socket.on("notificationNewMessage", handleNotificationNewMessage);
         socket.on("notificationMessagesRead", handleNotificationMessagesRead);
@@ -68,7 +69,6 @@ export default function ListConversation() {
         return () => {
             socket.off("notificationNewMessage", handleNotificationNewMessage);
             socket.off("notificationMessagesRead", handleNotificationMessagesRead);
-            socket.off("messageRevoked", handleMessageRevoked);
         };
     }, [user?.id, loading]);
 

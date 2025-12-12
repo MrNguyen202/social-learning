@@ -18,8 +18,13 @@ const listeningService = {
     },
 
     // Get all listening exercises by level_slug and topic_slug
-    async getListeningExercises(level_slug, topic_slug) {
-        // Lấy level_id và topic_id tương ứng với slug
+    async getListeningExercises(
+        level_slug,
+        topic_slug,
+        page = 1,
+        limit = 6,
+        user_id = null
+    ) {
         const { data: levelData } = await supabase
             .from("levels")
             .select("id")
@@ -36,19 +41,84 @@ const listeningService = {
             throw new Error("Không tìm thấy level hoặc topic tương ứng");
         }
 
-        // Sau đó lọc theo id (vì listenParagraphs chứa level_id, topic_id)
-        const { data, error } = await supabase
+        const from = (page - 1) * limit;
+        const to = from + limit - 1;
+
+        // Query danh sách bài tập + đếm tổng số từ hidden
+        const { data, count, error } = await supabase
             .from("listenParagraphs")
-            .select("*, levels(slug), topics(slug)")
+            .select("*, levels(slug), topics(slug), wordHidden(count)", {
+                count: "exact",
+            })
             .eq("level_id", levelData.id)
-            .eq("topic_id", topicData.id);
+            .eq("topic_id", topicData.id)
+            .range(from, to);
 
         if (error) {
             console.error("Error fetching listening exercises:", error);
             throw new Error("Error fetching listening exercises");
         }
 
-        return data;
+        // Nếu có user_id, lấy tiến độ của user cho các bài tập này
+        let exercisesWithProgress = data;
+
+        if (user_id && data.length > 0) {
+            const exerciseIds = data.map((ex) => ex.id);
+
+            // Lấy progress của user cho các bài tập trong list
+            const { data: progressData, error: progressError } = await supabase
+                .from("progressListenParagraph")
+                .select("listen_para_id, number_word_completed")
+                .in("listen_para_id", exerciseIds)
+                .eq("user_id", user_id);
+
+            if (!progressError && progressData) {
+                // Map progress vào data gốc
+                exercisesWithProgress = data.map((ex) => {
+                    // Tìm record progress tương ứng
+                    const progressItem = progressData.find(
+                        (p) => p.listen_para_id === ex.id
+                    );
+
+                    // Lấy tổng số từ (wordHidden trả về mảng object count, vd: [{count: 10}])
+                    const totalWords =
+                        ex.wordHidden && ex.wordHidden[0] ? ex.wordHidden[0].count : 0;
+
+                    // Số từ đã làm đúng
+                    const completedWords = progressItem
+                        ? progressItem.number_word_completed
+                        : 0;
+
+                    // Tính phần trăm: (đã làm / tổng số) * 100
+                    let calculatedProgress = 0;
+                    if (totalWords > 0) {
+                        calculatedProgress = Math.round(
+                            (completedWords / totalWords) * 100
+                        );
+                    }
+
+                    // Trả về object đã merge data, loại bỏ mảng wordHidden thừa
+                    const { wordHidden, ...rest } = ex;
+                    return {
+                        ...rest,
+                        progress: calculatedProgress, // Trường progress frontend cần
+                    };
+                });
+            }
+        } else {
+            // Nếu không có user_id, mặc định progress = 0
+            exercisesWithProgress = data.map((ex) => {
+                const { wordHidden, ...rest } = ex;
+                return { ...rest, progress: 0 };
+            });
+        }
+
+        // Sort theo progress đang làm -> chưa làm -> hoàn thành
+        exercisesWithProgress.sort((a, b) => {
+            return a.progress - b.progress;
+        });
+
+        return { data: exercisesWithProgress, total: count };
     },
 
     // Submit listening exercise results

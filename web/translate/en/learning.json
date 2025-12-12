@@ -361,5 +361,7 @@
   "writingHistory": "Press \"History\" to view previous submissions.",
   "exercisesSystem": "System Exercises",
   "exercisesUserGenAI": "Your Exercises Generated with AI",
-  "noExercisesFound": "No exercises found."
+  "noExercisesFound": "No exercises found.",
+  "writingComplete": "Completed!",
+  "submitTimes": "Submission Times"
 }
