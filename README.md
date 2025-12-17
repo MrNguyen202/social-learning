@@ -3,9 +3,12 @@
 # 🌟 Chào mừng bạn đến với dự án
 
 ## 📚 Social Learning
+
 ### Nền tảng Mạng xã hội hỗ trợ học tập Tiếng Anh và Giao tiếp Đa phương tiện
 
 ![Banner Dự Án](image/Banner.png)
+[https://www.socialonlinelearning.tech/][1]
+
 </div>
 
 ---
@@ -34,15 +37,17 @@
 ## ✨ TÍNH NĂNG NỔI BẬT
 
 ### 🎓 Học tập thông minh (AI Integration)
+
 - **Luyện Viết (Writing):** AI (Gemini) tự động tạo đề bài, chấm điểm ngữ pháp, từ vựng và gợi ý sửa lỗi chi tiết.
 - **Luyện Nói (Speaking):**
-    - **Roleplay AI:** Hội thoại theo ngữ cảnh (du lịch, công sở...) với phản hồi tức thì.
-    - **Free Talk:** Trò chuyện tự do với AI để tăng phản xạ.
-    - **Pronunciation:** Đánh giá phát âm qua Google Cloud Speech-to-Text.
+  - **Roleplay AI:** Hội thoại theo ngữ cảnh (du lịch, công sở...) với phản hồi tức thì.
+  - **Free Talk:** Trò chuyện tự do với AI để tăng phản xạ.
+  - **Pronunciation:** Đánh giá phát âm qua Google Cloud Speech-to-Text.
 - **Luyện Nghe (Listening):** Bài tập điền từ (Gap-fill) được tạo tự động.
 - **Từ vựng (Vocabulary):** Học theo Flashcard và phương pháp Lặp lại ngắt quãng (Spaced Repetition).
 
 ### 🌏 Mạng xã hội & Giao tiếp (Social & Real-time)
+
 - **Newsfeed:** Đăng bài (Text, Ảnh, Video), Like, Comment, Share.
 - **Kết nối:** Kết bạn, Theo dõi (Follow), Gợi ý bạn bè phù hợp.
 - **Chat & Call:** Nhắn tin 1-1, Chat nhóm, Gọi thoại (Voice Call) và Gọi Video (Video Call) chất lượng cao.
@@ -55,20 +60,24 @@
 Dự án được xây dựng trên kiến trúc **Client-Server** với các công nghệ tiên tiến:
 
 ### Frontend
+
 - **Mobile:** React Native, NativeWind (TailwindCSS).
 - **Web:** Next.js, ReactJS, TailwindCSS.
 
 ### Backend
+
 - **Core:** Node.js, Express.js.
 - **AI Service:** Google Gemini API, Google Cloud Speech-to-Text.
 - **Real-time:** Socket.IO (Chat/Notification), ZegoCloud SDK (Video/Voice Call), Supabase Realtime.
 - **Storage:** Cloudinary (Lưu trữ ảnh/video tin nhắn), Supabase Storage (Lưu trữ ảnh/video).
 
 ### Database
+
 - **SQL:** Supabase (PostgreSQL) - Quản lý dữ liệu người dùng, bài học, thông báo, lịch sử hoạt động ....
 - **NoSQL:** MongoDB - Quản lý tin nhắn.
 
 ### Infrastructure & Deployment
+
 - **Server:** Digital Ocean (Droplets).
 - **Payment:** Sepay (Cổng thanh toán QR Code).
 
@@ -77,7 +86,9 @@ Dự án được xây dựng trên kiến trúc **Client-Server** với các c�
 ## 📐 SƠ ĐỒ THIẾT KẾ
 
 ### 1. Sơ đồ Use Case
+
 Tổng quan các chức năng của Người dùng và Admin.
+
 <div align="center">
   <img src="/image/usecase.png" alt="Sơ đồ Use Case Tổng Quát" width="800"/>
   <br>
@@ -87,35 +98,62 @@ Tổng quan các chức năng của Người dùng và Admin.
 ### 2. Sơ đồ Database (ERD)
 
 #### SQL (Supabase) - Quản lý Social & Learning
+
 <div align="center">
   <img src="/image/sqlSocial.jpg" alt="Database SQL Social" width="38%"/>
   <img src="/image/sql.jpg" alt="Database SQL Learning" width="45%"/>
 </div>
 
 #### NoSQL (MongoDB) - Quản lý Chat & Realtime
+
 <div align="center">
   <img src="/image/nosql.jpg" alt="Database NoSQL" width="600"/>
 </div>
 
 ### 3. Kiến trúc Phần mềm
-Mô hình kết nối giữa Client, Server, Database và các dịch vụ bên thứ 3 (AI, Payment, Storage).
+
 <div align="center">
-  <img src="/image/system.jpg" alt="Kiến trúc phần mềm" width="800"/>
+  <img src="/image/system_tech.jpg" alt="Sơ đồ triển khai" width="800"/>
+  
+  <p>(Sơ đồ triển khai phần mềm)</p>
+</div>
+
+Mô hình kết nối giữa Client, Server, Database và các dịch vụ bên thứ 3 (AI, Payment, Storage).
+
+<div align="center">
+  <img src="/image/system.png" alt="Kiến trúc phần mềm" width="800"/>
+  
+  <p>(Sơ đồ kiến trúc phần mềm)</p>
 </div>
 
 ---
 
 ## 📸 HIỆN THỰC GIAO DIỆN
 
-| Trang chủ & Newsfeed | Giao diện Nhắn tin |
-|:---:|:---:|
-| <img src="/image/Banner.png" width="300"/>| <img src="/image/Banner.png" width="300"/> |
-| *Giao diện người dùng chính* | *Chat & Gọi Video* |
+|             Trang chủ & Newsfeed             |              Giao diện Nhắn tin              |
+| :------------------------------------------: | :------------------------------------------: |
+| <img src="/image/newsfeed.png" width="400"/> | <img src="/image/messages.png" width="400"/> |
+|         _Giao diện người dùng chính_         |              _Chat & Gọi Video_              |
 
-| Luyện Viết với AI | Luyện Nói (Roleplay) |
-|:---:|:---:|
-| <img src="/image/Banner.png" width="300"/> | <img src="/image/Banner.png" width="300"/> |
-| *AI chấm điểm và gợi ý* | *Hội thoại trực tiếp với AI* |
+|                 Luyện Viết                  |                  Luyện Nghe                   |
+| :-----------------------------------------: | :-------------------------------------------: |
+| <img src="/image/writing.png" width="400"/> | <img src="/image/listening.png" width="400"/> |
+|           _AI chấm điểm và gợi ý_           |          _Nghe và điền vào ô trống_           |
+
+|              Luyện Nói Cá Nhân               |                 Luyện Nói (Roleplay)                  |
+| :------------------------------------------: | :---------------------------------------------------: |
+| <img src="/image/speaking.png" width="400"/> | <img src="/image/speaking_realtime.png" width="400"/> |
+|            _Luyện nói 10 câu mẫu_            |             _Hội thoại trực tiếp với AI_              |
+
+|              Từ Vựng Cá Nhân              |            Tiến Trình Hoạt Động             |
+| :---------------------------------------: | :-----------------------------------------: |
+| <img src="/image/vocab.png" width="400"/> | <img src="/image/process.png" width="400"/> |
+|         _Bộ từ vựng mỗi cá nhân_          |       _Lịch sử hoạt động và thống kê_       |
+
+|             Lộ Trình Học Tập             |                   Admin                   |
+| :--------------------------------------: | :---------------------------------------: |
+| <img src="/image/path.png" width="400"/> | <img src="/image/admin.png" width="400"/> |
+|        _Lộ trình của mỗi cá nhân_        |        _Quản lí tất cả thông tin_         |
 
 ---
 
@@ -125,7 +163,7 @@ Mô hình kết nối giữa Client, Server, Database và các dịch vụ bên 
 - **Mobile App:** [Download APK](...)
 - **Demo Video:** [Youtube Link](...)
 
-[1]: <https://www.socialonlinelearning.tech/>
+[1]: https://www.socialonlinelearning.tech/
 
 ---
 
@@ -135,10 +173,10 @@ Dự án được thực hiện bởi nhóm sinh viên trường Đại học C�
 
 ### 🤝 Thành Viên
 
-| **Họ và Tên** | **Vai Trò Chính** | **Trách Nhiệm Cụ Thể** |
-| :--- | :--- | :--- |
-| **Nguyễn Thanh Thuận** <br> *(21080071)* | Fullstack | Quản lý dự án, thiết kế hệ thống, phát triển Frontend - Backend, tích hợp Gemini AI & Deploy. |
-| **Trương Quốc Bảo** <br> *(21017351)* | Fullstack | Quản lý dự án, thiết kế hệ thống, phát triển Frontend - Backend, tích hợp Gemini AI, thiết kế UI/UX. |
+| **Họ và Tên**                            | **Vai Trò Chính** | **Trách Nhiệm Cụ Thể**                                                                               |
+| :--------------------------------------- | :---------------- | :--------------------------------------------------------------------------------------------------- |
+| **Nguyễn Thanh Thuận** <br> _(21080071)_ | Fullstack         | Quản lý dự án, thiết kế hệ thống, phát triển Frontend - Backend, tích hợp Gemini AI & Deploy.        |
+| **Trương Quốc Bảo** <br> _(21017351)_    | Fullstack         | Quản lý dự án, thiết kế hệ thống, phát triển Frontend - Backend, tích hợp Gemini AI, thiết kế UI/UX. |
 
 ### 👩‍🏫 Giảng Viên Hướng Dẫn
 
