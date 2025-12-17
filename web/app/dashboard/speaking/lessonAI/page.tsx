@@ -21,6 +21,7 @@ import {
   Lock,
   ChevronRight,
   Loader2,
+  Settings,
 } from "lucide-react";
 import {
   Dialog,
@@ -51,6 +52,8 @@ import {
   getTopicBySlug,
 } from "@/app/apiClient/learning/learning";
 import { updateLessonCompletedCount } from "@/app/apiClient/learning/roadmap/roadmap";
+import { useGoogleVoices } from "@/hooks/useTTS";
+import { SettingsModal } from "../conversationRealTimeAI/components/SettingsModal";
 
 interface Lesson {
   id: number;
@@ -76,6 +79,13 @@ function LessonAIContent() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const [showExerciseList, setShowExerciseList] = useState(false);
+
+  const [showSettings, setShowSettings] = useState(false);
+  const [selectedVoice, setSelectedVoice] =
+    useState<SpeechSynthesisVoice | null>(null);
+  const [speechRate, setSpeechRate] = useState(1.0);
+  const googleVoices = useGoogleVoices();
+
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(
     new Set()
   );
@@ -99,9 +109,6 @@ function LessonAIContent() {
   const [browserSupports, setBrowserSupports] = useState(false);
   const [sentenceComplete, setSentenceComplete] = useState(false);
 
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [voiceForSentence, setVoiceForSentence] =
-    useState<SpeechSynthesisVoice | null>(null);
   const hasFetchedRef = useRef(false);
 
   const normalize = useCallback(
@@ -325,13 +332,22 @@ function LessonAIContent() {
 
   const speak = useCallback(
     (text: string) => {
-      if (!voiceForSentence) return;
+      // Hủy các câu đang nói dở
       window.speechSynthesis.cancel();
+
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.voice = voiceForSentence;
+
+      // Áp dụng giọng đã chọn
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+
+      // Áp dụng tốc độ
+      utterance.rate = speechRate;
+
       window.speechSynthesis.speak(utterance);
     },
-    [voiceForSentence]
+    [selectedVoice, speechRate]
   );
 
   const jumpToLesson = useCallback(
@@ -354,27 +370,20 @@ function LessonAIContent() {
   }, [currentSentence, t]);
 
   useEffect(() => {
-    const synth = window.speechSynthesis;
-    const updateVoices = () => {
-      const availableVoices = synth
-        .getVoices()
-        .filter((v) => v.lang.startsWith("en-"));
-      setVoices(availableVoices);
-    };
-    synth.onvoiceschanged = updateVoices;
-    updateVoices();
-    // Cleanup function để hủy đăng ký event listener
-    return () => {
-      synth.onvoiceschanged = null;
-    };
-  }, []); // Chỉ chạy 1 lần
+    if (googleVoices.length > 0 && !selectedVoice) {
+      // Ưu tiên giọng Google US English, nếu không có thì lấy giọng đầu tiên
+      const defaultVoice =
+        googleVoices.find(
+          (v) => v.name.includes("Google") && v.lang.includes("en-US")
+        ) ||
+        googleVoices.find((v) => v.lang.startsWith("en")) ||
+        googleVoices[0];
 
-  useEffect(() => {
-    if (voices.length > 0) {
-      const randomVoice = voices[Math.floor(Math.random() * voices.length)];
-      setVoiceForSentence(randomVoice);
+      if (defaultVoice) {
+        setSelectedVoice(defaultVoice);
+      }
     }
-  }, [voices]); // Chạy lại khi voices thay đổi
+  }, [googleVoices, selectedVoice]);
 
   useEffect(() => {
     if (hasFetchedRef.current) return; // Đã gọi rồi thì không gọi lại
@@ -569,15 +578,24 @@ function LessonAIContent() {
 
       <div className="flex flex-row gap-6">
         <div className="flex-1 px-4 md:px-8 lg:px-12">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => router.back()}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-700 hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl font-semibold border border-gray-200 mb-4 cursor-pointer max-sm:mt-1"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            {t("learning.back")}
-          </motion.button>
+          <div className="flex justify-between items-center">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.back()}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-700 hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl font-semibold border border-gray-200 mb-4 cursor-pointer max-sm:mt-1"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              {t("learning.back")}
+            </motion.button>
+            <button
+              onClick={() => setShowSettings(true)}
+              className="p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
+              title="Settings"
+            >
+              <Settings size={20} />
+            </button>
+          </div>
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex items-center justify-between gap-4">
               <motion.button
@@ -784,7 +802,7 @@ function LessonAIContent() {
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div
-                          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                          className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                             isCurrent
                               ? "bg-white/20"
                               : isCompleted
@@ -838,7 +856,7 @@ function LessonAIContent() {
                         </div>
                       </div>
                       {isCurrent && (
-                        <ChevronRight className="w-5 h-5 text-white flex-shrink-0" />
+                        <ChevronRight className="w-5 h-5 text-white shrink-0" />
                       )}
                     </div>
                   </button>
@@ -906,7 +924,7 @@ function LessonAIContent() {
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                           <div
-                            className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                            className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
                               isCurrent
                                 ? "bg-white/20"
                                 : isCompleted
@@ -960,7 +978,7 @@ function LessonAIContent() {
                           </div>
                         </div>
                         {isCurrent && (
-                          <ChevronRight className="w-6 h-6 text-white flex-shrink-0" />
+                          <ChevronRight className="w-6 h-6 text-white shrink-0" />
                         )}
                       </div>
                     </motion.button>
@@ -1003,6 +1021,16 @@ function LessonAIContent() {
           </motion.button>
         </DialogContent>
       </Dialog>
+
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        voices={googleVoices}
+        selectedVoice={selectedVoice}
+        onVoiceChange={setSelectedVoice}
+        rate={speechRate}
+        onRateChange={setSpeechRate}
+      />
     </div>
   );
 }

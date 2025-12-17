@@ -420,7 +420,7 @@ export const ActiveChatSession = ({
   return (
     <div className="relative w-full h-[calc(100vh)] flex flex-col overflow-hidden lg:ml-10 md:ml-20 max-sm:pt-16">
       {showCelebration && (
-        <div className="fixed inset-0 z-[100] pointer-events-none">
+        <div className="fixed inset-0 z-100 pointer-events-none">
           <Confetti
             width={width}
             height={height}
@@ -742,7 +742,7 @@ export const ActiveChatSession = ({
       </div>
 
       <Dialog open={showCelebration} onOpenChange={setShowCelebration}>
-        <DialogContent className="max-w-lg rounded-3xl bg-linear-to-br from-yellow-400 via-orange-500 to-pink-500 text-white shadow-2xl border-4 border-white z-[110]">
+        <DialogContent className="max-w-lg rounded-3xl bg-linear-to-br from-yellow-400 via-orange-500 to-pink-500 text-white shadow-2xl border-4 border-white z-110">
           <DialogHeader className="text-center">
             <motion.div
               animate={{ rotate: [0, 10, -10, 10, 0], scale: [1, 1.1, 1] }}
