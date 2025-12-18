@@ -3,6 +3,7 @@
 import {
   feedbackWritingParagraphExercise,
   getHistorySubmitWritingParagraphByUserAndParagraph,
+  getSuggestionWithPenalty,
   getWritingParagraphById,
   submitWritingParagraphExercise,
 } from "@/app/apiClient/learning/writing/writing";
@@ -73,6 +74,8 @@ export default function PageExerciseDetail() {
   const [plusSnowValue, setPlusSnowValue] = useState<number | null>(null);
 
   const feedbackRef = useRef<HTMLDivElement | null>(null);
+
+  const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
 
   // Lấy thông tin bài tập theo id
   useEffect(() => {
@@ -149,35 +152,12 @@ export default function PageExerciseDetail() {
   };
 
   // Handle xem gợi ý
-  const handleSuggest = async () => {
-    if (!exerciseDetail && !userData) return;
+  const handleSuggest = () => {
     if (score && score.number_snowflake < 2) {
       toast.error(t("learning.errorGetSuggestions"));
       return;
     }
-
-    const btnRect = suggestBtnRef.current?.getBoundingClientRect();
-    const scoreRect = scoreRef.current?.getBoundingClientRect();
-
-    if (btnRect && scoreRect) {
-      setStartPos({ x: btnRect.left + btnRect.width / 2, y: btnRect.top });
-      setEndPos({ x: scoreRect.left + scoreRect.width / 2, y: scoreRect.top });
-      setShowMinus(true);
-    }
-    score && (score.number_snowflake = Math.max(0, score.number_snowflake - 2));
-    try {
-      setFeedbackLoading(true);
-      setFeedback(null);
-      const response = await feedbackWritingParagraphExercise(
-        userData.id,
-        exerciseDetail!.id,
-        inputValue
-      );
-      setFeedback(response.data);
-      setFeedbackLoading(false);
-    } catch (error) {
-      console.error("Error fetching feedback writing paragraph:", error);
-    }
+    setIsSuggestModalOpen(true);
   };
 
   // Handle history
@@ -217,10 +197,49 @@ export default function PageExerciseDetail() {
     }
   };
 
-  if (submitLoading)
+  // Xác nhận xem gợi ý
+  const confirmSuggest = async () => {
+    setIsSuggestModalOpen(false); // Đóng modal
+    if (!exerciseDetail && !userData) return;
+
+    // Hiệu ứng trừ điểm trên giao diện
+    const btnRect = suggestBtnRef.current?.getBoundingClientRect();
+    const scoreRect = scoreRef.current?.getBoundingClientRect();
+
+    if (btnRect && scoreRect) {
+      setStartPos({ x: btnRect.left + btnRect.width / 2, y: btnRect.top });
+      setEndPos({ x: scoreRect.left + scoreRect.width / 2, y: scoreRect.top });
+      setShowMinus(true);
+    }
+
+    // Cập nhật điểm local
+    score && (score.number_snowflake = Math.max(0, score.number_snowflake - 2));
+
+    try {
+      setFeedbackLoading(true);
+      setFeedback(null);
+
+      // Gọi API phạt không lấy điểm
+      await getSuggestionWithPenalty(exerciseDetail!.id);
+
+      // Lấy feedback từ AI
+      const response = await feedbackWritingParagraphExercise(
+        userData.id,
+        exerciseDetail!.id,
+        inputValue
+      );
+      setFeedback(response.data);
+      setFeedbackLoading(false);
+    } catch (error) {
+      console.error("Error fetching feedback:", error);
+      setFeedbackLoading(false);
+    }
+  };
+
+  if (submitLoading || feedbackLoading)
     return (
       <AnimatePresence>
-        {submitLoading && (
+        {(submitLoading || feedbackLoading) && (
           <motion.div
             className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 px-4"
             initial={{ opacity: 0 }}
@@ -247,7 +266,7 @@ export default function PageExerciseDetail() {
               </motion.div>
               <div className="flex flex-col items-center gap-2">
                 <span className="text-gray-800 font-semibold text-base md:text-lg text-center">
-                  {t("learning.submittingExercise")}
+                  {submitLoading ? t("learning.submitting") : t("learning.loadingFeedback")}
                 </span>
                 <span className="text-gray-500 text-xs md:text-sm text-center">
                   {t("learning.pleaseWait")}
@@ -456,7 +475,7 @@ export default function PageExerciseDetail() {
             ref={feedbackRef}
             className="bg-white p-6 rounded-xl shadow-sm border min-h-1/3 max-h-[calc(100vh-150px)] overflow-y-auto"
           >
-            {submitLoading ? (
+            {(submitLoading || feedbackLoading) ? (
               // <div className="flex flex-col items-center justify-center h-full">
               //   <Lightbulb className="animate-pulse h-6 w-6 text-yellow-400 mb-2" />
               //   <p className="text-gray-500">{t("learning.submitting")}</p>
@@ -636,6 +655,7 @@ export default function PageExerciseDetail() {
             </motion.div>
           )}
         </AnimatePresence>
+
         <AnimatePresence>
           {showPlus && plusPos && (
             <motion.div
@@ -661,6 +681,7 @@ export default function PageExerciseDetail() {
             </motion.div>
           )}
         </AnimatePresence>
+
         <AnimatePresence>
           {showPlusSnow && plusSnowPos && (
             <motion.div
@@ -683,6 +704,53 @@ export default function PageExerciseDetail() {
             >
               +{plusSnowValue}{" "}
               <Snowflake className="inline h-8 w-8 ml-1 text-blue-400" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Modal xác nhận sử dụng gợi ý */}
+        <AnimatePresence>
+          {isSuggestModalOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-orange-100"
+              >
+                <div className="flex flex-col items-center text-center gap-4">
+                  <div className="bg-orange-100 p-3 rounded-full">
+                    <Lightbulb className="w-8 h-8 text-orange-500" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    {t("learning.confirmSuggestionTitle") || "Sử dụng gợi ý?"}
+                  </h3>
+                  <p className="text-gray-600">
+                    {t("learning.confirmSuggestionDesc") ||
+                      "Nếu sử dụng gợi ý, bạn sẽ bị trừ 2 ❄ và sẽ không được cộng điểm kỹ năng cho bài làm này. Bạn có chắc chắn không?"}
+                  </p>
+                  <div className="flex gap-3 w-full mt-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsSuggestModalOpen(false)}
+                      className="flex-1 rounded-xl py-6 border-gray-200"
+                    >
+                      {t("learning.buttonCancel") || "Hủy"}
+                    </Button>
+                    <Button
+                      onClick={confirmSuggest}
+                      className="flex-1 rounded-xl py-6 bg-orange-500 hover:bg-orange-600 text-white"
+                    >
+                      {t("learning.buttonConfirm") || "Đồng ý"}
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>

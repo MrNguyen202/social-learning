@@ -18,4 +18,7 @@ router.get('/listening-exercises/progress/:user_id/:listen_para_id', listeningCo
 // Get history of submissions for a user and a specific listening exercise
 router.get('/listening-exercises/history/:user_id/:ex_listen_id', listeningController.getSubmissionHistory);
 
+// Penalty for using suggestions in listening exercise
+router.post('/listening-exercises/penalty', authMiddleware, listeningController.penaltyListeningExercise);
+
 module.exports = router;

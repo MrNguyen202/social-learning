@@ -55,7 +55,7 @@ QUY TẮC CHẤM ĐIỂM NGHIÊM NGẶT (CRITICAL SCORING RULES):
 Phải tính trung bình trên tất cả các câu trong bài dịch để ra điểm cuối cùng cho từng mục (accuracy, grammar, vocabulary).
 
 Lưu ý:
-- Luôn highlight lỗi bằng cú pháp: (sai) → [đúng].
+- Luôn highlight(của error) lỗi bằng cú pháp: (sai) → [đúng]. từ, cụm từ, câu sai phải để trong ngoặc đơn, từ/cụm từ/câu gợi ý đúng trong ngoặc vuông.
 - Luôn có ít nhất một điểm mạnh (strength).
 - Luôn viết suggestion rõ ràng, dễ hiểu, có giải thích và mẹo.
 - Ở phần highlight luôn để từ/cụm từ sai trong ngoặc đơn và từ/cụm từ đúng trong ngoặc vuông.

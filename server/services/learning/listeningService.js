@@ -179,11 +179,10 @@ const listeningService = {
     },
 
     // Cập nhật tiến độ học
-    async updateUserProgress(data) {
-        const { user_id, listen_para_id, number_word_completed, lastSubmit, completed_date, submit_times, score, isCorrect } = data;
+    async updateUserProgress(user_id, listen_para_id,data) {
         const { data: result, error } = await supabase
             .from("progressListenParagraph")
-            .update({ number_word_completed, lastSubmit, completed_date, submit_times, score, isCorrect })
+            .update(data)
             .eq("user_id", user_id)
             .eq("listen_para_id", listen_para_id)
             .select()

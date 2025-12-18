@@ -60,6 +60,8 @@ export default function ListeningDetailPage() {
   const [submitResult, setSubmitResult] = useState<any>(null);
   const [showBuyModal, setShowBuyModal] = useState(false);
 
+  const [showConfirmHintModal, setShowConfirmHintModal] = useState(false);
+
   const [windowSize, setWindowSize] = useState({
     width: typeof window !== "undefined" ? window.innerWidth : 0,
     height: typeof window !== "undefined" ? window.innerHeight : 0,
@@ -170,46 +172,6 @@ export default function ListeningDetailPage() {
     triggerSnowflakeAnim("check");
   };
 
-  // Hàm gợi ý
-  const handleSuggestHint = async () => {
-    if (score!.number_snowflake < 2) {
-      setShowBuyModal(true);
-      return;
-    }
-
-    const unansweredPositions = Object.keys(hiddenMap).filter(
-      (pos) => !answers[parseInt(pos)]
-    );
-    if (unansweredPositions.length === 0) return;
-
-    const randomPos =
-      unansweredPositions[
-      Math.floor(Math.random() * unansweredPositions.length)
-      ];
-    const correctWord = hiddenMap[parseInt(randomPos)];
-
-    setAnswers((prev: Record<number, string>) => ({
-      ...prev,
-      [parseInt(randomPos)]: correctWord,
-    }));
-    setCheckResult((prev: Record<number, boolean | null>) => ({
-      ...prev,
-      [parseInt(randomPos)]: true,
-    }));
-
-    // Gọi API trừ bông tuyết
-    await deductSnowflakeFromUser(user!.id, -2);
-
-    // Cập nhật điểm
-    setScore((prev: any) => ({
-      ...prev,
-      number_snowflake: (prev?.number_snowflake ?? 0) - 2,
-    }));
-
-    //  Gọi animation
-    triggerSnowflakeAnim("hint");
-  };
-
   // Hàm nộp bài
   const handleSubmit = async () => {
     setLoadingSubmit(true);
@@ -282,6 +244,55 @@ export default function ListeningDetailPage() {
     //Cập nhật lại state của component để UI thay đổi theo
     setAnswers(historicalAnswers);
     setCheckResult(historicalCheckResult);
+  };
+
+  const handleSuggestHint = async () => {
+    // 1. Kiểm tra nếu bài này đã dùng gợi ý trước đó, cho phép dùng tiếp mà không hỏi
+    if (progress?.is_used_suggestion) {
+      executeHintLogic();
+      return;
+    }
+
+    // 2. Nếu chưa dùng bao giờ, mở Modal hỏi người dùng
+    setShowConfirmHintModal(true);
+  };
+
+  // Hàm thực thi logic lấy gợi ý (tách ra từ logic cũ)
+  const executeHintLogic = async () => {
+    if (score!.number_snowflake < 2) {
+      setShowBuyModal(true);
+      return;
+    }
+
+    const unansweredPositions = Object.keys(hiddenMap).filter(
+      (pos) => !answers[parseInt(pos)]
+    );
+    if (unansweredPositions.length === 0) return;
+
+    const randomPos = unansweredPositions[Math.floor(Math.random() * unansweredPositions.length)];
+    const correctWord = hiddenMap[parseInt(randomPos)];
+
+    // Cập nhật giao diện
+    setAnswers((prev) => ({ ...prev, [parseInt(randomPos)]: correctWord }));
+    setCheckResult((prev) => ({ ...prev, [parseInt(randomPos)]: true }));
+
+    // Gọi API trừ bông tuyết và đánh dấu bài tập (Penalty)
+    await deductSnowflakeFromUser(user!.id, -2);
+    await listeningService.penaltyListeningExercise(exercise!.id);
+
+    // Cập nhật trạng thái bài tập đã dùng gợi ý
+    setProgress((prev: any) => ({
+      ...prev,
+      is_used_suggestion: true,
+    }));
+
+    setScore((prev: any) => ({
+      ...prev,
+      number_snowflake: (prev?.number_snowflake ?? 0) - 2,
+    }));
+
+    triggerSnowflakeAnim("hint");
+    setShowConfirmHintModal(false);
   };
 
   if (loadingSubmit)
@@ -819,6 +830,37 @@ export default function ListeningDetailPage() {
             </div>
           </DialogContent>
         </motion.div>
+      </Dialog>
+
+      <Dialog open={showConfirmHintModal} onOpenChange={setShowConfirmHintModal}>
+        <DialogOverlay className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+        <DialogContent className="bg-white rounded-2xl shadow-2xl w-[400px] p-6 text-center fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="flex flex-col items-center">
+            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+              <Bot className="text-yellow-600 w-8 h-8" />
+            </div>
+            <DialogTitle className="text-xl font-bold text-gray-800 mb-2">
+              {t("learning.confirmSuggestionTitle")}
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 mb-6">
+              {t("learning.confirmSuggestionDesc")}
+            </DialogDescription>
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => setShowConfirmHintModal(false)}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              >
+                {t("learning.buttonCancel")}
+              </button>
+              <button
+                onClick={executeHintLogic}
+                className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+              >
+                {t("learning.buttonConfirm")}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
       </Dialog>
     </div>
   );

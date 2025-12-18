@@ -18,4 +18,7 @@ router.get('/get-progress/:user_id/:paragraph_id', writingController.getProgress
 // Get history submit writingParagraph exercise by user_id and paragraph_id with feedback information
 router.get('/history-submit/:user_id/:paragraph_id', writingController.getHistorySubmitWritingParagraphByUserAndParagraph);
 
+// suggestion with penalty
+router.post('/suggestion-with-penalty', authMiddleware, writingController.getSuggestionWithPenalty);
+
 module.exports = router;

@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 import { BASE_URL_API } from '@env';
 
 const api = axios.create({
-  baseURL: "http://192.168.1.9:5000",
+  baseURL: "http://192.168.1.185:5000",
   headers: {
     'Content-Type': 'application/json',
   },

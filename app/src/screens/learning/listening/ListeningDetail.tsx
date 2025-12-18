@@ -9,6 +9,7 @@ import {
   Alert,
   StyleSheet,
   SafeAreaView,
+  Modal,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import {
@@ -51,6 +52,7 @@ export default function ListeningDetail() {
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitResult, setSubmitResult] = useState<{ correct: number, total: number }>({ correct: 0, total: 0 });
+  const [showConfirmHint, setShowConfirmHint] = useState(false);
 
 
   useEffect(() => {
@@ -116,26 +118,6 @@ export default function ListeningDetail() {
     }));
   }
 
-  const handleSuggestHint = async () => {
-    const unansweredPositions = Object.keys(hiddenMap).filter((pos) => !answers[parseInt(pos)]);
-    if (unansweredPositions.length === 0) return;
-
-    const randomPos = unansweredPositions[Math.floor(Math.random() * unansweredPositions.length)];
-    const correctWord = hiddenMap[parseInt(randomPos)];
-
-    setAnswers(prev => ({ ...prev, [parseInt(randomPos)]: correctWord }));
-    setCheckResult(prev => ({ ...prev, [parseInt(randomPos)]: true }));
-
-    // Gọi API trừ bông tuyết
-    await deductSnowflakeFromUser(user!.id, -2);
-
-    // Cập nhật điểm
-    setScore((prev: any) => ({
-      ...prev,
-      number_snowflake: (prev?.number_snowflake ?? 0) - 2,
-    }));
-  };
-
   const handleSubmit = async () => {
     setIsSubmitting(true);
     const wordAnswers = exercise.wordHidden.map((wh: any) => ({
@@ -192,6 +174,48 @@ export default function ListeningDetail() {
     setAnswers(historicalAnswers);
     setCheckResult(historicalCheckResult);
     setShowHistoryModal(false)
+  };
+
+  // Hàm thực thi trừ điểm và lấy gợi ý
+  const executeHintLogic = async () => {
+    if (!score || score.number_snowflake < 2) {
+      Alert.alert("Thông báo", "Bạn không đủ Snowflake");
+      return;
+    }
+
+    const unansweredPositions = Object.keys(hiddenMap).filter((pos) => !answers[parseInt(pos)]);
+    if (unansweredPositions.length === 0) return;
+
+    const randomPos = unansweredPositions[Math.floor(Math.random() * unansweredPositions.length)];
+    const correctWord = hiddenMap[parseInt(randomPos)];
+
+    setAnswers(prev => ({ ...prev, [parseInt(randomPos)]: correctWord }));
+    setCheckResult(prev => ({ ...prev, [parseInt(randomPos)]: true }));
+
+    try {
+      // 1. Trừ bông tuyết trong DB
+      await deductSnowflakeFromUser(user!.id, -2);
+
+      // 2. Gọi API Penalty để đánh dấu bài tập đã dùng gợi ý
+      await listeningService.penaltyListeningExercise(exercise.id);
+
+      // 3. Cập nhật Local State để không hiện Modal nữa
+      setProgress((prev: any) => ({ ...prev, is_used_suggestion: true }));
+      setScore((prev: any) => ({ ...prev, number_snowflake: (prev?.number_snowflake ?? 0) - 2 }));
+
+      setShowConfirmHint(false); // Đóng modal sau khi thành công
+    } catch (error) {
+      console.error("Lỗi áp dụng gợi ý:", error);
+    }
+  };
+
+  // Hàm xử lý khi nhấn nút Hint từ Menu
+  const handleSuggestHint = () => {
+    if (progress?.is_used_suggestion) {
+      executeHintLogic(); // Nếu đã dùng rồi thì không hỏi nữa
+    } else {
+      setShowConfirmHint(true); // Nếu chưa dùng thì mở Modal hỏi
+    }
   };
 
   return (
@@ -355,6 +379,42 @@ export default function ListeningDetail() {
         practice_score={resSubmit?.score}
         snowflake={resSubmit?.snowflake}
       />
+
+      <Modal
+        visible={showConfirmHint}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowConfirmHint(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmModalContent}>
+            <View style={styles.iconContainer}>
+              <Text style={{ fontSize: 40 }}>💡</Text>
+            </View>
+
+            <Text style={styles.modalTitle}>Sử dụng gợi ý?</Text>
+            <Text style={styles.modalDescription}>
+              Hệ thống sẽ điền giúp bạn 1 từ đúng. Bạn sẽ bị trừ 2 ❄️ và bài tập này sẽ bị đánh dấu "Đã dùng gợi ý".
+            </Text>
+
+            <View style={styles.modalButtonGroup}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setShowConfirmHint(false)}
+              >
+                <Text style={styles.cancelButtonText}>Để sau</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.confirmButton]}
+                onPress={executeHintLogic}
+              >
+                <Text style={styles.confirmButtonText}>Xác nhận (-2 ❄️)</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -476,5 +536,66 @@ const styles = StyleSheet.create({
   mediaContent: {
     width: '100%',
     height: hp(24),
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  confirmModalContent: {
+    backgroundColor: 'white',
+    borderRadius: 24,
+    padding: 24,
+    width: '100%',
+    alignItems: 'center',
+    elevation: 5,
+  },
+  iconContainer: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#FFFBEB',
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  modalDescription: {
+    fontSize: 16,
+    color: '#4B5563',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  modalButtonGroup: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#F3F4F6',
+  },
+  cancelButtonText: {
+    color: '#4B5563',
+    fontWeight: '600',
+  },
+  confirmButton: {
+    backgroundColor: '#D97706', // Màu vàng đậm
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   }
 });

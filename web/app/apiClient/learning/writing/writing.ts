@@ -14,7 +14,7 @@ export const getListWritingParagraphsByTypeLevelTypeParagraph = async (
     type_paragraph_slug: string,
     page: number = 1,
     limit: number = 6
-) : Promise<WritingResponse> => {
+): Promise<WritingResponse> => {
     try {
         const response = await api.get(
             `/api/learning/writing/writing-paragraphs/${type_exercise_slug}/${level_slug}/${type_paragraph_slug}?page=${page}&limit=${limit}`
@@ -112,11 +112,26 @@ export const feedbackWritingParagraphExercise = async (
 
 // Get history submit writingParagraph exercise by user_id and paragraph_id with feedback information
 export const getHistorySubmitWritingParagraphByUserAndParagraph = async (user_id: string, paragraph_id: string) => {
-  try {
-    const response = await api.get(`/api/learning/writing/history-submit/${user_id}/${paragraph_id}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching history submit writing paragraph by user and paragraph:", error);
-    throw error;
-  }
+    try {
+        const response = await api.get(`/api/learning/writing/history-submit/${user_id}/${paragraph_id}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching history submit writing paragraph by user and paragraph:", error);
+        throw error;
+    }
+};
+
+// suggestion with penalty
+export const getSuggestionWithPenalty = async (
+    paragraph_id: number,
+) => {
+    try {
+        const response = await api.post(`/api/learning/writing/suggestion-with-penalty`, {
+            paragraph_id,
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching suggestion with penalty:", error);
+        throw error;
+    }
 };

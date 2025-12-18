@@ -166,14 +166,14 @@ const writingController = {
         level.slug === "beginner"
           ? 10
           : level.slug === "intermediate"
-          ? 20
-          : 30,
+            ? 20
+            : 30,
         savedFeedback[0].accuracy === 100,
         progressData ? progressData.submit_times : 0,
         progressData ? progressData.isCorrect : false
       );
       // Cộng điểm cho user
-      if (score > 0) {
+      if (!progressData?.is_used_suggestion && score > 0) {
         await scoreUserService.addSkillScore(user_id, "writing", score);
       }
 
@@ -185,7 +185,7 @@ const writingController = {
         progressData ? progressData.isCorrect : false
       );
 
-      if (snowflakeScore > 0) {
+      if (!progressData?.is_used_suggestion && snowflakeScore > 0) {
         await scoreUserService.deductSnowflakeFromUser(user_id, snowflakeScore);
       }
 
@@ -218,8 +218,8 @@ const writingController = {
         data: {
           feedback: json,
           submit: savedSubmit[0],
-          score: score,
-          snowflake: snowflakeScore,
+          score: progressData?.is_used_suggestion ? 0 : score,
+          snowflake: progressData?.is_used_suggestion ? 0 : snowflakeScore,
         },
       });
     } catch (error) {
@@ -257,6 +257,47 @@ const writingController = {
       res.status(500).json({ error: "Internal Server Error" });
     }
   },
+
+  // Phạt điểm khi sử dụng gợi ý
+  getSuggestionWithPenalty: async (req, res) => {
+    const { paragraph_id } = req.body;
+    const user_id = req.user.id;
+    try {
+      // Kiểm tra progress hiện tại
+      const progress = await writingService.getProgressWritingParagraph(
+        user_id,
+        paragraph_id
+      );
+
+      if (progress) {
+        if (progress.is_used_suggestion) {
+          return res.json({ message: "Suggestion already used for this paragraph." });
+        }
+        // Cập nhật trạng thái đã dùng gợi ý
+        await writingService.updateProgressWritingParagraph(
+          user_id,
+          paragraph_id,
+          { is_used_suggestion: true }
+        );
+      } else {
+        // Tạo mới progress với trạng thái đã dùng gợi ý
+        await writingService.saveProgressWritingParagraph({
+          user_id,
+          writingParagraph_id: paragraph_id,
+          lastSubmit_id: null,
+          submit_times: 0,
+          isCorrect: false,
+          is_used_suggestion: true,
+        });
+      }
+
+      return res.json({ message: "Penalty applied for using suggestion." });
+    }
+    catch (error) {
+      console.error("Error applying penalty for suggestion:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
 };
 
 module.exports = writingController;

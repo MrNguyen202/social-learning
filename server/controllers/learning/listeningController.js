@@ -140,10 +140,10 @@ const listeningController = {
       );
 
       // Cộng điểm và bông tuyết
-      if (scoreSubmit > 0) {
+      if (!progress.is_used_suggestion && scoreSubmit > 0) {
         await scoreUserService.addSkillScore(user_id, "listening", scoreSubmit);
       }
-      if (snowflakeScore > 0) {
+      if (!progress.is_used_suggestion && snowflakeScore > 0) {
         await scoreUserService.deductSnowflakeFromUser(user_id, snowflakeScore);
       }
 
@@ -154,26 +154,24 @@ const listeningController = {
       const maxCompleted = currentCompleted > oldCompleted ? currentCompleted : oldCompleted;
 
       const progressData = {
-        user_id,
-        listen_para_id: ex_listen_id,
         number_word_completed: maxCompleted,
         lastSubmit: resultSubmission.id,
         completed_date: isPerfect ? new Date() : null,
         submit_times: (progress ? progress.submit_times : 0) + 1,
-        score: (progress ? progress.score : 0) + scoreSubmit,
+        score: (progress ? progress.score : 0) + (progress && progress.is_used_suggestion ? 0 : scoreSubmit),
         isCorrect: (progress ? progress.isCorrect : false) || isPerfect,
       };
 
       if (progress) {
-        await listeningService.updateUserProgress(progressData);
+        await listeningService.updateUserProgress(user_id, ex_listen_id, progressData);
       } else {
         await listeningService.createUserProgress(progressData);
       }
 
       res.json({
         message: "Listening results submitted successfully",
-        score: scoreSubmit,
-        snowflake: snowflakeScore,
+        score: progress && progress.is_used_suggestion ? 0 : scoreSubmit,
+        snowflake: progress && progress.is_used_suggestion ? 0 : snowflakeScore,
         correctCount,
         totalCount, // Trả về tổng số câu hỏi thực tế để Frontend hiển thị "5/10"
       });
@@ -209,6 +207,44 @@ const listeningController = {
       res.json(data);
     } catch (error) {
       console.error("Error fetching submission history:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
+  // penalty listening exercise
+  async penaltyListeningExercise(req, res) {
+    const { ex_listen_id } = req.body;
+    const userId = req.user.id;
+    try {
+      // Kiểm tra progress hiện tại
+      const progress = await listeningService.getUserProgress(
+        userId,
+        ex_listen_id
+      );
+
+      if (progress) {
+        if (progress.is_used_suggestion) {
+          return res.json({ message: "Suggestion already used for this exercise." });
+        }
+        // Cập nhật trạng thái đã dùng gợi ý
+        await listeningService.updateUserProgress(userId, ex_listen_id, {
+          is_used_suggestion: true,
+        });
+      } else {
+        // Tạo mới progress với trạng thái đã dùng gợi ý
+        await listeningService.createUserProgress({
+          user_id: userId,
+          listen_para_id: ex_listen_id,
+          number_word_completed: 0,
+          submit_times: 0,
+          score: 0,
+          isCorrect: false,
+          is_used_suggestion: true,
+        });
+      }
+      res.json({ message: "Penalty applied successfully" });
+    } catch (error) {
+      console.error("Error applying penalty to listening exercise:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
   },

@@ -87,7 +87,7 @@
   "suggest": "Suggestions",
   "excellent": "You have completed the writing task excellently. Keep it up!",
   "overallFeedback": "Overall Feedback",
-  "loadingFeedback": "Loading feedback...",
+  "loadingFeedback": "Loading feedback",
   "new": "New",
   "submissionCount": "Submission Count",
   "guideline": "Guideline",
@@ -374,5 +374,9 @@
   "exercisesUserGenAI": "Your Exercises Generated with AI",
   "noExercisesFound": "No exercises found.",
   "writingComplete": "Completed!",
-  "submitTimes": "Submission Times"
+  "submitTimes": "Submission Times",
+  "confirmSuggestionTitle": "Confirm Suggestion with Penalty",
+  "confirmSuggestionDesc": "If you use a hint, you will lose 2 ❄️ and will not earn skill points for this work. Do you want to proceed?",
+  "buttonCancel": "Cancel",
+  "buttonConfirm": "Confirm"
 }

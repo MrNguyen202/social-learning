@@ -42,5 +42,11 @@ export const listeningService = {
     getSubmissionHistory: async (user_id: string, ex_listen_id: string) => {
         const response = await api.get(`/api/learning/listening/listening-exercises/history/${user_id}/${ex_listen_id}`);
         return response.data;
-    }
+    },
+
+    // Penalty for using suggestions in listening exercise
+    penaltyListeningExercise: async (ex_listen_id: number) => {
+        const response = await api.post(`/api/learning/listening/listening-exercises/penalty`, { ex_listen_id });
+        return response.data;
+    },
 };

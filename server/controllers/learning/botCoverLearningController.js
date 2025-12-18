@@ -239,7 +239,8 @@ const botCoverLearningController = {
       const data = {
         title_en: json.title_en,
         title_vi: json.title_vi,
-        description: json.description,
+        description_en: json.description_en,
+        description_vi: json.description_vi,
         text_content: json.text_content,
         audio_url: uploadResult.url,
         word_hiddens: json.word_hiddens // Mảng các từ bị ẩn

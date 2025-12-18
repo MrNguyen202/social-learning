@@ -119,7 +119,7 @@ const ConversationInfoModal = ({
                         await deleteConversationHistory(conversation.id);
                         Toast.show({ type: 'success', text1: 'Đã xóa lịch sử trò chuyện' });
                         onClose();
-                        navigation.navigate('Dashboard');
+                        navigation.navigate('Message');
                     } catch (e) {
                         Toast.show({ type: 'error', text1: 'Lỗi xóa lịch sử' });
                     }
@@ -140,7 +140,7 @@ const ConversationInfoModal = ({
                         await dissolveGroupConversation(conversation.id);
                         Toast.show({ type: 'success', text1: 'Nhóm đã được giải tán' });
                         onClose();
-                        navigation.navigate('Dashboard');
+                        navigation.navigate('Message');
                     } catch (e) {
                         Toast.show({ type: 'error', text1: 'Lỗi giải tán nhóm' });
                     }

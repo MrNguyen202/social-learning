@@ -12,6 +12,8 @@ import {
     Alert,
     TouchableWithoutFeedback,
     Keyboard,
+    StyleSheet,
+    Modal,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 // Thêm icon BookOpen và PenTool
@@ -26,6 +28,7 @@ import {
     getHistorySubmitWritingParagraphByUserAndParagraph,
     submitWritingParagraphExercise,
     feedbackWritingParagraphExercise,
+    getSuggestionWithPenalty,
 } from "../../../api/learning/writing/route";
 import { getScoreUserByUserId } from '../../../api/learning/score/route';
 
@@ -53,7 +56,7 @@ export default function ExerciseDetailScreen() {
     const [progress, setProgress] = useState<any>(null);
     const [pageLoading, setPageLoading] = useState(true);
 
-    console.log("Progress:", progress);
+    const [showConfirmHint, setShowConfirmHint] = useState(false);
 
     // Feedback/Submit states
     const [feedback, setFeedback] = useState<any | null>(null);
@@ -143,29 +146,6 @@ export default function ExerciseDetailScreen() {
         }
     };
 
-    const handleFeedback = async () => {
-        if (!exercise) return;
-        if (score.number_snowflake < 2) {
-            Toast.show({ type: "error", text1: "Không đủ Snowflake!" });
-            return;
-        }
-        setIsFetchingFeedback(true);
-        try {
-            const res = await feedbackWritingParagraphExercise(user.id, exercise.id, inputValue);
-            setFeedback(res.data);
-            setScore((s: any) => ({
-                ...s,
-                number_snowflake: Math.max(0, s.number_snowflake - 2),
-            }));
-            setShowFeedbackModal(true);
-        } catch (err) {
-            console.error(err);
-            Toast.show({ type: 'error', text1: 'Lỗi khi lấy gợi ý' });
-        } finally {
-            setIsFetchingFeedback(false);
-        }
-    };
-
     const handleHistorySelect = (historyItem: any) => {
         if (!historyItem) return;
         let parsedFeedback = null;
@@ -187,6 +167,61 @@ export default function ExerciseDetailScreen() {
 
     const handleDictionary = () => {
         Alert.alert("Tính năng sắp ra mắt", "Từ điển đang được phát triển.");
+    };
+
+    // 1. Hàm thực thi logic lấy feedback/gợi ý AI (có trừ snowflake và penalty)
+    const executeFeedbackLogic = async () => {
+        if (!exercise || !user) return;
+
+        setIsFetchingFeedback(true);
+        setShowConfirmHint(false); // Đóng modal xác nhận
+
+        try {
+            // GỌI API PENALTY (để đánh dấu bài tập này không được cộng điểm nữa)
+            // API này đã có sẵn trong writingController.js của bạn
+            await getSuggestionWithPenalty(exercise.id);
+
+            // GỌI API lấy feedback từ AI
+            const res = await feedbackWritingParagraphExercise(user.id, exercise.id, inputValue);
+            setFeedback(res.data);
+
+            // Cập nhật điểm local (trừ 2 snowflake)
+            setScore((s: any) => ({
+                ...s,
+                number_snowflake: Math.max(0, s.number_snowflake - 2),
+            }));
+
+            // Cập nhật progress local để lần sau không hiện Modal nữa
+            setProgress((prev: any) => ({
+                ...prev,
+                is_used_suggestion: true
+            }));
+
+            setShowFeedbackModal(true);
+        } catch (err) {
+            console.error(err);
+            Toast.show({ type: 'error', text1: 'Lỗi khi lấy gợi ý' });
+        } finally {
+            setIsFetchingFeedback(false);
+        }
+    };
+
+    // 2. Hàm xử lý khi nhấn nút "Gợi ý" từ FloatingMenu
+    const handleFeedbackWithConfirm = () => {
+        if (!exercise) return;
+
+        if (score.number_snowflake < 2) {
+            Toast.show({ type: "error", text1: "Không đủ Snowflake!" });
+            return;
+        }
+
+        // Nếu bài này đã từng dùng gợi ý rồi (đã bị penalty) -> Chạy luôn không hỏi
+        if (progress?.is_used_suggestion) {
+            executeFeedbackLogic();
+        } else {
+            // Lần đầu dùng -> Hiện Modal cảnh báo
+            setShowConfirmHint(true);
+        }
     };
 
     if (pageLoading) {
@@ -335,7 +370,7 @@ export default function ExerciseDetailScreen() {
 
             {/* FAB Menu */}
             <FloatingMenu
-                onCheck={handleFeedback}
+                onCheck={handleFeedbackWithConfirm}
                 onHint={handleDictionary}
                 onSubmit={handleSubmit}
             />
@@ -369,6 +404,112 @@ export default function ExerciseDetailScreen() {
             />
 
             <SubmittingModal visible={isSubmitting} />
+            {/* Modal xác nhận sử dụng gợi ý AI */}
+            <Modal
+                visible={showConfirmHint}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setShowConfirmHint(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.confirmModalContent}>
+                        <View style={styles.iconContainer}>
+                            {/* Dùng icon Lightbulb hoặc icon bot */}
+                            <Text style={{ fontSize: 40 }}>🤖</Text>
+                        </View>
+
+                        <Text style={styles.modalTitle}>Sử dụng gợi ý AI?</Text>
+                        <Text style={styles.modalDescription}>
+                            AI sẽ phân tích bài làm hiện tại của bạn. Bạn sẽ bị trừ 2 ❄️ và sẽ <Text style={{ fontWeight: 'bold', color: '#EF4444' }}>không nhận được điểm kỹ năng</Text> cho bài làm này.
+                        </Text>
+
+                        <View style={styles.modalButtonGroup}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.cancelButton]}
+                                onPress={() => setShowConfirmHint(false)}
+                            >
+                                <Text style={styles.cancelButtonText}>Hủy bỏ</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.confirmButton]}
+                                onPress={executeFeedbackLogic}
+                            >
+                                <Text style={styles.confirmButtonText}>Đồng ý (-2 ❄️)</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    // ... các style cũ của bạn
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    confirmModalContent: {
+        backgroundColor: 'white',
+        borderRadius: 24,
+        padding: 24,
+        width: '100%',
+        alignItems: 'center',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+    },
+    iconContainer: {
+        width: 80,
+        height: 80,
+        backgroundColor: '#F0F9FF',
+        borderRadius: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#1F2937',
+        marginBottom: 8,
+    },
+    modalDescription: {
+        fontSize: 16,
+        color: '#4B5563',
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: 24,
+    },
+    modalButtonGroup: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    modalButton: {
+        flex: 1,
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    cancelButton: {
+        backgroundColor: '#F3F4F6',
+    },
+    cancelButtonText: {
+        color: '#4B5563',
+        fontWeight: '600',
+    },
+    confirmButton: {
+        backgroundColor: '#FF6B6B', // Màu đỏ/cam ton-sur-ton với Writing
+    },
+    confirmButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
+    },
+});

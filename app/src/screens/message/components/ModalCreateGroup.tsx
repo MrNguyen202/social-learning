@@ -125,7 +125,7 @@ export default function ModalCreateGroup({ open, setOpen }: ModalCreateGroupProp
       setOpen(false);
       
       // Navigate to Chat Detail (Thay đổi tên màn hình phù hợp với Stack Navigator của bạn)
-      navigation.navigate('ChatScreen', { conversationId: newGroup.id, conversation: newGroup });
+      navigation.navigate('ChatDetail', { conversationId: newGroup.id, conversation: newGroup });
       
       Alert.alert("Thành công", "Tạo nhóm thành công!");
     } catch (error) {

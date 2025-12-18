@@ -112,3 +112,18 @@ export const getHistorySubmitWritingParagraphByUserAndParagraph = async (user_id
         throw error;
     }
 };
+
+// suggestion with penalty
+export const getSuggestionWithPenalty = async (
+    paragraph_id: number,
+) => {
+    try {
+        const response = await api.post(`/api/learning/writing/suggestion-with-penalty`, {
+            paragraph_id,
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching suggestion with penalty:", error);
+        throw error;
+    }
+};

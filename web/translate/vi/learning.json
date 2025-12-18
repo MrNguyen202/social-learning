@@ -87,7 +87,7 @@
   "suggest": "Gợi ý",
   "excellent": "Bạn đã hoàn thành bài viết một cách xuất sắc. Hãy tiếp tục phát huy!",
   "overallFeedback": "Nhận xét tổng quan",
-  "loadingFeedback": "Đang lấy phản hồi...",
+  "loadingFeedback": "Đang lấy phản hồi",
   "new": "Mới",
   "submissionCount": "Số lần nộp bài",
   "guideline": "Hướng dẫn",
@@ -378,5 +378,9 @@
   "exercisesUserGenAI": "Bài tập của bạn tạo với AI",
   "noExercisesFound": "Chưa tìm thấy bài tập nào.",
   "writingComplete": "Đã hoàn thành!",
-  "submitTimes": "Số lần nộp"
+  "submitTimes": "Số lần nộp",
+  "confirmSuggestionTitle": "Xác nhận gợi ý với phạt điểm",
+  "confirmSuggestionDesc": "Nếu bạn sử dụng gợi ý, bạn sẽ bị trừ 2 ❄️ và không nhận được điểm kỹ năng cho bài làm này. Bạn có muốn tiếp tục không?",
+  "buttonCancel": "Hủy",
+  "buttonConfirm": "Xác nhận"
 }
