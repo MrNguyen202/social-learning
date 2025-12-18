@@ -172,7 +172,11 @@ const listeningController = {
       if (progress) {
         await listeningService.updateUserProgress(user_id, ex_listen_id, progressData);
       } else {
-        await listeningService.createUserProgress(progressData);
+        await listeningService.createUserProgress({
+          user_id,
+          listen_para_id: ex_listen_id,
+          ...progressData,
+        });
       }
 
       res.json({

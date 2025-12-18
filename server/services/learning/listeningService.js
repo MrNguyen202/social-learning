@@ -179,7 +179,7 @@ const listeningService = {
     },
 
     // Cập nhật tiến độ học
-    async updateUserProgress(user_id, listen_para_id,data) {
+    async updateUserProgress(user_id, listen_para_id, data) {
         const { data: result, error } = await supabase
             .from("progressListenParagraph")
             .update(data)
