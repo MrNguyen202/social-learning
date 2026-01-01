@@ -68,7 +68,7 @@ export default function ActivityHeatmap({ user, t }: ActivityHeatmapProps) {
           value={year}
           onChange={(e) => setYear(Number(e.target.value))}
         >
-          {[2024, 2025].map((y) => (
+          {[2024, 2025, 2026].map((y) => (
             <option key={y} value={y}>
               {y}
             </option>
