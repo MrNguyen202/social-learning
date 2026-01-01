@@ -162,7 +162,7 @@ export default function VocabularyDetail() {
 
       // Lưu vào AsyncStorage
       await AsyncStorage.multiSet([
-        ['practiceWords', JSON.stringify(wordsToPractice)],
+        ['practiceWords', JSON.stringify([personalVocab])],
         ['masteryReviewId', personalVocab.id],
         ['masteryReviewScore', personalVocab.mastery_score.toString()],
       ]);
