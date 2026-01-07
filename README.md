@@ -192,8 +192,8 @@ Dự án được phát hành dưới **MIT License**. Xem chi tiết trong file
 
 Nếu bạn có câu hỏi hoặc góp ý, vui lòng liên hệ qua:
 
-- **Email:** tqbao44@gmail.com
-- **GitHub Issues:** [Mở issue tại đây](https://github.com/Bao44/.../issues)
+- **Email:** ntthuan.dev@gmail.com
+- **GitHub Issues:** [Mở issue tại đây](https://github.com/MrNguyen202/.../issues)
 
 <div align="center">
   <sub>Được xây dựng với ❤️ và ☕ bởi Team Social Learning</sub>
