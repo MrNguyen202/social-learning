@@ -9,7 +9,7 @@ const app = express();
 // Middleware
 const corsOptions = {
   // Add your allowed origins here
-  origin: ['https://www.socialonlinelearning.tech', 'https://socialonlinelearning.tech', 'https://social-learning-jl8n.onrender.com'],
+  origin: ['https://www.socialonlinelearning.tech', 'https://socialonlinelearning.tech', 'https://social-learning-hbxcay7si-mrnguyen202s-projects.vercel.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], // Add OPTIONS
   credentials: true,
 };
